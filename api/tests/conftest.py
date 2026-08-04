@@ -14,6 +14,10 @@ from app.core.database import Base
 from app import models  # noqa: F401
 from settings import TEST_DATABASE_URL
 
+from fastapi.testclient import TestClient
+
+from app.core.database import get_db_session
+from main import app
 
 def validate_test_database_url() -> str:
     """
@@ -84,3 +88,24 @@ def db_session():
         session.close()
         transaction.rollback()
         connection.close()
+
+@pytest.fixture
+def test_client(db_session: Session):
+    """
+    FastAPI tesztkliens.
+
+    Az alkalmazás normál adatbázis-session dependency-jét
+    a külön tesztadatbázis sessionjére cseréli.
+    """
+    def override_get_db_session():
+        yield db_session
+
+    app.dependency_overrides[get_db_session] = (
+        override_get_db_session
+    )
+
+    try:
+        with TestClient(app) as client:
+            yield client
+    finally:
+        app.dependency_overrides.clear()
