@@ -30,6 +30,7 @@ backups/
 backup/
 *.dump
 *.sql
+!docs/database/*.sql
 *.tar
 *.tar.gz
 *.zip
