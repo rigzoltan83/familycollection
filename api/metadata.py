@@ -1,7 +1,12 @@
 import requests
 import time
 
-from config import *
+from settings import (
+    ISBNDB_KEY,
+    USE_ISBNDB,
+    USE_OPENLIBRARY,
+    USE_ISBNSEARCH,
+)
 
 def normalize_isbn(isbn: str):
 
