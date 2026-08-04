@@ -8,7 +8,7 @@ gyűjteményt jelöl.
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, Integer, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -51,6 +51,11 @@ class Household(Base):
         nullable=False,
         server_default=func.now(),
         onupdate=func.now(),
+    )
+
+    members: Mapped[list["HouseholdMember"]] = relationship(
+        back_populates="household",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:
