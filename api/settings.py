@@ -107,3 +107,14 @@ def build_database_url() -> str:
 
 
 DATABASE_URL = build_database_url()
+
+APP_ENV = os.getenv(
+    "APP_ENV",
+    "development",
+).strip().lower()
+
+
+TEST_DATABASE_URL = os.getenv(
+    "TEST_DATABASE_URL",
+    "",
+).strip()
