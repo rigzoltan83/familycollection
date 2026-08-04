@@ -7,7 +7,7 @@ A háztartásokhoz a későbbi HouseholdMember modellen keresztül kapcsolódik.
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, String, func
+from sqlalchemy import Boolean, DateTime, Index, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -15,7 +15,7 @@ from app.core.database import Base
 
 class User(Base):
     __tablename__ = "users"
-
+    
     id: Mapped[int] = mapped_column(
         Integer,
         primary_key=True,
@@ -24,8 +24,14 @@ class User(Base):
     email: Mapped[str] = mapped_column(
         String(320),
         nullable=False,
-        unique=True,
-        index=True,
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_users_email",
+            func.lower(email),
+            unique=True,
+        ),
     )
 
     password_hash: Mapped[str] = mapped_column(
