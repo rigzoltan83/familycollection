@@ -87,3 +87,23 @@ USE_ISBNSEARCH = get_bool_setting(
     "USE_ISBNSEARCH",
     default=False,
 )
+
+def build_database_url() -> str:
+    """
+    SQLAlchemy és Alembic számára használható PostgreSQL kapcsolat.
+
+    A jelszó speciális karaktereit URL-kompatibilis formára alakítjuk.
+    """
+    from urllib.parse import quote_plus
+
+    encoded_user = quote_plus(DB_USER)
+    encoded_password = quote_plus(DB_PASS)
+
+    return (
+        f"postgresql+psycopg2://"
+        f"{encoded_user}:{encoded_password}"
+        f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+    )
+
+
+DATABASE_URL = build_database_url()
