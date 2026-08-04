@@ -13,7 +13,11 @@ from pydantic import BaseModel
 import db
 from metadata import fetch_book
 
+from app.api.routers.auth import router as auth_router
+
 app = FastAPI(title="Family Collection API")
+
+app.include_router(auth_router)
 
 app.mount(
     "/ui",
