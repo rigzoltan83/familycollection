@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Könyvtár</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #111;
+    color: #fff;
+}
+
+header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 12px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: #1b1b1b;
+    border-bottom: 1px solid #333;
+}
+
+header a {
+    color: #6dff6d;
+    text-decoration: none;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+header input {
+    flex: 1;
+    min-width: 0;
+    padding: 11px;
+    font-size: 16px;
+    border: 1px solid #444;
+    border-radius: 7px;
+    background: #292929;
+    color: #fff;
+}
+
+#summary {
+    padding: 10px 14px 0;
+    color: #aaa;
+    font-size: 14px;
+}
+
+#list {
+    padding: 10px;
+}
+
+#pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px 22px;
+}
+
+#pagination button {
+    min-width: 110px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 7px;
+    background: #237c45;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+#pagination button:hover:not(:disabled) {
+    background: #2d9b59;
+}
+
+#pagination button:disabled {
+    background: #444;
+    color: #888;
+    cursor: default;
+}
+
+#pageInfo {
+    min-width: 110px;
+    text-align: center;
+    color: #ccc;
+    font-size: 14px;
+}
+
+.card {
+    background: #1f1f1f;
+    margin-bottom: 12px;
+    padding: 14px;
+    border-radius: 10px;
+    border-left: 4px solid #58d658;
+}
+
+.card.removed {
+    border-left-color: #e0a800;
+}
+
+.card.borrowed {
+    border-left-color: #4da3ff;
+}
+
+.title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    gap: 12px;
+}
+
+.title {
+    font-size: 19px;
+    font-weight: bold;
+    color: #6dff6d;
+}
+
+.author {
+    color: #ccc;
+    text-align: right;
+    font-size: 14px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px 14px;
+    font-size: 14px;
+    color: #ddd;
+}
+
+.label {
+    color: #888;
+}
+
+.location {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 7px;
+    background: #292929;
+}
+
+.status-normal {
+    color: #6dff6d;
+}
+
+.status-removed {
+    color: #ffd24d;
+}
+
+.status-borrowed {
+    color: #72b7ff;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.actions button {
+    flex: 1;
+    border: none;
+    padding: 9px;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.edit {
+    background: #2563a8;
+}
+
+.edit:hover {
+    background: #347dcc;
+}
+
+.del {
+    background: #a80000;
+}
+
+.del:hover {
+    background: #d00000;
+}
+
+.empty,
+.error {
+    padding: 20px;
+    text-align: center;
+}
+
+.error {
+    color: #ff6b6b;
+}
+
+/* -----------------------
+   SZERKESZTŐABLAK
+----------------------- */
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.82);
+    overflow-y: auto;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 620px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 12px;
+    background: #202020;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0 0 15px;
+}
+
+.modal-close {
+    width: auto;
+    padding: 3px 12px;
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+}
+
+.modal-content label {
+    display: block;
+    margin-top: 13px;
+    margin-bottom: 5px;
+    color: #bbb;
+}
+
+.modal-content input,
+.modal-content select {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid #555;
+    border-radius: 7px;
+    background: #303030;
+    color: white;
+    font-size: 16px;
+}
+
+.modal-content input:disabled {
+    color: #999;
+    background: #181818;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-actions button {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 7px;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.modal-actions .cancel {
+    background: #666;
+}
+
+.modal-actions .save {
+    background: #237c45;
+}
+
+.modal-actions .save:hover {
+    background: #2d9b59;
+}
+
+#editStatus {
+    min-height: 24px;
+    margin-top: 15px;
+    color: #ff6b6b;
+}
+
+@media (max-width: 650px) {
+    header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .title-row {
+        flex-direction: column;
+    }
+
+    .author {
+        text-align: left;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .actions,
+    .modal-actions {
+        flex-direction: column;
+    }
+
+    .modal {
+        padding: 8px;
+    }
+
+    .modal-content {
+        margin: 8px auto;
+        padding: 15px;
+    }
+    #pagination {
+        gap: 7px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    #pagination button {
+        min-width: 0;
+        flex: 1;
+    }
+
+    #pageInfo {
+        min-width: 85px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <a href="/ui/index.html">⬅ Felvitel</a>
+
+    <input
+        id="search"
+        type="search"
+        placeholder="Keresés cím, ISBN, szerző, kiadó, hely vagy kölcsönző alapján...">
+</header>
+
+<div id="summary"></div>
+<div id="list">Betöltés...</div>
+
+<div id="pagination">
+    <button
+        id="previousPage"
+        type="button">
+        ← Előző
+    </button>
+
+    <span id="pageInfo">
+        1 / 1. oldal
+    </span>
+
+    <button
+        id="nextPage"
+        type="button">
+        Következő →
+    </button>
+</div>
+
+<!-- -----------------------
+     SZERKESZTŐ MODAL
+------------------------ -->
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h2>Könyv szerkesztése</h2>
+
+            <button
+                type="button"
+                class="modal-close"
+                onclick="closeEditor()">
+                ×
+            </button>
+        </div>
+
+        <input type="hidden" id="editId">
+
+        <label for="editIndex">Egyedi index</label>
+        <input id="editIndex" type="text" disabled>
+
+        <label for="editIsbn">ISBN</label>
+        <input id="editIsbn" type="text" disabled>
+
+        <label for="editTitle">Cím</label>
+        <input id="editTitle" type="text">
+
+        <label for="editAuthor">Szerző</label>
+        <input id="editAuthor" type="text">
+
+        <label for="editPublisher">Kiadó</label>
+        <input id="editPublisher" type="text">
+
+        <label for="editYear">Kiadás éve</label>
+        <input id="editYear" type="text">
+
+        <label for="editLocation">Tárhely</label>
+        <select id="editLocation"></select>
+
+        <div id="editBorrowBox" style="display:none;">
+            <label for="editBorrower">Kinél van?</label>
+            <input id="editBorrower" type="text">
+        </div>
+
+        <div id="editStatus"></div>
+
+        <div class="modal-actions">
+            <button
+                type="button"
+                class="cancel"
+                onclick="closeEditor()">
+                Mégse
+            </button>
+
+            <button
+                type="button"
+                class="save"
+                onclick="saveEditor()">
+                Mentés
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+"use strict";
+
+let allBooks = [];
+let editorPlaces = [];
+
+let currentPage = 1;
+const pageSize = 50;
+
+let totalPages = 1;
+let totalBooks = 0;
+let currentSearch = "";
+
+let searchTimer = null;
+
+/* -----------------------
+   SEGÉDFÜGGVÉNYEK
+----------------------- */
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function normalizeText(value) {
+    return String(value ?? "")
+        .trim()
+        .toLocaleLowerCase("hu-HU");
+}
+
+function formatDate(value) {
+    if (!value) {
+        return "-";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return date.toLocaleString("hu-HU");
+}
+
+function isRemoved(book) {
+    const room = normalizeText(book.room);
+
+    return (
+        room === normalizeText("Polcról levéve") ||
+        room === normalizeText("Levéve")
+    );
+}
+
+function isBorrowed(book) {
+    return Boolean(book.borrower) ||
+        normalizeText(book.room) === normalizeText("Kölcsönadva");
+}
+
+function getStatus(book) {
+    if (isBorrowed(book)) {
+        return {
+            cardClass: "borrowed",
+            textClass: "status-borrowed",
+            text: book.borrower
+                ? `📤 Kölcsönadva: ${book.borrower}`
+                : "📤 Kölcsönadva"
+        };
+    }
+
+    if (isRemoved(book)) {
+        return {
+            cardClass: "removed",
+            textClass: "status-removed",
+            text: "📦 Polcról levéve"
+        };
+    }
+
+    return {
+        cardClass: "",
+        textClass: "status-normal",
+        text: "📚 Polcon"
+    };
+}
+
+function getLocation(book) {
+    if (isBorrowed(book)) {
+        return book.borrower
+            ? `Kölcsönadva: ${book.borrower}`
+            : "Kölcsönadva";
+    }
+
+    if (isRemoved(book)) {
+        return "Polcról levéve";
+    }
+
+    const parts = [];
+
+    if (book.room) {
+        parts.push(book.room);
+    }
+
+    if (book.shelf && book.shelf !== "-") {
+        parts.push(book.shelf);
+    }
+
+    if (
+        book.slot !== null &&
+        book.slot !== undefined &&
+        book.slot !== ""
+    ) {
+        parts.push(`Tárhely ${book.slot}`);
+    }
+
+    return parts.length
+        ? parts.join(" / ")
+        : "Nincs megadva";
+}
+
+/* -----------------------
+   KÖNYVEK BETÖLTÉSE
+----------------------- */
+
+async function loadBooks(page = currentPage) {
+    const list = document.getElementById("list");
+
+    currentPage = Math.max(1, Number(page) || 1);
+
+    const params = new URLSearchParams({
+        page: String(currentPage),
+        page_size: String(pageSize)
+    });
+
+    if (currentSearch.trim()) {
+        params.set(
+            "search",
+            currentSearch.trim()
+        );
+    }
+
+    list.innerHTML = `
+        <div class="empty">
+            Könyvek betöltése...
+        </div>
+    `;
+
+    try {
+        const response = await fetch(
+            `/books/all?${params.toString()}`
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+        }
+
+        const data = await response.json();
+
+        if (
+            !data ||
+            !Array.isArray(data.books)
+        ) {
+            throw new Error(
+                "A szerver hibás könyvlista-választ adott."
+            );
+        }
+
+        allBooks = data.books;
+
+        currentPage =
+            Number(data.page) || 1;
+
+        totalPages =
+            Math.max(
+                1,
+                Number(data.total_pages) || 1
+            );
+
+        totalBooks =
+            Math.max(
+                0,
+                Number(data.total) || 0
+            );
+
+        /*
+         * Ha az utolsó oldal utolsó könyvét töröltük,
+         * visszalépünk az új utolsó oldalra.
+         */
+        if (
+            currentPage > totalPages &&
+            totalPages >= 1
+        ) {
+            await loadBooks(totalPages);
+            return;
+        }
+
+        render(allBooks);
+        renderPagination();
+
+    } catch (error) {
+        console.error(
+            "Betöltési hiba:",
+            error
+        );
+
+        list.innerHTML = `
+            <div class="error">
+                Nem sikerült betölteni a könyveket:
+                ${escapeHtml(error.message)}
+            </div>
+        `;
+
+        totalBooks = 0;
+        totalPages = 1;
+
+        renderPagination();
+    }
+}
+
+/* -----------------------
+   LISTA KIRAJZOLÁSA
+----------------------- */
+
+function render(books) {
+    const list = document.getElementById("list");
+    const summary = document.getElementById("summary");
+
+const firstRecord =
+    totalBooks === 0
+        ? 0
+        : (currentPage - 1) * pageSize + 1;
+
+const lastRecord =
+    totalBooks === 0
+        ? 0
+        : firstRecord + books.length - 1;
+
+if (currentSearch.trim()) {
+    summary.textContent =
+        `${totalBooks} találat – ` +
+        `${firstRecord}–${lastRecord}. rekord`;
+} else {
+    summary.textContent =
+        `${totalBooks} könyvpéldány – ` +
+        `${firstRecord}–${lastRecord}. rekord`;
+}
+
+    list.innerHTML = "";
+
+    if (!books.length) {
+        list.innerHTML =
+            '<div class="empty">Nincs a keresésnek megfelelő könyv.</div>';
+
+        return;
+    }
+
+    books.forEach(book => {
+        const status = getStatus(book);
+        const bookId = Number(book.id);
+
+        const card = document.createElement("div");
+
+        card.className =
+            `card ${status.cardClass}`.trim();
+
+        card.innerHTML = `
+            <div class="title-row">
+                <div class="title">
+                    ${escapeHtml(
+                        book.title ||
+                        book.isbn ||
+                        "Névtelen könyv"
+                    )}
+                </div>
+
+                <div class="author">
+                    ${escapeHtml(book.author || "-")}
+                </div>
+            </div>
+
+            <div class="grid">
+                <div>
+                    <span class="label">Egyedi index:</span>
+                    ${escapeHtml(book.id ?? "-")}
+                </div>
+
+                <div>
+                    <span class="label">ISBN:</span>
+                    ${escapeHtml(book.isbn || "-")}
+                </div>
+
+                <div>
+                    <span class="label">Kiadó:</span>
+                    ${escapeHtml(book.publisher || "-")}
+                </div>
+
+                <div>
+                    <span class="label">Kiadás éve:</span>
+                    ${escapeHtml(book.year || "-")}
+                </div>
+
+                <div>
+                    <span class="label">Felvéve:</span>
+                    ${escapeHtml(formatDate(book.added))}
+                </div>
+            </div>
+
+            <div class="location">
+                <div>
+                    <span class="label">Hely:</span>
+                    ${escapeHtml(getLocation(book))}
+                </div>
+
+                <div class="${status.textClass}">
+                    ${escapeHtml(status.text)}
+                </div>
+            </div>
+
+            <div class="actions">
+                <button
+                    type="button"
+                    class="edit"
+                    onclick="editBook(${bookId})">
+                    ✏️ Szerkesztés
+                </button>
+
+                <button
+                    type="button"
+                    class="del"
+                    onclick="deleteBook(${bookId})">
+                    🗑️ Törlés
+                </button>
+            </div>
+        `;
+
+        list.appendChild(card);
+    });
+}
+
+function renderPagination() {
+    const previousButton =
+        document.getElementById(
+            "previousPage"
+        );
+
+    const nextButton =
+        document.getElementById(
+            "nextPage"
+        );
+
+    const pageInfo =
+        document.getElementById(
+            "pageInfo"
+        );
+
+    previousButton.disabled =
+        currentPage <= 1;
+
+    nextButton.disabled =
+        currentPage >= totalPages ||
+        totalBooks === 0;
+
+    pageInfo.textContent =
+        `${currentPage} / ${totalPages}. oldal`;
+}
+
+/* -----------------------
+   TÖRLÉS
+----------------------- */
+
+async function deleteBook(id) {
+    if (!Number.isInteger(id) || id <= 0) {
+        alert("Hibás könyvindex.");
+        return;
+    }
+
+    if (!confirm(
+        `Biztosan törlöd a(z) ${id}. indexű könyvpéldányt?`
+    )) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/books/${id}`, {
+            method: "DELETE"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message || `HTTP ${response.status}`
+            );
+        }
+
+        if (data.status === "error") {
+            throw new Error(
+                data.message || "Ismeretlen törlési hiba."
+            );
+        }
+
+        if (data.status === "not_found") {
+            throw new Error(
+                "A könyv már nem található az adatbázisban."
+            );
+        }
+
+        await loadBooks();
+
+    } catch (error) {
+        console.error("Törlési hiba:", error);
+        alert(`Törlési hiba: ${error.message}`);
+    }
+}
+
+/* -----------------------
+   SZERKESZTŐ TÁRHELYEK
+----------------------- */
+
+async function loadEditorPlaces() {
+    if (editorPlaces.length) {
+        return;
+    }
+
+    const response = await fetch("/places");
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+    }
+
+    editorPlaces = await response.json();
+
+    const select =
+        document.getElementById("editLocation");
+
+    select.innerHTML = "";
+
+    editorPlaces.forEach(place => {
+        const option =
+            document.createElement("option");
+
+        option.value = String(place.id);
+
+        if (
+            normalizeText(place.room) ===
+            normalizeText("Kölcsönadva")
+        ) {
+            option.textContent = "Kölcsönadva";
+
+        } else if (
+            normalizeText(place.room) ===
+            normalizeText("Polcról levéve")
+        ) {
+            option.textContent = "Polcról levéve";
+
+        } else {
+            option.textContent =
+                `${place.room} / ${place.shelf} / Tárhely ${place.slot}`;
+        }
+
+        select.appendChild(option);
+    });
+}
+
+function syncEditorBorrower() {
+    const locationId = Number(
+        document.getElementById("editLocation").value
+    );
+
+    const selected = editorPlaces.find(
+        place => Number(place.id) === locationId
+    );
+
+    const borrowed =
+        normalizeText(selected?.room) ===
+        normalizeText("Kölcsönadva");
+
+    document
+        .getElementById("editBorrowBox")
+        .style.display =
+            borrowed ? "block" : "none";
+
+    if (!borrowed) {
+        document
+            .getElementById("editBorrower")
+            .value = "";
+    }
+}
+
+document
+    .getElementById("editLocation")
+    .addEventListener(
+        "change",
+        syncEditorBorrower
+    );
+
+/* -----------------------
+   SZERKESZTŐ MEGNYITÁSA
+----------------------- */
+
+async function editBook(id) {
+    if (!Number.isInteger(id) || id <= 0) {
+        alert("Hibás könyvindex.");
+        return;
+    }
+
+    try {
+        await loadEditorPlaces();
+
+        const response =
+            await fetch(`/books/${id}`);
+
+        if (!response.ok) {
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+        }
+
+        const book = await response.json();
+
+        if (
+            book.status === "error" ||
+            book.status === "not_found"
+        ) {
+            throw new Error(
+                book.message ||
+                "A könyv nem található."
+            );
+        }
+
+        document.getElementById("editId").value =
+            book.id;
+
+        document.getElementById("editIndex").value =
+            book.id;
+
+        document.getElementById("editIsbn").value =
+            book.isbn || "";
+
+        document.getElementById("editTitle").value =
+            book.title || "";
+
+        document.getElementById("editAuthor").value =
+            book.author || "";
+
+        document.getElementById("editPublisher").value =
+            book.publisher || "";
+
+        document.getElementById("editYear").value =
+            book.year || "";
+
+        document.getElementById("editLocation").value =
+            String(book.location_id || "");
+
+        document.getElementById("editBorrower").value =
+            book.borrower || "";
+
+        document.getElementById("editStatus").textContent =
+            "";
+
+        syncEditorBorrower();
+
+        document
+            .getElementById("editModal")
+            .style.display = "block";
+
+    } catch (error) {
+        console.error(
+            "Szerkesztési hiba:",
+            error
+        );
+
+        alert(
+            `Szerkesztési hiba: ${error.message}`
+        );
+    }
+}
+
+/* -----------------------
+   SZERKESZTŐ BEZÁRÁSA
+----------------------- */
+
+function closeEditor() {
+    document
+        .getElementById("editModal")
+        .style.display = "none";
+}
+
+/* -----------------------
+   SZERKESZTÉS MENTÉSE
+----------------------- */
+
+async function saveEditor() {
+    const bookId = Number(
+        document.getElementById("editId").value
+    );
+
+    const locationId = Number(
+        document.getElementById("editLocation").value
+    );
+
+    const selected = editorPlaces.find(
+        place => Number(place.id) === locationId
+    );
+
+    const isBorrowed =
+        normalizeText(selected?.room) ===
+        normalizeText("Kölcsönadva");
+
+    const editStatus =
+        document.getElementById("editStatus");
+
+    const isbn =
+        document
+            .getElementById("editIsbn")
+            .value
+            .replaceAll("-", "")
+            .replaceAll(" ", "")
+            .trim();
+
+    const title =
+        document
+            .getElementById("editTitle")
+            .value
+            .trim();
+
+    if (!isbn) {
+        editStatus.textContent =
+            "❌ Az ISBN nem lehet üres.";
+        return;
+    }
+
+    if (!title) {
+        editStatus.textContent =
+            "❌ A cím nem lehet üres.";
+        return;
+    }
+
+    if (!locationId) {
+        editStatus.textContent =
+            "❌ Válassz tárhelyet.";
+        return;
+    }
+
+    const borrower =
+        document
+            .getElementById("editBorrower")
+            .value
+            .trim();
+
+    if (isBorrowed && !borrower) {
+        editStatus.textContent =
+            "❌ Add meg, kinél van a könyv.";
+        return;
+    }
+
+    editStatus.textContent = "Mentés...";
+
+    try {
+        const response =
+            await fetch(`/books/${bookId}`, {
+                method: "PUT",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    isbn: isbn,
+
+                    title: title,
+
+                    author:
+                        document
+                            .getElementById(
+                                "editAuthor"
+                            )
+                            .value
+                            .trim() || null,
+
+                    publisher:
+                        document
+                            .getElementById(
+                                "editPublisher"
+                            )
+                            .value
+                            .trim() || null,
+
+                    publish_year:
+                        document
+                            .getElementById(
+                                "editYear"
+                            )
+                            .value
+                            .trim() || null,
+
+                    location_id:
+                        locationId,
+
+                    borrower:
+                        isBorrowed
+                        ? borrower
+                        : null
+                })
+            });
+
+        const data = await response.json();
+
+        if (
+            !response.ok ||
+            data.status === "error"
+        ) {
+            throw new Error(
+                data.message ||
+                `HTTP ${response.status}`
+            );
+        }
+
+        if (data.status === "not_found") {
+            throw new Error(
+                "A könyv nem található."
+            );
+        }
+
+        closeEditor();
+
+        await loadBooks();
+
+    } catch (error) {
+        console.error("Mentési hiba:", error);
+
+        editStatus.textContent =
+            `❌ ${error.message}`;
+    }
+}
+
+/* -----------------------
+   MODAL HÁTTÉRRE KATTINTÁS
+----------------------- */
+
+document
+    .getElementById("editModal")
+    .addEventListener("click", event => {
+        if (
+            event.target.id === "editModal"
+        ) {
+            closeEditor();
+        }
+    });
+
+/* -----------------------
+   ESC BEZÁRÁS
+----------------------- */
+
+document.addEventListener(
+    "keydown",
+    event => {
+        if (event.key === "Escape") {
+            closeEditor();
+        }
+    }
+);
+
+document
+    .getElementById("previousPage")
+    .addEventListener("click", () => {
+        if (currentPage > 1) {
+            loadBooks(currentPage - 1);
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+    });
+
+document
+    .getElementById("nextPage")
+    .addEventListener("click", () => {
+        if (currentPage < totalPages) {
+            loadBooks(currentPage + 1);
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+        }
+    });
+
+/* -----------------------
+   KERESÉS
+----------------------- */
+
+document
+    .getElementById("search")
+    .addEventListener("input", event => {
+        clearTimeout(searchTimer);
+
+        currentSearch =
+            event.target.value.trim();
+
+        searchTimer = setTimeout(() => {
+            currentPage = 1;
+            loadBooks(1);
+        }, 350);
+    });
+
+loadBooks();
+</script>
+
+</body>
+</html>
+

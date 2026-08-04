@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>A Rigó család könyvtára</title>
+
+    <link rel="stylesheet" href="/ui/css/style.css">
+</head>
+
+<body>
+
+<div id="missingMetadataModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Könyvadatok megadása</h2>
+
+            <button
+                type="button"
+                class="modal-close"
+                id="missingMetadataCloseButton">
+                ×
+            </button>
+
+        </div>
+
+        <p>
+            Ehhez az ISBN-hez nem találtam használható
+            könyvadatokat. Add meg kézzel:
+        </p>
+
+        <label for="missingMetadataIsbn">
+            ISBN
+        </label>
+
+        <input
+            id="missingMetadataIsbn"
+            type="text"
+            readonly>
+
+        <label for="missingMetadataTitle">
+            Cím
+        </label>
+
+        <input
+            id="missingMetadataTitle"
+            type="text"
+            placeholder="Könyv címe">
+
+        <label for="missingMetadataAuthor">
+            Szerző
+        </label>
+
+        <input
+            id="missingMetadataAuthor"
+            type="text"
+            placeholder="Szerző neve">
+
+        <label for="missingMetadataPublisher">
+            Kiadó
+        </label>
+
+        <input
+            id="missingMetadataPublisher"
+            type="text"
+            placeholder="Kiadó">
+
+        <label for="missingMetadataYear">
+            Kiadás éve
+        </label>
+
+        <input
+            id="missingMetadataYear"
+            type="text"
+            inputmode="numeric"
+            placeholder="Pl. 1987">
+
+        <label for="missingMetadataLocation">
+            Tárhely
+        </label>
+
+        <select id="missingMetadataLocation">
+            <option value="">
+                -- válassz tárhelyet --
+            </option>
+        </select>
+
+        <div id="missingMetadataBorrowBox">
+            <label for="missingMetadataBorrower">
+                Kölcsönző neve
+            </label>
+
+            <input
+                id="missingMetadataBorrower"
+                type="text"
+                placeholder="Csak kölcsönadás esetén">
+        </div>
+
+        <div id="missingMetadataStatus"></div>
+
+        <div class="modal-actions">
+
+            <button
+                type="button"
+                class="cancel-button"
+                id="missingMetadataCancelButton">
+                Mégse
+            </button>
+
+            <button
+                type="button"
+                class="save-button"
+                id="missingMetadataSaveButton">
+                Mentés
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ==================================================
+     ÉLŐ KAMERÁS BEOLVASÓ
+     Szándékosan közvetlenül a body elején van.
+================================================== -->
+
+<div id="scannerModal" class="scanner-modal">
+
+    <div class="scanner-window">
+
+        <div class="scanner-header">
+
+            <h2>📷 ISBN beolvasása</h2>
+
+            <button
+                id="closeScannerButton"
+                type="button"
+                class="scanner-close"
+                aria-label="Kamera bezárása">
+                ×
+            </button>
+
+        </div>
+
+        <div class="scanner-body">
+
+            <div id="scannerViewport"></div>
+
+            <div class="scanner-guide">
+                Tartsd a könyv EAN-13 vonalkódját vízszintesen
+                a piros keret közepére.
+            </div>
+
+            <div id="scannerStatus">
+                Kamera indítása...
+            </div>
+
+            <button
+                id="stopScannerButton"
+                type="button"
+                class="scanner-stop">
+                Kamera bezárása
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==================================================
+     ISBN NÉLKÜLI KÉZI FELVITEL
+================================================== -->
+
+<div id="manualModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>ISBN nélküli könyv felvitele</h2>
+
+            <button
+                type="button"
+                class="modal-close"
+                id="manualCloseButton"
+                aria-label="Ablak bezárása">
+                ×
+            </button>
+
+        </div>
+
+        <label for="manualIdentifier">
+            Azonosító / jelzet
+        </label>
+
+        <input
+            id="manualIdentifier"
+            type="text"
+            placeholder="Pl. MSZ 1234, leltári szám..."
+            autocomplete="off">
+
+        <label for="manualTitle">
+            Cím
+        </label>
+
+        <input
+            id="manualTitle"
+            type="text"
+            placeholder="Könyv címe"
+            autocomplete="off">
+
+        <label for="manualAuthor">
+            Szerző
+        </label>
+
+        <input
+            id="manualAuthor"
+            type="text"
+            placeholder="Szerző neve"
+            autocomplete="off">
+
+        <label for="manualPublisher">
+            Kiadó
+        </label>
+
+        <input
+            id="manualPublisher"
+            type="text"
+            placeholder="Kiadó"
+            autocomplete="off">
+
+        <label for="manualYear">
+            Kiadás éve
+        </label>
+
+        <input
+            id="manualYear"
+            type="text"
+            inputmode="numeric"
+            placeholder="Pl. 1956"
+            autocomplete="off">
+
+        <label for="manualLocation">
+            Tárhely
+        </label>
+
+        <select id="manualLocation">
+            <option value="">
+                -- válassz tárhelyet --
+            </option>
+        </select>
+
+        <div id="manualStatus"></div>
+
+        <div class="modal-actions">
+
+            <button
+                type="button"
+                class="cancel-button"
+                id="manualCancelButton">
+                Mégse
+            </button>
+
+            <button
+                type="button"
+                class="save-button"
+                id="manualSaveButton">
+                Mentés
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==================================================
+     FŐOLDAL
+================================================== -->
+
+<div class="container">
+
+    <h1>📚 A Rigó család könyvtára</h1>
+
+    <div class="menu">
+
+        <a href="/ui/books.html">
+            📖 Könyvek listája
+        </a>
+
+        <a href="/export/books.csv">
+            ⬇️ Teljes adatbázis letöltése CSV-ben
+        </a>
+
+    </div>
+
+
+    <div class="card">
+
+        <label for="place">
+            1. Könyv tárhelye
+        </label>
+
+        <select id="place">
+            <option value="">
+                -- válassz tárhelyet --
+            </option>
+        </select>
+
+
+        <div class="special-options">
+
+            <label class="check-label">
+                <input
+                    type="checkbox"
+                    id="removed">
+
+                Polcról levéve
+            </label>
+
+            <label class="check-label">
+                <input
+                    type="checkbox"
+                    id="borrowed">
+
+                Kölcsönadva
+            </label>
+
+        </div>
+
+
+        <div
+            id="borrowBox"
+            style="display:none;">
+
+            <label for="borrower">
+                Kinek van kölcsönadva?
+            </label>
+
+            <input
+                id="borrower"
+                type="text"
+                placeholder="Név..."
+                autocomplete="off">
+
+        </div>
+
+
+        <label for="notes">
+            Megjegyzés
+        </label>
+
+        <textarea
+            id="notes"
+            rows="2"
+            placeholder="Opcionális megjegyzés..."></textarea>
+
+
+        <label for="isbn">
+            2. ISBN
+        </label>
+
+        <input
+            id="isbn"
+            type="text"
+            inputmode="numeric"
+            placeholder="Írd be vagy olvasd be az ISBN-t..."
+            autocomplete="off">
+
+
+        <button
+            id="liveScannerButton"
+            type="button"
+            class="scanner-start-button">
+            📷 Élő ISBN-beolvasás
+        </button>
+
+
+        <button
+            id="saveButton"
+            type="button">
+            💾 Könyv felvétele
+        </button>
+
+
+        <button
+            id="manualBookButton"
+            type="button"
+            class="secondary-button">
+            📕 ISBN nélküli könyv felvitele
+        </button>
+
+    </div>
+
+
+    <div id="status"></div>
+
+
+    <h2>Utolsó 20 könyv</h2>
+
+    <div id="latest">
+        Betöltés...
+    </div>
+
+</div>
+
+
+<script src="/ui/js/lib/quagga.min.js"></script>
+<script src="/ui/js/index.js?v=801"></script>
+
+</body>
+</html>

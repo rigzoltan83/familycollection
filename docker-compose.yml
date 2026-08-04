@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: family-db
+    environment:
+      POSTGRES_USER: familyuser
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: familycollection
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  db_data:

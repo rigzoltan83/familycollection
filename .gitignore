@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Virtuális környezetek
+venv/
+.venv/
+api/venv/
+
+# Környezeti változók és titkok
+.env
+.env.*
+!.env.example
+
+# Feltöltött és generált fájlok
+uploads/
+api/uploads/
+ui/uploads/
+
+# Naplók
+*.log
+logs/
+
+# Mentések és adatbázis-dumpok
+backups/
+backup/
+*.dump
+*.sql
+*.tar
+*.tar.gz
+*.zip
+
+# IDE és rendszerfájlok
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Ideiglenes fájlok
+*.tmp
+*.swp
+*~
+
+# Exportok
+*.csv
+!*.example.csv
+
+*.regi
