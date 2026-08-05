@@ -181,3 +181,69 @@ def test_create_collection_item_api_rejects_invalid_year(
 
     assert response.status_code == 400
     assert "nem lehet kisebb mint 1000" in response.json()["detail"]
+
+def test_get_collection_item_by_public_id(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    user = create_test_user(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Ragyogás",
+            "created_by_user_id": user.id,
+            "identifiers": [
+                {
+                    "identifier_type": "isbn13",
+                    "identifier_value": "9789631234000",
+                    "is_primary": True,
+                }
+            ],
+            "field_values": {
+                "author": "Stephen King",
+                "publish_year": 1977,
+            },
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    public_id = create_response.json()["public_id"]
+
+    response = test_client.get(
+        f"/items/{public_id}"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["public_id"] == public_id
+    assert data["title"] == "Ragyogás"
+    assert len(data["identifiers"]) == 1
+
+    values_by_key = {
+        field_value["field_key"]: field_value
+        for field_value in data["field_values"]
+    }
+
+    assert values_by_key["author"]["value_text"] == "Stephen King"
+    assert values_by_key["publish_year"]["value_integer"] == 1977
+
+
+def test_get_collection_item_returns_404_for_unknown_public_id(
+    test_client: TestClient,
+) -> None:
+    response = test_client.get(
+        "/items/01AAAAAAAAAAAAAAAAAAAAAAAA"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "A gyűjteményi elem nem található."
+    }

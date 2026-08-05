@@ -143,3 +143,33 @@ def create_item(
     )
 
     return _build_item_response(loaded_item)
+
+@router.get(
+    "/{public_id}",
+    response_model=CollectionItemResponse,
+)
+def get_item(
+    public_id: str,
+    session: Session = Depends(get_db_session),
+) -> CollectionItemResponse:
+    item = session.scalar(
+        select(CollectionItem)
+        .options(
+            selectinload(CollectionItem.identifiers),
+            selectinload(CollectionItem.field_values).selectinload(
+                ItemFieldValue.field
+            ),
+        )
+        .where(
+            CollectionItem.public_id == public_id,
+            CollectionItem.is_active.is_(True),
+        )
+    )
+
+    if item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="A gyűjteményi elem nem található.",
+        )
+
+    return _build_item_response(item)
