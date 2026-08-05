@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.core.database import get_db_session
 from app.models import (
+    CategoryField,
     CollectionItem,
     ItemFieldValue,
     ItemIdentifier,
@@ -168,11 +169,27 @@ def list_items(
     if normalized_query is not None:
         search_pattern = f"%{normalized_query}%"
 
+        searchable_field_match = exists(
+            select(ItemFieldValue.id)
+            .join(
+                CategoryField,
+                CategoryField.id == ItemFieldValue.field_id,
+            )
+            .where(
+                ItemFieldValue.item_id == CollectionItem.id,
+                CategoryField.is_active.is_(True),
+                CategoryField.is_searchable.is_(True),
+                ItemFieldValue.value_text.ilike(search_pattern),
+            )
+        )
+
         filters.append(
             (
                 CollectionItem.title.ilike(search_pattern)
                 |
                 CollectionItem.subtitle.ilike(search_pattern)
+                |
+                searchable_field_match
             )
         )
 
