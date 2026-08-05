@@ -20,7 +20,6 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
-    UniqueConstraint,
     text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -36,12 +35,6 @@ class StorageLocation(
     __tablename__ = "storage_locations"
 
     __table_args__ = (
-        UniqueConstraint(
-            "household_id",
-            "parent_id",
-            "slug",
-            name="uq_storage_locations_household_parent_slug",
-        ),
         CheckConstraint(
             """
             location_type IN (
@@ -73,6 +66,21 @@ class StorageLocation(
             "ix_storage_locations_household_parent",
             "household_id",
             "parent_id",
+        ),
+        Index(
+            "uq_storage_locations_root_slug",
+            "household_id",
+            "slug",
+            unique=True,
+            postgresql_where=text("parent_id IS NULL"),
+        ),
+        Index(
+            "uq_storage_locations_child_slug",
+            "household_id",
+            "parent_id",
+            "slug",
+            unique=True,
+            postgresql_where=text("parent_id IS NOT NULL"),
         ),
     )
 

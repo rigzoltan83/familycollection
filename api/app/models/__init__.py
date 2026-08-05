@@ -12,6 +12,7 @@ from app.models.collection_item import CollectionItem
 from app.models.item_field_value import ItemFieldValue
 from app.models.item_identifier import ItemIdentifier
 from app.models.legacy_book_migration import LegacyBookMigration
+from app.models.storage_location import StorageLocation
 
 __all__ = [
     "Household",
@@ -26,4 +27,5 @@ __all__ = [
     "LegacyBookMigration",
     "MetadataProvider",
     "CategoryMetadataProvider",
+    "StorageLocation",
 ]
