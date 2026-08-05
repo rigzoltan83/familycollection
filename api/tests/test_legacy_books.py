@@ -9,6 +9,7 @@ from app.services import (
     prepare_legacy_book,
     LegacyLocationSource,
     migrate_legacy_book,
+    migrate_legacy_books_batch,
 )
 
 from sqlalchemy import func, select
@@ -515,3 +516,331 @@ def test_migrate_placeholder_x_creates_warning_without_identifier(
     assert result.migration.migration_status == "warning"
     assert result.migration.migration_notes is not None
     assert "helykitöltő ISBN" in result.migration.migration_notes
+
+
+def test_migrate_legacy_books_batch_creates_all_records(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    source_records = [
+        (
+            LegacyBookSource(
+                legacy_book_id=1001,
+                isbn="9789633694503",
+                title="A három testőr Afrikában",
+                author="Jenő Rejtő",
+                publisher="Alexandra K.",
+                publish_year="2007",
+                location_id=5,
+                borrowed_to=None,
+                created=None,
+                updated=None,
+            ),
+            LegacyLocationSource(
+                legacy_location_id=5,
+                room="Nappali",
+                shelf="Újpolc",
+                slot=5,
+            ),
+        ),
+        (
+            LegacyBookSource(
+                legacy_book_id=1002,
+                isbn="9631151743",
+                title="Minden napra egy kérdés",
+                author="László S. Tóth",
+                publisher="Móra",
+                publish_year="1987",
+                location_id=5,
+                borrowed_to="Teszt kölcsönző",
+                created=None,
+                updated=None,
+            ),
+            LegacyLocationSource(
+                legacy_location_id=5,
+                room="Nappali",
+                shelf="Újpolc",
+                slot=5,
+            ),
+        ),
+    ]
+
+    result = migrate_legacy_books_batch(
+        session=db_session,
+        source_records=source_records,
+        household_id=household.id,
+        category_id=category.id,
+    )
+
+    assert result.total_source_records == 2
+    assert result.created_count == 2
+    assert result.skipped_count == 0
+    assert result.migrated_count == 2
+    assert result.warning_count == 0
+    assert result.error_count == 0
+    assert result.errors == []
+
+    migrated_legacy_ids = set(
+        db_session.scalars(
+            select(
+                LegacyBookMigration.legacy_book_id
+            ).order_by(
+                LegacyBookMigration.legacy_book_id
+            )
+        ).all()
+    )
+
+    assert migrated_legacy_ids == {
+        1001,
+        1002,
+    }
+
+    loaned_item = db_session.scalar(
+        select(CollectionItem)
+        .join(
+            LegacyBookMigration,
+            LegacyBookMigration.collection_item_id
+            == CollectionItem.id,
+        )
+        .where(
+            LegacyBookMigration.legacy_book_id
+            == 1002
+        )
+    )
+
+    assert loaned_item is not None
+    assert loaned_item.status == "loaned"
+
+
+def test_migrate_legacy_books_batch_counts_warning(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    legacy_book_id = 1265
+
+    source_records = [
+        (
+            LegacyBookSource(
+                legacy_book_id=legacy_book_id,
+                isbn="X",
+                title="Grimm mesék",
+                author=None,
+                publisher=None,
+                publish_year=None,
+                location_id=5,
+                borrowed_to=None,
+                created=None,
+                updated=None,
+            ),
+            LegacyLocationSource(
+                legacy_location_id=5,
+                room="Nappali",
+                shelf="Újpolc",
+                slot=5,
+            ),
+        )
+    ]
+
+    result = migrate_legacy_books_batch(
+        session=db_session,
+        source_records=source_records,
+        household_id=household.id,
+        category_id=category.id,
+    )
+
+    assert result.total_source_records == 1
+    assert result.created_count == 1
+    assert result.skipped_count == 0
+    assert result.migrated_count == 0
+    assert result.warning_count == 1
+    assert result.error_count == 0
+
+    migration = db_session.scalar(
+        select(LegacyBookMigration).where(
+            LegacyBookMigration.legacy_book_id
+            == legacy_book_id
+        )
+    )
+
+    assert migration is not None
+    assert migration.migration_status == "warning"
+    assert migration.migration_notes is not None
+    assert "helykitöltő ISBN" in migration.migration_notes
+
+
+def test_migrate_legacy_books_batch_is_idempotent(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    source_records = [
+        (
+            LegacyBookSource(
+                legacy_book_id=1006,
+                isbn="9789633694503",
+                title="A három testőr Afrikában",
+                author="Jenő Rejtő",
+                publisher="Alexandra K.",
+                publish_year="2007",
+                location_id=5,
+                borrowed_to=None,
+                created=None,
+                updated=None,
+            ),
+            LegacyLocationSource(
+                legacy_location_id=5,
+                room="Nappali",
+                shelf="Újpolc",
+                slot=5,
+            ),
+        )
+    ]
+
+    first_result = migrate_legacy_books_batch(
+        session=db_session,
+        source_records=source_records,
+        household_id=household.id,
+        category_id=category.id,
+    )
+
+    second_result = migrate_legacy_books_batch(
+        session=db_session,
+        source_records=source_records,
+        household_id=household.id,
+        category_id=category.id,
+    )
+
+    assert first_result.total_source_records == 1
+    assert first_result.created_count == 1
+    assert first_result.skipped_count == 0
+
+    assert second_result.total_source_records == 1
+    assert second_result.created_count == 0
+    assert second_result.skipped_count == 1
+    assert second_result.error_count == 0
+
+    item_count = db_session.scalar(
+        select(func.count(CollectionItem.id)).where(
+            CollectionItem.household_id == household.id
+        )
+    )
+
+    migration_count = db_session.scalar(
+        select(func.count(LegacyBookMigration.id))
+    )
+
+    assert item_count == 1
+    assert migration_count == 1
+
+
+def test_migrate_legacy_books_batch_continues_after_record_error(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    invalid_book_id = 1999
+    valid_book_id = 2000
+
+    source_records = [
+        (
+            LegacyBookSource(
+                legacy_book_id=invalid_book_id,
+                isbn="9789630000000",
+                title="   ",
+                author=None,
+                publisher=None,
+                publish_year=None,
+                location_id=5,
+                borrowed_to=None,
+                created=None,
+                updated=None,
+            ),
+            LegacyLocationSource(
+                legacy_location_id=5,
+                room="Nappali",
+                shelf="Újpolc",
+                slot=5,
+            ),
+        ),
+        (
+            LegacyBookSource(
+                legacy_book_id=valid_book_id,
+                isbn="9789633694503",
+                title="Érvényes könyv",
+                author="Teszt szerző",
+                publisher="Teszt kiadó",
+                publish_year="2020",
+                location_id=5,
+                borrowed_to=None,
+                created=None,
+                updated=None,
+            ),
+            LegacyLocationSource(
+                legacy_location_id=5,
+                room="Nappali",
+                shelf="Újpolc",
+                slot=5,
+            ),
+        ),
+    ]
+
+    result = migrate_legacy_books_batch(
+        session=db_session,
+        source_records=source_records,
+        household_id=household.id,
+        category_id=category.id,
+        continue_on_error=True,
+    )
+
+    assert result.total_source_records == 2
+    assert result.created_count == 1
+    assert result.migrated_count == 1
+    assert result.warning_count == 0
+    assert result.error_count == 1
+
+    assert len(result.errors) == 1
+    assert result.errors[0].legacy_book_id == invalid_book_id
+    assert "könyv címe üres" in result.errors[0].message
+
+    valid_migration = db_session.scalar(
+        select(LegacyBookMigration).where(
+            LegacyBookMigration.legacy_book_id
+            == valid_book_id
+        )
+    )
+
+    invalid_migration = db_session.scalar(
+        select(LegacyBookMigration).where(
+            LegacyBookMigration.legacy_book_id
+            == invalid_book_id
+        )
+    )
+
+    assert valid_migration is not None
+    assert invalid_migration is None

@@ -20,6 +20,10 @@ from app.services.legacy_books import (
     LegacyBookMigrationResult,
     LegacyLocationSource,
     migrate_legacy_book,
+    LegacyBookBatchError,
+    LegacyBookBatchResult,
+    migrate_legacy_books_batch,
+    load_legacy_book_sources_from_database,
 )
 
 
@@ -41,4 +45,8 @@ __all__ = [
     "LegacyBookMigrationResult",
     "LegacyLocationSource",
     "migrate_legacy_book",
+    "LegacyBookBatchError",
+    "LegacyBookBatchResult",
+    "migrate_legacy_books_batch",
+    "load_legacy_book_sources_from_database",
 ]

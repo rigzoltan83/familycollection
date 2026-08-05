@@ -17,7 +17,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from app.models import (
@@ -60,6 +60,25 @@ class LegacyBookMigrationResult:
     migration: LegacyBookMigration
     item: CollectionItem
     created: bool
+
+
+@dataclass(slots=True)
+class LegacyBookBatchError:
+    legacy_book_id: int
+    message: str
+
+
+@dataclass(slots=True)
+class LegacyBookBatchResult:
+    total_source_records: int = 0
+    created_count: int = 0
+    skipped_count: int = 0
+    migrated_count: int = 0
+    warning_count: int = 0
+    error_count: int = 0
+    errors: list[LegacyBookBatchError] = field(
+        default_factory=list
+    )
 
 
 @dataclass(slots=True)
@@ -527,3 +546,158 @@ def migrate_legacy_book(
         item=item,
         created=True,
     )
+
+def load_legacy_book_sources_from_database(
+    session: Session,
+) -> list[tuple[LegacyBookSource, LegacyLocationSource]]:
+    """
+    A régi books és locations táblákból betölti a migrációhoz
+    szükséges forrásrekordokat.
+
+    Ez adatforrás-adapter, nem része a batch migráció üzleti
+    logikájának.
+    """
+    rows = session.execute(
+        text(
+            """
+            SELECT
+                b.id AS legacy_book_id,
+                b.isbn,
+                b.title,
+                b.author,
+                b.publisher,
+                b.publish_year,
+                b.location_id,
+                b.borrowed_to,
+                b.created,
+                b.updated,
+                l.room,
+                l.shelf,
+                l.slot
+            FROM books AS b
+            LEFT JOIN locations AS l
+                ON l.id = b.location_id
+            ORDER BY b.id
+            """
+        )
+    ).mappings().all()
+
+    result: list[
+        tuple[LegacyBookSource, LegacyLocationSource]
+    ] = []
+
+    for row in rows:
+        legacy_book_id = int(row["legacy_book_id"])
+
+        if row["location_id"] is None:
+            raise ValueError(
+                "A régi könyvhöz nem tartozik tárolóhely: "
+                f"books.id={legacy_book_id}"
+            )
+
+        if (
+            row["room"] is None
+            or row["shelf"] is None
+            or row["slot"] is None
+        ):
+            raise ValueError(
+                "A régi könyv tárolóhelye nem található: "
+                f"books.id={legacy_book_id}, "
+                f"location_id={row['location_id']}"
+            )
+
+        source = LegacyBookSource(
+            legacy_book_id=legacy_book_id,
+            isbn=row["isbn"],
+            title=row["title"],
+            author=row["author"],
+            publisher=row["publisher"],
+            publish_year=row["publish_year"],
+            location_id=int(row["location_id"]),
+            borrowed_to=row["borrowed_to"],
+            created=row["created"],
+            updated=row["updated"],
+        )
+
+        location = LegacyLocationSource(
+            legacy_location_id=int(row["location_id"]),
+            room=str(row["room"]),
+            shelf=str(row["shelf"]),
+            slot=int(row["slot"]),
+        )
+
+        result.append(
+            (
+                source,
+                location,
+            )
+        )
+
+    return result
+
+
+def migrate_legacy_books_batch(
+    session: Session,
+    *,
+    source_records: list[
+        tuple[LegacyBookSource, LegacyLocationSource]
+    ],
+    household_id: int,
+    category_id: int,
+    continue_on_error: bool = True,
+) -> LegacyBookBatchResult:
+    """
+    Előkészített legacy könyvrekordok batch migrációja.
+
+    A forrásadatok beolvasása nem ennek a függvénynek a feladata.
+    Így a migrációs logika adatbázistól, CSV-től vagy más
+    adatforrástól függetlenül tesztelhető.
+
+    Könyvenként külön SAVEPOINT-ot használ, ezért egy hibás rekord
+    nem teszi tönkre a teljes batch-et.
+
+    A hívó kezeli a végső commitot vagy rollbacket.
+    """
+    result = LegacyBookBatchResult(
+        total_source_records=len(source_records)
+    )
+
+    for source, location in source_records:
+        try:
+            with session.begin_nested():
+                migration_result = migrate_legacy_book(
+                    session=session,
+                    source=source,
+                    location=location,
+                    household_id=household_id,
+                    category_id=category_id,
+                )
+
+                if migration_result.created:
+                    result.created_count += 1
+                else:
+                    result.skipped_count += 1
+
+                migration_status = (
+                    migration_result.migration.migration_status
+                )
+
+                if migration_status == "warning":
+                    result.warning_count += 1
+                elif migration_status == "migrated":
+                    result.migrated_count += 1
+
+        except Exception as error:
+            result.error_count += 1
+
+            result.errors.append(
+                LegacyBookBatchError(
+                    legacy_book_id=source.legacy_book_id,
+                    message=str(error),
+                )
+            )
+
+            if not continue_on_error:
+                raise
+
+    return result
