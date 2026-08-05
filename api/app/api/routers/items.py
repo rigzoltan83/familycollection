@@ -176,6 +176,26 @@ def list_items(
         else sort_column.desc()
     )
 
+    allowed_statuses = {
+        "active",
+        "loaned",
+        "archived",
+        "missing",
+        "disposed",
+    }
+
+    if (
+        item_status is not None
+        and item_status not in allowed_statuses
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "A status értéke csak active, loaned, archived, "
+                "missing vagy disposed lehet."
+            ),
+        )
+
     if normalized_identifier == "":
         normalized_identifier = None
 

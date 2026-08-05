@@ -742,3 +742,78 @@ def test_list_collection_items_rejects_invalid_sort_direction(
             "A sort_direction értéke csak asc vagy desc lehet."
         )
     }
+
+def test_list_collection_items_filters_by_status(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    first = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Aktív könyv",
+        },
+    )
+
+    second = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Kölcsönadott könyv",
+        },
+    )
+
+    assert first.status_code == 201
+    assert second.status_code == 201
+
+    second_public_id = second.json()["public_id"]
+
+    from app.models import CollectionItem
+
+    item = db_session.query(CollectionItem).filter_by(
+        public_id=second_public_id
+    ).one()
+
+    item.status = "loaned"
+    db_session.commit()
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id": household.id,
+            "item_status": "loaned",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 1
+    assert data["items"][0]["title"] == "Kölcsönadott könyv"
+
+
+def test_list_collection_items_rejects_invalid_status(
+    test_client: TestClient,
+) -> None:
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id": 1,
+            "item_status": "foobar",
+        },
+    )
+
+    assert response.status_code == 400
+
+    assert response.json() == {
+        "detail": (
+            "A status értéke csak active, loaned, archived, "
+            "missing vagy disposed lehet."
+        )
+    }
