@@ -20,6 +20,7 @@ from app.services import (
     list_latest_books,
     soft_delete_book_by_legacy_id,
     update_collection_item_title,
+    update_primary_identifier,
 )
 
 
@@ -845,3 +846,132 @@ def test_update_collection_item_title_returns_false_for_missing_book(
     )
 
     assert updated is False
+
+
+def test_update_primary_identifier_updates_existing_identifier(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="Tesztkönyv",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        identifier_type="isbn13",
+        identifier_value="9789631111111",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14),
+    )
+
+    updated = update_primary_identifier(
+        db_session,
+        legacy_book_id=6,
+        identifier_type="isbn13",
+        identifier_value="9789632222222",
+    )
+
+    assert updated is True
+
+    identifiers = (
+        db_session.query(ItemIdentifier)
+        .filter(
+            ItemIdentifier.item_id == item.id,
+            ItemIdentifier.is_active.is_(True),
+        )
+        .all()
+    )
+
+    assert len(identifiers) == 2
+
+    primary = next(
+        identifier
+        for identifier in identifiers
+        if identifier.is_primary
+    )
+
+    assert primary.identifier_type == "isbn13"
+    assert primary.identifier_value == "9789632222222"
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=6,
+        )
+        .one()
+    )
+
+    assert migration.legacy_isbn == "9789632222222"
+
+
+def test_update_primary_identifier_creates_identifier_when_missing(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=265,
+        title="Grimm mesék",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        identifier_type=None,
+        identifier_value=None,
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14),
+    )
+
+    updated = update_primary_identifier(
+        db_session,
+        legacy_book_id=265,
+        identifier_type="isbn13",
+        identifier_value="9789633333333",
+    )
+
+    assert updated is True
+
+    identifiers = (
+        db_session.query(ItemIdentifier)
+        .filter(
+            ItemIdentifier.item_id == item.id,
+            ItemIdentifier.is_active.is_(True),
+        )
+        .all()
+    )
+
+    assert len(identifiers) == 1
+
+    identifier = identifiers[0]
+
+    assert identifier.identifier_type == "isbn13"
+    assert identifier.identifier_value == "9789633333333"
+    assert identifier.is_primary is True
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=265,
+        )
+        .one()
+    )
+
+    assert migration.legacy_isbn == "9789633333333"

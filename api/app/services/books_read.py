@@ -544,3 +544,116 @@ def update_collection_item_title(
     session.flush()
 
     return True
+
+
+def update_primary_identifier(
+    session: Session,
+    legacy_book_id: int,
+    *,
+    identifier_type: str,
+    identifier_value: str,
+) -> bool:
+    """
+    Frissíti vagy létrehozza egy aktív könyv elsődleges
+    azonosítóját a régi könyvazonosító alapján.
+
+    A korábbi elsődleges azonosítók elvesztik az elsődleges
+    jelölést. Ha már ugyanilyen aktív azonosító létezik,
+    azt teszi elsődlegessé.
+
+    Visszatérési érték:
+    - True: a könyv megtalálható volt és frissült;
+    - False: nincs ilyen aktív könyv.
+    """
+    cleaned_type = identifier_type.strip().lower()
+    cleaned_value = identifier_value.strip()
+
+    allowed_identifier_types = {
+        "isbn10",
+        "isbn13",
+        "ean8",
+        "ean13",
+        "upc",
+        "issn",
+        "catalog_number",
+        "provider_external_id",
+        "custom",
+        "qr",
+        "rfid",
+        "nfc",
+    }
+
+    if cleaned_type not in allowed_identifier_types:
+        raise ValueError(
+            "Nem támogatott azonosítótípus: "
+            f"{cleaned_type or identifier_type}"
+        )
+
+    if not cleaned_value:
+        raise ValueError(
+            "Az azonosító értéke nem lehet üres."
+        )
+
+    migration = session.scalar(
+        select(LegacyBookMigration)
+        .join(
+            CollectionItem,
+            CollectionItem.id
+            == LegacyBookMigration.collection_item_id,
+        )
+        .where(
+            LegacyBookMigration.legacy_book_id
+            == legacy_book_id,
+            CollectionItem.is_active.is_(True),
+        )
+    )
+
+    if migration is None:
+        return False
+
+    item = migration.collection_item
+
+    if item is None:
+        return False
+
+    active_identifiers = session.scalars(
+        select(ItemIdentifier).where(
+            ItemIdentifier.item_id == item.id,
+            ItemIdentifier.is_active.is_(True),
+        )
+    ).all()
+
+    target_identifier = next(
+        (
+            identifier
+            for identifier in active_identifiers
+            if (
+                identifier.identifier_type == cleaned_type
+                and identifier.identifier_value == cleaned_value
+            )
+        ),
+        None,
+    )
+
+    for identifier in active_identifiers:
+        identifier.is_primary = False
+
+    if target_identifier is None:
+        target_identifier = ItemIdentifier(
+            item_id=item.id,
+            identifier_type=cleaned_type,
+            identifier_value=cleaned_value,
+            provider_code=None,
+            is_primary=True,
+            is_active=True,
+        )
+
+        session.add(target_identifier)
+    else:
+        target_identifier.is_primary = True
+
+    migration.legacy_isbn = cleaned_value
+
+    session.flush()
+
+    return True

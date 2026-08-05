@@ -35,6 +35,7 @@ from app.services.books_read import (
     list_latest_books,
     soft_delete_book_by_legacy_id,
     update_collection_item_title,
+    update_primary_identifier,
 )
 
 
@@ -67,4 +68,5 @@ __all__ = [
     "list_latest_books",
     "soft_delete_book_by_legacy_id",
     "update_collection_item_title",
+    "update_primary_identifier",
 ]
