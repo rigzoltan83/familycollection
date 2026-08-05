@@ -10,6 +10,14 @@ from app.services.collection_items import (
     IdentifierInput,
     create_collection_item,
 )
+from app.services.legacy_books import (
+    LegacyBookSource,
+    NormalizedLegacyIdentifier,
+    PreparedLegacyBook,
+    normalize_legacy_identifier,
+    normalize_publish_year,
+    prepare_legacy_book,
+)
 
 
 __all__ = [
@@ -21,4 +29,10 @@ __all__ = [
     "update_collection_item",
     "IdentifierInput",
     "create_collection_item",
+    "LegacyBookSource",
+    "NormalizedLegacyIdentifier",
+    "PreparedLegacyBook",
+    "normalize_legacy_identifier",
+    "normalize_publish_year",
+    "prepare_legacy_book",
 ]
