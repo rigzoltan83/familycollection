@@ -485,6 +485,7 @@ def test_books_detail_returns_legacy_compatible_json(
         "year": 2007,
         "created": "2026-07-14T08:53:42",
         "location_id": 5,
+        "storage_public_id": slot.public_id,
         "borrower": None,
         "room": "Nappali",
         "shelf": "Újpolc",
@@ -1624,3 +1625,237 @@ def test_scan_requires_borrower_for_loaned_location(
 
     assert item.status == "loaned"
     assert migration.legacy_borrowed_to == "Kovács Péter"
+
+
+def test_books_update_accepts_storage_public_id(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    source_slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    target_room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Hálószoba",
+        slug="haloszoba",
+        location_type="room",
+        sort_order=20,
+        is_active=True,
+    )
+
+    db_session.add(target_room)
+    db_session.flush()
+
+    target_shelf = StorageLocation(
+        household_id=household.id,
+        parent_id=target_room.id,
+        name="Új szekrény",
+        slug="uj-szekreny",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(target_shelf)
+    db_session.flush()
+
+    target_slot = StorageLocation(
+        household_id=household.id,
+        parent_id=target_shelf.id,
+        name="2. hely",
+        slug="slot-2",
+        location_type="slot",
+        sort_order=20,
+        is_active=True,
+    )
+
+    db_session.add(target_slot)
+    db_session.flush()
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=source_slot,
+        legacy_book_id=6,
+        title="Tesztkönyv",
+        author="Teszt szerző",
+        publisher="Teszt kiadó",
+        publish_year=2020,
+        identifier_type="isbn13",
+        identifier_value="9789631111111",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    response = test_client.put(
+        "/books/6",
+        json={
+            "isbn": "9789631111111",
+            "title": "Módosított könyv",
+            "author": "Teszt szerző",
+            "publisher": "Teszt kiadó",
+            "publish_year": "2020",
+            "storage_public_id": target_slot.public_id,
+            "borrower": None,
+        },
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "status": "updated",
+        "id": 6,
+    }
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=6,
+        )
+        .one()
+    )
+
+    item = migration.collection_item
+
+    active_assignment = (
+        db_session.query(ItemStorageAssignment)
+        .filter(
+            ItemStorageAssignment.item_id == item.id,
+            ItemStorageAssignment.is_active.is_(True),
+        )
+        .one()
+    )
+
+    assert (
+        active_assignment.storage_location_id
+        == target_slot.id
+    )
+
+    assert migration.legacy_room == "Hálószoba"
+    assert migration.legacy_shelf == "Új szekrény"
+    assert migration.legacy_slot == 2
+
+
+def test_books_update_rejects_unknown_storage_public_id(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    source_slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=source_slot,
+        legacy_book_id=6,
+        title="Tesztkönyv",
+        author="Teszt szerző",
+        publisher="Teszt kiadó",
+        publish_year=2020,
+        identifier_type="isbn13",
+        identifier_value="9789631111111",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    response = test_client.put(
+        "/books/6",
+        json={
+            "isbn": "9789631111111",
+            "title": "Tesztkönyv",
+            "author": "Teszt szerző",
+            "publisher": "Teszt kiadó",
+            "publish_year": "2020",
+            "storage_public_id":
+                "01KZZZZZZZZZZZZZZZZZZZZZZZ",
+            "borrower": None,
+        },
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "status": "error",
+        "message": (
+            "A kiválasztott tárhely nem található "
+            "ebben a háztartásban."
+        ),
+    }
+
+
+def test_books_update_rejects_non_slot_storage_public_id(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    source_slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Hálószoba",
+        slug="haloszoba",
+        location_type="room",
+        sort_order=20,
+        is_active=True,
+    )
+
+    db_session.add(room)
+    db_session.flush()
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=source_slot,
+        legacy_book_id=6,
+        title="Tesztkönyv",
+        author="Teszt szerző",
+        publisher="Teszt kiadó",
+        publish_year=2020,
+        identifier_type="isbn13",
+        identifier_value="9789631111111",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    response = test_client.put(
+        "/books/6",
+        json={
+            "isbn": "9789631111111",
+            "title": "Tesztkönyv",
+            "author": "Teszt szerző",
+            "publisher": "Teszt kiadó",
+            "publish_year": "2020",
+            "storage_public_id": room.public_id,
+            "borrower": None,
+        },
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "status": "error",
+        "message": (
+            "Könyv csak slot típusú "
+            "tárhelyre helyezhető."
+        ),
+    }

@@ -23,6 +23,7 @@ from app.models import (
     Category,
     Household,
     LegacyBookMigration,
+    StorageLocation,
 )
 from app.core.database import get_db_session
 from app.services import (
@@ -71,7 +72,10 @@ class EditBookRequest(BaseModel):
     author: str | None = None
     publisher: str | None = None
     publish_year: str | None = None
-    location_id: int
+
+    location_id: int | None = None
+    storage_public_id: str | None = None
+
     borrower: str | None = None
 
 class ManualBookRequest(BaseModel):
@@ -915,6 +919,7 @@ def get_book(
                 else None
             ),
             "location_id": record.location_id,
+            "storage_public_id": record.storage_public_id,
             "borrower": record.borrower,
             "room": record.room,
             "shelf": record.shelf,
@@ -1029,20 +1034,66 @@ def update_book(
             migration.collection_item.household_id
         )
 
-        target_location = (
-            resolve_storage_location_from_legacy_id(
-                session=session,
-                household_id=household_id,
-                legacy_location_id=req.location_id,
-            )
+        target_location: StorageLocation | None = None
+
+        storage_public_id = (
+            req.storage_public_id.strip()
+            if req.storage_public_id
+            else None
         )
 
-        if target_location is None:
+        if storage_public_id:
+            target_location = session.scalar(
+                select(StorageLocation).where(
+                    StorageLocation.public_id
+                    == storage_public_id,
+                    StorageLocation.household_id
+                    == household_id,
+                    StorageLocation.is_active.is_(True),
+                )
+            )
+
+            if target_location is None:
+                return {
+                    "status": "error",
+                    "message": (
+                        "A kiválasztott tárhely nem található "
+                        "ebben a háztartásban."
+                    ),
+                }
+
+        elif req.location_id is not None:
+            target_location = (
+                resolve_storage_location_from_legacy_id(
+                    session=session,
+                    household_id=household_id,
+                    legacy_location_id=req.location_id,
+                )
+            )
+
+            if target_location is None:
+                return {
+                    "status": "error",
+                    "message": (
+                        "A kiválasztott régi tárhelyhez "
+                        "nem található új tárhelyrekord."
+                    ),
+                }
+
+        else:
             return {
                 "status": "error",
                 "message": (
-                    "A kiválasztott régi tárhelyhez "
-                    "nem található új tárhelyrekord."
+                    "Válassz tárhelyet."
+                ),
+            }
+
+        if target_location.location_type != "slot":
+            return {
+                "status": "error",
+                "message": (
+                    "Könyv csak slot típusú "
+                    "tárhelyre helyezhető."
                 ),
             }
 

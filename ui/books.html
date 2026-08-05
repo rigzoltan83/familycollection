@@ -423,8 +423,19 @@ header input {
         <label for="editYear">Kiadás éve</label>
         <input id="editYear" type="text">
 
-        <label for="editLocation">Tárhely</label>
-        <select id="editLocation"></select>
+<label for="editLocationSearch">
+    Tárhely keresése
+</label>
+
+<input
+    id="editLocationSearch"
+    type="search"
+    placeholder="Helyiség, polc vagy tárhely..."
+    autocomplete="off"
+>
+
+<label for="editLocation">Tárhely</label>
+<select id="editLocation"></select>
 
         <div id="editBorrowBox" style="display:none;">
             <label for="editBorrower">Kinél van?</label>
@@ -456,7 +467,9 @@ header input {
 "use strict";
 
 let allBooks = [];
-let editorPlaces = [];
+
+let editorStorageLocations = [];
+let editorStorageByPublicId = new Map();
 
 let currentPage = 1;
 const pageSize = 50;
@@ -875,63 +888,241 @@ async function deleteBook(id) {
    SZERKESZTŐ TÁRHELYEK
 ----------------------- */
 
+function flattenStorageTree(
+    nodes,
+    depth = 0,
+    result = [],
+    rootName = null,
+    parentPath = []
+) {
+    for (const node of nodes) {
+        const effectiveRootName =
+            rootName || node.name;
+
+        const currentPath = [
+            ...parentPath,
+            node.name
+        ];
+
+        result.push({
+            ...node,
+            depth,
+            root_name: effectiveRootName,
+            path_names: currentPath,
+            path_label: currentPath
+                .filter(
+                    part =>
+                        part
+                        && part !== "-"
+                )
+                .join(" / ")
+        });
+
+        flattenStorageTree(
+            node.children || [],
+            depth + 1,
+            result,
+            effectiveRootName,
+            currentPath
+        );
+    }
+
+    return result;
+}
+
 async function loadEditorPlaces() {
-    if (editorPlaces.length) {
+    if (editorStorageLocations.length) {
         return;
     }
 
-    const response = await fetch("/places");
+const response = await fetch(
+    "/storage/tree"
+    + "?household_id=1"
+    + "&include_inactive=true"
+);
 
     if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(
+            `HTTP ${response.status}`
+        );
     }
 
-    editorPlaces = await response.json();
+    const data = await response.json();
+
+    if (
+        !data
+        || !Array.isArray(data.locations)
+    ) {
+        throw new Error(
+            "A szerver hibás tárhelyfa-választ adott."
+        );
+    }
+
+editorStorageLocations =
+    flattenStorageTree(
+        data.locations
+    ).filter(
+        location =>
+            location.location_type === "slot"
+    );
+
+    editorStorageByPublicId = new Map(
+        editorStorageLocations.map(
+            location => [
+                location.public_id,
+                location
+            ]
+        )
+    );
 
     const select =
-        document.getElementById("editLocation");
+        document.getElementById(
+            "editLocation"
+        );
+
+    select.innerHTML = "";
+filterEditorStorageOptions();
+}
+
+function filterEditorStorageOptions() {
+    const query =
+        normalizeText(
+            document
+                .getElementById(
+                    "editLocationSearch"
+                )
+                .value
+        );
+
+    const select =
+        document.getElementById(
+            "editLocation"
+        );
+
+    const currentValue =
+        select.value;
 
     select.innerHTML = "";
 
-    editorPlaces.forEach(place => {
-        const option =
-            document.createElement("option");
+    const locationsByRoot = new Map();
 
-        option.value = String(place.id);
+    for (
+        const location
+        of editorStorageLocations
+    ) {
+        const searchableText =
+            normalizeText(
+                [
+                    location.root_name,
+                    location.path_label,
+                    location.name,
+                    location.slug
+                ].join(" ")
+            );
 
         if (
-            normalizeText(place.room) ===
-            normalizeText("Kölcsönadva")
+            query
+            && !searchableText.includes(query)
         ) {
-            option.textContent = "Kölcsönadva";
-
-        } else if (
-            normalizeText(place.room) ===
-            normalizeText("Polcról levéve")
-        ) {
-            option.textContent = "Polcról levéve";
-
-        } else {
-            option.textContent =
-                `${place.room} / ${place.shelf} / Tárhely ${place.slot}`;
+            continue;
         }
 
-        select.appendChild(option);
-    });
+        const rootName =
+            location.root_name || "Egyéb";
+
+        if (!locationsByRoot.has(rootName)) {
+            locationsByRoot.set(
+                rootName,
+                []
+            );
+        }
+
+        locationsByRoot
+            .get(rootName)
+            .push(location);
+    }
+
+    for (
+        const [
+            rootName,
+            locations
+        ]
+        of locationsByRoot
+    ) {
+        const group =
+            document.createElement(
+                "optgroup"
+            );
+
+        group.label = rootName;
+
+        for (const location of locations) {
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                location.public_id;
+
+            const relativePath =
+                location.path_names
+                    .slice(1)
+                    .filter(
+                        part =>
+                            part
+                            && part !== "-"
+                    )
+                    .join(" / ");
+
+            option.textContent =
+                location.is_active
+                    ? (
+                        relativePath
+                        || location.name
+                    )
+                    : (
+                        `${relativePath || location.name}`
+                        + " — inaktív"
+                    );
+
+            option.disabled =
+                !location.is_active;
+
+            group.appendChild(option);
+        }
+
+        select.appendChild(group);
+    }
+
+    if (
+        currentValue
+        && editorStorageByPublicId.has(
+            currentValue
+        )
+    ) {
+        select.value = currentValue;
+    }
+
+    syncEditorBorrower();
 }
 
 function syncEditorBorrower() {
-    const locationId = Number(
-        document.getElementById("editLocation").value
+const storagePublicId =
+    document
+        .getElementById("editLocation")
+        .value;
+
+const selected =
+    editorStorageByPublicId.get(
+        storagePublicId
     );
 
-    const selected = editorPlaces.find(
-        place => Number(place.id) === locationId
-    );
-
-    const borrowed =
-        normalizeText(selected?.room) ===
-        normalizeText("Kölcsönadva");
+const borrowed =
+    normalizeText(
+        selected?.root_name
+        || selected?.room
+    ) === normalizeText("Kölcsönadva");
 
     document
         .getElementById("editBorrowBox")
@@ -964,6 +1155,14 @@ async function editBook(id) {
 
     try {
         await loadEditorPlaces();
+
+document
+    .getElementById(
+        "editLocationSearch"
+    )
+    .value = "";
+
+filterEditorStorageOptions();
 
         const response =
             await fetch(`/books/${id}`);
@@ -1008,7 +1207,19 @@ async function editBook(id) {
             book.year || "";
 
         document.getElementById("editLocation").value =
-            String(book.location_id || "");
+    book.storage_public_id || "";
+
+        if (
+    !document
+        .getElementById("editLocation")
+        .value
+) {
+    throw new Error(
+        "A könyv jelenlegi tárhelye "
+        + "nem található az aktív tárhelyfában."
+    );
+}
+
 
         document.getElementById("editBorrower").value =
             book.borrower || "";
@@ -1053,17 +1264,19 @@ async function saveEditor() {
         document.getElementById("editId").value
     );
 
-    const locationId = Number(
-        document.getElementById("editLocation").value
+const storagePublicId =
+    document
+        .getElementById("editLocation")
+        .value;
+
+const selected =
+    editorStorageByPublicId.get(
+        storagePublicId
     );
 
-    const selected = editorPlaces.find(
-        place => Number(place.id) === locationId
-    );
-
-    const isBorrowed =
-        normalizeText(selected?.room) ===
-        normalizeText("Kölcsönadva");
+const isBorrowed =
+    normalizeText(selected?.root_name) ===
+    normalizeText("Kölcsönadva");
 
     const editStatus =
         document.getElementById("editStatus");
@@ -1094,11 +1307,11 @@ async function saveEditor() {
         return;
     }
 
-    if (!locationId) {
-        editStatus.textContent =
-            "❌ Válassz tárhelyet.";
-        return;
-    }
+if (!storagePublicId) {
+    editStatus.textContent =
+        "❌ Válassz tárhelyet.";
+    return;
+}
 
     const borrower =
         document
@@ -1153,8 +1366,8 @@ async function saveEditor() {
                             .value
                             .trim() || null,
 
-                    location_id:
-                        locationId,
+storage_public_id:
+    storagePublicId,
 
                     borrower:
                         isBorrowed
@@ -1219,6 +1432,15 @@ document.addEventListener(
         }
     }
 );
+
+document
+    .getElementById(
+        "editLocationSearch"
+    )
+    .addEventListener(
+        "input",
+        filterEditorStorageOptions
+    );
 
 document
     .getElementById("previousPage")

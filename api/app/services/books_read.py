@@ -42,6 +42,7 @@ class BookReadRecord:
     added: datetime | None
     updated: datetime | None
     location_id: int | None
+    storage_public_id: str | None
     room: str | None
     shelf: str | None
     slot: int | None
@@ -204,6 +205,11 @@ def _build_book_record(
         added=item.created_at,
         updated=item.updated_at,
         location_id=migration.legacy_location_id,
+        storage_public_id=(
+            slot_location.public_id
+            if slot_location is not None
+            else None
+        ),
         room=(
             room_location.name
             if room_location is not None
