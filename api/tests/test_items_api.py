@@ -660,3 +660,85 @@ def test_list_collection_items_does_not_search_non_searchable_field(
 
     assert response.status_code == 200
     assert response.json()["total"] == 0
+
+def test_list_collection_items_sorts_title_descending(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    for title in [
+        "A könyv",
+        "C könyv",
+        "B könyv",
+    ]:
+        response = test_client.post(
+            "/items",
+            json={
+                "household_id": household.id,
+                "category_id": category.id,
+                "title": title,
+            },
+        )
+
+        assert response.status_code == 201
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id": household.id,
+            "sort_by": "title",
+            "sort_direction": "desc",
+        },
+    )
+
+    assert response.status_code == 200
+
+    assert [
+        item["title"]
+        for item in response.json()["items"]
+    ] == [
+        "C könyv",
+        "B könyv",
+        "A könyv",
+    ]
+
+
+def test_list_collection_items_rejects_invalid_sort_field(
+    test_client: TestClient,
+) -> None:
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id": 1,
+            "sort_by": "invalid",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": (
+            "A sort_by értéke csak title, created_at "
+            "vagy updated_at lehet."
+        )
+    }
+
+
+def test_list_collection_items_rejects_invalid_sort_direction(
+    test_client: TestClient,
+) -> None:
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id": 1,
+            "sort_direction": "sideways",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": (
+            "A sort_direction értéke csak asc vagy desc lehet."
+        )
+    }

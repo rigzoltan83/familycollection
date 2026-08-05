@@ -102,6 +102,8 @@ def list_items(
     item_status: str | None = None,
     query: str | None = None,
     identifier: str | None = None,
+    sort_by: str = "title",
+    sort_direction: str = "asc",
     limit: int = 50,
     offset: int = 0,
     session: Session = Depends(get_db_session),
@@ -140,6 +142,38 @@ def list_items(
         identifier.strip()
         if identifier is not None
         else None
+    )
+
+    allowed_sort_fields = {
+        "title": CollectionItem.title,
+        "created_at": CollectionItem.created_at,
+        "updated_at": CollectionItem.updated_at,
+    }
+
+    if sort_by not in allowed_sort_fields:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "A sort_by értéke csak title, created_at "
+                "vagy updated_at lehet."
+            ),
+        )
+
+    if sort_direction not in {
+        "asc",
+        "desc",
+    }:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A sort_direction értéke csak asc vagy desc lehet.",
+        )
+
+    sort_column = allowed_sort_fields[sort_by]
+
+    primary_order = (
+        sort_column.asc()
+        if sort_direction == "asc"
+        else sort_column.desc()
     )
 
     if normalized_identifier == "":
@@ -211,7 +245,7 @@ def list_items(
         select(CollectionItem)
         .where(*filters)
         .order_by(
-            CollectionItem.title.asc(),
+            primary_order,
             CollectionItem.id.asc(),
         )
         .limit(limit)
