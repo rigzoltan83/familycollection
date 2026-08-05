@@ -27,6 +27,15 @@ from app.services.legacy_books import (
 )
 
 
+from app.services.books_read import (
+    BookReadPage,
+    BookReadRecord,
+    get_book_by_legacy_id,
+    list_books,
+    list_latest_books,
+)
+
+
 __all__ = [
     "authenticate_user",
     "get_user_by_email",
@@ -49,4 +58,9 @@ __all__ = [
     "LegacyBookBatchResult",
     "migrate_legacy_books_batch",
     "load_legacy_book_sources_from_database",
+    "BookReadPage",
+    "BookReadRecord",
+    "get_book_by_legacy_id",
+    "list_books",
+    "list_latest_books",
 ]
