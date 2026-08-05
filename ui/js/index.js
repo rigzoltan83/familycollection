@@ -117,9 +117,14 @@ const manualLocation =
 const manualStatus =
     document.getElementById("manualStatus");
 
-let allPlaces = [];
-let borrowedLocationId = null;
-let removedLocationId = null;
+/*
+ * Új tárhelyfa
+ */
+let storageLocations = [];
+let storageByPublicId = new Map();
+
+let borrowedStoragePublicId = null;
+let removedStoragePublicId = null;
 
 
 // --------------------------------------------------
@@ -130,6 +135,62 @@ function normalizeText(value) {
     return String(value ?? "")
         .trim()
         .toLocaleLowerCase("hu-HU");
+}
+
+function flattenStorageTree(
+    nodes,
+    depth = 0,
+    result = [],
+    rootName = null,
+    parentPath = []
+) {
+    for (const node of nodes) {
+        const effectiveRootName =
+            rootName || node.name;
+
+        const currentPath = [
+            ...parentPath,
+            node.name
+        ];
+
+        result.push({
+            ...node,
+            depth,
+            root_name: effectiveRootName,
+            path_names: currentPath,
+            path_label: currentPath
+                .filter(
+                    part =>
+                        part &&
+                        part !== "-"
+                )
+                .join(" / ")
+        });
+
+        flattenStorageTree(
+            node.children || [],
+            depth + 1,
+            result,
+            effectiveRootName,
+            currentPath
+        );
+    }
+
+    return result;
+}
+
+function isBorrowedStorage(location) {
+    return (
+        normalizeText(location?.root_name) ===
+        normalizeText("Kölcsönadva")
+    );
+}
+
+function isRemovedStorage(location) {
+    return (
+        normalizeText(location?.root_name) ===
+        normalizeText("Polcról levéve")
+    );
 }
 
 function normalizeIsbn(value) {
@@ -165,36 +226,135 @@ function showStatus(message, type = "normal") {
 }
 
 function selectedPlace() {
-    if (!place) {
+    return selectedStorage(place);
+}
+
+function fillStorageSelect(selectElement) {
+    if (!selectElement) {
+        return;
+    }
+
+    const currentValue =
+        selectElement.value;
+
+    selectElement.innerHTML =
+        '<option value="">'
+        + '-- válassz tárhelyet --'
+        + '</option>';
+
+    const locationsByRoot = new Map();
+
+    for (const location of storageLocations) {
+        if (!location.is_active) {
+            continue;
+        }
+
+        const rootName =
+            location.root_name || "Egyéb";
+
+        if (!locationsByRoot.has(rootName)) {
+            locationsByRoot.set(
+                rootName,
+                []
+            );
+        }
+
+        locationsByRoot
+            .get(rootName)
+            .push(location);
+    }
+
+    for (
+        const [rootName, locations]
+        of locationsByRoot
+    ) {
+        const group =
+            document.createElement(
+                "optgroup"
+            );
+
+        group.label = rootName;
+
+        for (const location of locations) {
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value =
+                location.public_id;
+
+            const relativePath =
+                location.path_names
+                    .slice(1)
+                    .filter(
+                        part =>
+                            part
+                            && part !== "-"
+                    )
+                    .join(" / ");
+
+            option.textContent =
+                relativePath
+                || location.name;
+
+            group.appendChild(option);
+        }
+
+        selectElement.appendChild(group);
+    }
+
+    const lastStoragePublicId =
+        localStorage.getItem(
+            "lastStoragePublicId"
+        );
+
+    if (
+        currentValue
+        && storageByPublicId.has(
+            currentValue
+        )
+    ) {
+        selectElement.value =
+            currentValue;
+
+    } else if (
+        lastStoragePublicId
+        && storageByPublicId.has(
+            lastStoragePublicId
+        )
+    ) {
+        selectElement.value =
+            lastStoragePublicId;
+    }
+}
+
+function selectedStorage(
+    selectElement = place
+) {
+    if (!selectElement) {
         return null;
     }
 
-    const id = Number(place.value);
+    const publicId =
+        selectElement.value.trim();
 
-    if (!id) {
+    if (!publicId) {
         return null;
     }
 
-    return allPlaces.find(
-        item => Number(item.id) === id
-    ) ?? null;
+    return (
+        storageByPublicId.get(publicId)
+        ?? null
+    );
 }
 
 function isBorrowedPlace(item) {
-    return Boolean(
-        item &&
-        normalizeText(item.room) ===
-            normalizeText("Kölcsönadva")
-    );
+    return isBorrowedStorage(item);
 }
 
 function isRemovedPlace(item) {
-    const room = normalizeText(item?.room);
-
-    return (
-        room === normalizeText("Polcról levéve") ||
-        room === normalizeText("Levéve")
-    );
+    return isRemovedStorage(item);
 }
 
 function getPlaceLabel(item) {
@@ -213,108 +373,64 @@ function getPlaceLabel(item) {
 }
 
 
-// --------------------------------------------------
-// TÁRHELYLISTA FELTÖLTÉSE
-// --------------------------------------------------
+async function loadStorageTree() {
+    const response = await fetch(
+        "/storage/tree"
+        + "?household_id=1"
+        + "&include_inactive=true"
+    );
 
-function fillPlaceSelect(selectElement) {
-    if (!selectElement) {
-        return;
+    if (!response.ok) {
+        throw new Error(
+            `HTTP ${response.status}`
+        );
     }
 
-    selectElement.innerHTML =
-        '<option value="">-- válassz tárhelyet --</option>';
-
-    allPlaces.forEach(item => {
-        const option =
-            document.createElement("option");
-
-        option.value = String(item.id);
-        option.textContent = getPlaceLabel(item);
-
-        selectElement.appendChild(option);
-    });
-
-    const lastLocationId =
-        localStorage.getItem("lastLocationId");
+    const data = await response.json();
 
     if (
-        lastLocationId &&
-        [...selectElement.options].some(
-            option => option.value === lastLocationId
-        )
+        !data ||
+        !Array.isArray(data.locations)
     ) {
-        selectElement.value = lastLocationId;
+        throw new Error(
+            "A storage/tree hibás választ adott."
+        );
     }
-}
 
-
-// --------------------------------------------------
-// TÁRHELYEK BETÖLTÉSE
-// --------------------------------------------------
-
-async function loadPlaces() {
-    try {
-        const response = await fetch("/places");
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (!Array.isArray(data)) {
-            throw new Error(
-                "A /places végpont nem listát adott vissza."
-            );
-        }
-
-        allPlaces = data;
-
-        borrowedLocationId = null;
-        removedLocationId = null;
-
-        allPlaces.forEach(item => {
-            if (isBorrowedPlace(item)) {
-                borrowedLocationId =
-                    Number(item.id);
-            }
-
-            if (isRemovedPlace(item)) {
-                removedLocationId =
-                    Number(item.id);
-            }
-        });
-
-        /*
-         * Mindkét legördülőt csak azután töltjük fel,
-         * hogy az adatok megérkeztek a szervertől.
-         */
-        fillPlaceSelect(place);
-        fillPlaceSelect(manualLocation);
-	fillPlaceSelect(missingMetadataLocation);
-
-        syncSpecialControlsFromPlace();
-
-    } catch (error) {
-        console.error(
-            "Tárhelybetöltési hiba:",
-            error
+    storageLocations =
+        flattenStorageTree(
+            data.locations
+        ).filter(
+            location =>
+                location.location_type === "slot"
         );
 
-        showStatus(
-            `❌ Nem sikerült betölteni a tárhelyeket: ` +
-            error.message,
-            "error"
-        );
+    storageByPublicId = new Map(
+        storageLocations.map(
+            location => [
+                location.public_id,
+                location
+            ]
+        )
+    );
+borrowedStoragePublicId = null;
+removedStoragePublicId = null;
 
-        if (manualStatus) {
-            manualStatus.textContent =
-                "❌ Nem sikerült betölteni a tárhelyeket.";
-        }
+for (const location of storageLocations) {
+    if (isBorrowedStorage(location)) {
+        borrowedStoragePublicId =
+            location.public_id;
+    }
+
+    if (isRemovedStorage(location)) {
+        removedStoragePublicId =
+            location.public_id;
     }
 }
-
+fillStorageSelect(place);
+fillStorageSelect(manualLocation);
+fillStorageSelect(missingMetadataLocation);
+}
 
 // --------------------------------------------------
 // SPECIÁLIS HELYEK KEZELÉSE
@@ -354,10 +470,10 @@ function syncSpecialControlsFromPlace() {
         !isBorrowed &&
         !isRemoved
     ) {
-        localStorage.setItem(
-            "lastLocationId",
-            String(selected.id)
-        );
+localStorage.setItem(
+    "lastStoragePublicId",
+    selected.public_id
+);
     }
 }
 
@@ -366,104 +482,25 @@ function restoreLastNormalLocation() {
         return;
     }
 
-    const lastLocationId =
-        localStorage.getItem("lastLocationId");
+    const lastStoragePublicId =
+        localStorage.getItem(
+            "lastStoragePublicId"
+        );
 
     if (
-        lastLocationId &&
-        [...place.options].some(
-            option => option.value === lastLocationId
+        lastStoragePublicId
+        && storageByPublicId.has(
+            lastStoragePublicId
         )
     ) {
-        place.value = lastLocationId;
+        place.value =
+            lastStoragePublicId;
     } else {
         place.value = "";
     }
 
     syncSpecialControlsFromPlace();
 }
-
-if (place) {
-    place.addEventListener("change", () => {
-        syncSpecialControlsFromPlace();
-    });
-}
-
-if (borrowed) {
-    borrowed.addEventListener("change", () => {
-        if (borrowed.checked) {
-            if (removed) {
-                removed.checked = false;
-            }
-
-            if (
-                borrowedLocationId !== null &&
-                place
-            ) {
-                place.value =
-                    String(borrowedLocationId);
-            }
-
-            if (borrowBox) {
-                borrowBox.style.display =
-                    "block";
-            }
-
-            if (borrower) {
-                borrower.focus();
-            }
-
-        } else {
-            if (borrowBox) {
-                borrowBox.style.display =
-                    "none";
-            }
-
-            if (borrower) {
-                borrower.value = "";
-            }
-
-            if (
-                isBorrowedPlace(selectedPlace())
-            ) {
-                restoreLastNormalLocation();
-            }
-        }
-    });
-}
-
-if (removed) {
-    removed.addEventListener("change", () => {
-        if (removed.checked) {
-            if (borrowed) {
-                borrowed.checked = false;
-            }
-
-            if (borrower) {
-                borrower.value = "";
-            }
-
-            if (borrowBox) {
-                borrowBox.style.display =
-                    "none";
-            }
-
-            if (
-                removedLocationId !== null &&
-                place
-            ) {
-                place.value =
-                    String(removedLocationId);
-            }
-
-        } else if (
-            isRemovedPlace(selectedPlace())
-        ) {
-            restoreLastNormalLocation();
-        }
-    });
-}
-
 
 // --------------------------------------------------
 // ISBN-ES KÖNYV MENTÉSE
@@ -473,13 +510,13 @@ async function send() {
     const cleanIsbn =
         normalizeIsbn(isbn?.value);
 
-    const locationId =
-        Number(place?.value);
+const storagePublicId =
+    place?.value?.trim() || "";
 
-    const selected =
-        selectedPlace();
+const selected =
+    selectedStorage(place);
 
-    if (!locationId || !selected) {
+if (!storagePublicId || !selected) {
         showStatus(
             "❌ Először válassz tárhelyet.",
             "error"
@@ -537,23 +574,30 @@ async function send() {
                     "application/json"
             },
 
-            body: JSON.stringify({
-                isbn: cleanIsbn,
-                location_id: locationId,
-                borrower:
-                    isBorrowedPlace(selected)
-                    ? borrower.value.trim()
-                    : null
-            })
+body: JSON.stringify({
+    isbn: cleanIsbn,
+
+    storage_public_id:
+        storagePublicId,
+
+    borrower:
+        isBorrowedPlace(selected)
+        ? borrower.value.trim()
+        : null
+})
         });
 
         const data = await response.json();
 
         if (data.status === "metadata_missing") {
-            openMissingMetadataModal({
-                isbn: data.isbn,
-                locationId: locationId,
-                borrower: (
+openMissingMetadataModal({
+    isbn: data.isbn,
+
+    storagePublicId:
+        data.storage_public_id
+        || storagePublicId,
+
+    borrower: (
                     isBorrowedPlace(selected)
                         ? borrower.value.trim()
                         : null
@@ -781,16 +825,21 @@ function openManualModal() {
     manualYear.value = "";
     manualStatus.textContent = "";
 
-    const lastLocationId =
-        localStorage.getItem("lastLocationId");
+const lastStoragePublicId =
+    localStorage.getItem(
+        "lastStoragePublicId"
+    );
 
-    if (
-        lastLocationId &&
-        manualLocation
-    ) {
-        manualLocation.value =
-            lastLocationId;
-    }
+if (
+    lastStoragePublicId
+    && storageByPublicId.has(
+        lastStoragePublicId
+    )
+    && manualLocation
+) {
+    manualLocation.value =
+        lastStoragePublicId;
+}
 
     manualIdentifier.focus();
 }
@@ -809,8 +858,11 @@ async function saveManualBook() {
     const title =
         manualTitle.value.trim();
 
-    const locationId =
-        Number(manualLocation.value);
+const storagePublicId =
+    manualLocation.value.trim();
+
+const selected =
+    selectedStorage(manualLocation);
 
     if (!identifier) {
         manualStatus.textContent =
@@ -828,7 +880,7 @@ async function saveManualBook() {
         return;
     }
 
-    if (!locationId) {
+if (!storagePublicId || !selected) {
         manualStatus.textContent =
             "❌ Válassz tárhelyet.";
 
@@ -868,8 +920,8 @@ async function saveManualBook() {
                         manualYear.value
                             .trim() || null,
 
-                    location_id:
-                        locationId
+storage_public_id:
+    storagePublicId
                 })
             });
 
@@ -886,17 +938,17 @@ async function saveManualBook() {
             );
         }
 
-        localStorage.setItem(
-            "lastLocationId",
-            String(locationId)
-        );
+localStorage.setItem(
+    "lastStoragePublicId",
+    storagePublicId
+);
 
-        if (place) {
-            place.value =
-                String(locationId);
+if (place) {
+    place.value =
+        storagePublicId;
 
-            syncSpecialControlsFromPlace();
-        }
+    syncSpecialControlsFromPlace();
+}
 
         closeManualModal();
 
@@ -1417,7 +1469,7 @@ document.addEventListener(
 
 function openMissingMetadataModal({
     isbn,
-    locationId,
+    storagePublicId,
     borrower
 }) {
     missingMetadataIsbn.value =
@@ -1428,8 +1480,8 @@ function openMissingMetadataModal({
     missingMetadataPublisher.value = "";
     missingMetadataYear.value = "";
 
-    missingMetadataLocation.value =
-        String(locationId || "");
+missingMetadataLocation.value =
+    storagePublicId || "";
 
     missingMetadataBorrower.value =
         borrower || "";
@@ -1470,10 +1522,13 @@ async function saveMissingMetadataBook() {
     const title =
         missingMetadataTitle.value.trim();
 
-    const locationId =
-        Number(
-            missingMetadataLocation.value
-        );
+const storagePublicId =
+    missingMetadataLocation.value.trim();
+
+const selected =
+    selectedStorage(
+        missingMetadataLocation
+    );
 
     if (!title) {
         missingMetadataStatus.textContent =
@@ -1483,7 +1538,7 @@ async function saveMissingMetadataBook() {
         return;
     }
 
-    if (!locationId) {
+if (!storagePublicId || !selected) {
         missingMetadataStatus.textContent =
             "❌ Válassz tárhelyet.";
 
@@ -1529,8 +1584,8 @@ async function saveMissingMetadataBook() {
                                 .value
                                 .trim() || null,
 
-                        location_id:
-                            locationId,
+storage_public_id:
+    storagePublicId,
 
                         borrower:
                             missingMetadataBorrower
@@ -1553,14 +1608,14 @@ async function saveMissingMetadataBook() {
             );
         }
 
-        localStorage.setItem(
-            "lastLocationId",
-            String(locationId)
-        );
+localStorage.setItem(
+    "lastStoragePublicId",
+    selected.public_id
+);
 
         if (place) {
             place.value =
-                String(locationId);
+storagePublicId;
 
             syncSpecialControlsFromPlace();
         }
@@ -1639,7 +1694,7 @@ missingMetadataTitle.addEventListener(
 // --------------------------------------------------
 
 async function initialize() {
-    await loadPlaces();
+    await loadStorageTree();
     await loadLatest();
 
     if (place?.value) {

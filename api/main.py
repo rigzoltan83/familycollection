@@ -62,7 +62,8 @@ class ScanRequest(BaseModel):
 
     isbn: str
 
-    location_id: int
+    location_id: int | None = None
+    storage_public_id: str | None = None
 
     borrower: str | None = None
 
@@ -84,7 +85,9 @@ class ManualBookRequest(BaseModel):
     author: str | None = None
     publisher: str | None = None
     publish_year: str | None = None
-    location_id: int
+
+    location_id: int | None = None
+    storage_public_id: str | None = None
 
 class ManualIsbnBookRequest(BaseModel):
     isbn: str
@@ -92,7 +95,10 @@ class ManualIsbnBookRequest(BaseModel):
     author: str | None = None
     publisher: str | None = None
     publish_year: str | None = None
-    location_id: int
+
+    location_id: int | None = None
+    storage_public_id: str | None = None
+
     borrower: str | None = None
 
 @app.get("/places")
@@ -140,19 +146,63 @@ def scan(
                 "message": "Nincs aktív háztartás.",
             }
 
-        target_location = (
-            resolve_storage_location_from_legacy_id(
-                session=session,
-                household_id=household.id,
-                legacy_location_id=req.location_id,
-            )
+        target_location: StorageLocation | None = None
+
+        storage_public_id = (
+            req.storage_public_id.strip()
+            if req.storage_public_id
+            else None
         )
 
-        if target_location is None:
+        if storage_public_id:
+            target_location = session.scalar(
+                select(StorageLocation).where(
+                    StorageLocation.public_id
+                    == storage_public_id,
+                    StorageLocation.household_id
+                    == household.id,
+                    StorageLocation.is_active.is_(True),
+                )
+            )
+
+            if target_location is None:
+                return {
+                    "status": "error",
+                    "message": (
+                        "A kiválasztott tárhely nem található "
+                        "ebben a háztartásban."
+                    ),
+                }
+
+        elif req.location_id is not None:
+            target_location = (
+                resolve_storage_location_from_legacy_id(
+                    session=session,
+                    household_id=household.id,
+                    legacy_location_id=req.location_id,
+                )
+            )
+
+            if target_location is None:
+                return {
+                    "status": "error",
+                    "message": (
+                        "A kiválasztott tárhely nem található."
+                    ),
+                }
+
+        else:
+            return {
+                "status": "error",
+                "message": "Válassz tárhelyet.",
+            }
+
+        if target_location.location_type != "slot":
             return {
                 "status": "error",
                 "message": (
-                    "A kiválasztott tárhely nem található."
+                    "Könyv csak slot típusú "
+                    "tárhelyre helyezhető."
                 ),
             }
 
@@ -213,10 +263,12 @@ def scan(
         not metadata_title
         or metadata_title == clean_isbn
     ):
+
         return {
             "status": "metadata_missing",
             "isbn": clean_isbn,
             "location_id": req.location_id,
+            "storage_public_id": target_location.public_id,
             "borrower": borrowed_to,
             "message": (
                 "Nem találtam használható könyvadatokat "
@@ -268,7 +320,11 @@ def scan(
             author=metadata.get("author"),
             publisher=metadata.get("publisher"),
             publish_year=publish_year,
-            legacy_location_id=req.location_id,
+            legacy_location_id=(
+                req.location_id
+                if req.location_id is not None
+                else None
+            ),
             storage_location_id=target_location.id,
         )
 
@@ -394,13 +450,65 @@ def add_manual_book(
                 ),
             }
 
-        target_location = (
-            resolve_storage_location_from_legacy_id(
-                session=session,
-                household_id=household.id,
-                legacy_location_id=req.location_id,
-            )
+        target_location: StorageLocation | None = None
+
+        storage_public_id = (
+            req.storage_public_id.strip()
+            if req.storage_public_id
+            else None
         )
+
+        if storage_public_id:
+            target_location = session.scalar(
+                select(StorageLocation).where(
+                    StorageLocation.public_id
+                    == storage_public_id,
+                    StorageLocation.household_id
+                    == household.id,
+                    StorageLocation.is_active.is_(True),
+                )
+            )
+
+            if target_location is None:
+                return {
+                    "status": "error",
+                    "message": (
+                        "A kiválasztott tárhely nem található "
+                        "ebben a háztartásban."
+                    ),
+                }
+
+        elif req.location_id is not None:
+            target_location = (
+                resolve_storage_location_from_legacy_id(
+                    session=session,
+                    household_id=household.id,
+                    legacy_location_id=req.location_id,
+                )
+            )
+
+            if target_location is None:
+                return {
+                    "status": "error",
+                    "message": (
+                        "A kiválasztott tárhely nem található."
+                    ),
+                }
+
+        else:
+            return {
+                "status": "error",
+                "message": "Válassz tárhelyet.",
+            }
+
+        if target_location.location_type != "slot":
+            return {
+                "status": "error",
+                "message": (
+                    "Könyv csak slot típusú "
+                    "tárhelyre helyezhető."
+                ),
+            }
 
         if target_location is None:
             return {
@@ -419,7 +527,11 @@ def add_manual_book(
             author=req.author,
             publisher=req.publisher,
             publish_year=publish_year,
-            legacy_location_id=req.location_id,
+            legacy_location_id=(
+                req.location_id
+                if req.location_id is not None
+                else None
+            ),
             storage_location_id=target_location.id,
         )
 
@@ -544,19 +656,63 @@ def add_manual_isbn_book(
                 ),
             }
 
-        target_location = (
-            resolve_storage_location_from_legacy_id(
-                session=session,
-                household_id=household.id,
-                legacy_location_id=req.location_id,
-            )
+        target_location: StorageLocation | None = None
+
+        storage_public_id = (
+            req.storage_public_id.strip()
+            if req.storage_public_id
+            else None
         )
 
-        if target_location is None:
+        if storage_public_id:
+            target_location = session.scalar(
+                select(StorageLocation).where(
+                    StorageLocation.public_id
+                    == storage_public_id,
+                    StorageLocation.household_id
+                    == household.id,
+                    StorageLocation.is_active.is_(True),
+                )
+            )
+
+            if target_location is None:
+                return {
+                    "status": "error",
+                    "message": (
+                        "A kiválasztott tárhely nem található "
+                        "ebben a háztartásban."
+                    ),
+                }
+
+        elif req.location_id is not None:
+            target_location = (
+                resolve_storage_location_from_legacy_id(
+                    session=session,
+                    household_id=household.id,
+                    legacy_location_id=req.location_id,
+                )
+            )
+
+            if target_location is None:
+                return {
+                    "status": "error",
+                    "message": (
+                        "A kiválasztott tárhely nem található."
+                    ),
+                }
+
+        else:
+            return {
+                "status": "error",
+                "message": "Válassz tárhelyet.",
+            }
+
+        if target_location.location_type != "slot":
             return {
                 "status": "error",
                 "message": (
-                    "A kiválasztott tárhely nem található."
+                    "Könyv csak slot típusú "
+                    "tárhelyre helyezhető."
                 ),
             }
 
@@ -602,7 +758,11 @@ def add_manual_isbn_book(
             author=req.author,
             publisher=req.publisher,
             publish_year=publish_year,
-            legacy_location_id=req.location_id,
+            legacy_location_id=(
+                req.location_id
+                if req.location_id is not None
+                else None
+            ),
             storage_location_id=target_location.id,
         )
 
