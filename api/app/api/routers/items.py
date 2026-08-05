@@ -99,6 +99,7 @@ def list_items(
     household_id: int,
     category_id: int | None = None,
     item_status: str | None = None,
+    query: str | None = None,
     limit: int = 50,
     offset: int = 0,
     session: Session = Depends(get_db_session),
@@ -127,10 +128,30 @@ def list_items(
             detail="Az offset nem lehet negatív.",
         )
 
+    normalized_query = (
+        query.strip()
+        if query is not None
+        else None
+    )
+
+    if normalized_query == "":
+        normalized_query = None
+
     filters = [
         CollectionItem.household_id == household_id,
         CollectionItem.is_active.is_(True),
     ]
+
+    if normalized_query is not None:
+        search_pattern = f"%{normalized_query}%"
+
+        filters.append(
+            (
+                CollectionItem.title.ilike(search_pattern)
+                |
+                CollectionItem.subtitle.ilike(search_pattern)
+            )
+        )
 
     if category_id is not None:
         filters.append(

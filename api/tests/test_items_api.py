@@ -372,3 +372,117 @@ def test_list_collection_items_rejects_invalid_limit(
     assert response.json() == {
         "detail": "A limit értéke 1 és 200 közötti lehet."
     }
+
+def test_list_collection_items_searches_title_case_insensitively(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    for title in [
+        "A Ragyogás",
+        "Az",
+        "Tűzgyújtó",
+    ]:
+        response = test_client.post(
+            "/items",
+            json={
+                "household_id": household.id,
+                "category_id": category.id,
+                "title": title,
+            },
+        )
+
+        assert response.status_code == 201
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id": household.id,
+            "query": "ragy",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+    assert data["items"][0]["title"] == "A Ragyogás"
+
+
+def test_list_collection_items_searches_subtitle(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    first_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Tesztkönyv",
+            "subtitle": "Különleges alcím",
+        },
+    )
+
+    second_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Másik könyv",
+        },
+    )
+
+    assert first_response.status_code == 201
+    assert second_response.status_code == 201
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id": household.id,
+            "query": "különleges",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 1
+    assert data["items"][0]["title"] == "Tesztkönyv"
+
+
+def test_list_collection_items_ignores_blank_query(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Teszt könyv",
+        },
+    )
+
+    assert response.status_code == 201
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id": household.id,
+            "query": "   ",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["total"] == 1
