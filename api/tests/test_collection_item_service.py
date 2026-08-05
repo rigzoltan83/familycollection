@@ -13,6 +13,8 @@ from app.models import (
 )
 from app.services import (
     CollectionItemCreateInput,
+    CollectionItemUpdateInput,
+    update_collection_item,
     IdentifierInput,
     create_collection_item,
 )
@@ -492,5 +494,201 @@ def test_create_collection_item_rejects_invalid_single_select(
         )
     except ValueError as error:
         assert "Érvénytelen választási érték" in str(error)
+    else:
+        raise AssertionError("ValueError kivételre számítottunk.")
+
+def test_update_collection_item_changes_basic_fields(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    user = create_test_user(db_session)
+    category = create_book_category(db_session)
+
+    item = create_collection_item(
+        session=db_session,
+        data=CollectionItemCreateInput(
+            household_id=household.id,
+            category_id=category.id,
+            title="Régi cím",
+            subtitle="Régi alcím",
+            notes="Régi megjegyzés",
+            created_by_user_id=user.id,
+        ),
+    )
+
+    updated_item = update_collection_item(
+        session=db_session,
+        item=item,
+        data=CollectionItemUpdateInput(
+            title="Új cím",
+            subtitle="Új alcím",
+            notes="Új megjegyzés",
+            status="archived",
+            updated_by_user_id=user.id,
+        ),
+    )
+
+    assert updated_item.title == "Új cím"
+    assert updated_item.subtitle == "Új alcím"
+    assert updated_item.notes == "Új megjegyzés"
+    assert updated_item.status == "archived"
+    assert updated_item.updated_by_user_id == user.id
+
+
+def test_update_collection_item_keeps_unspecified_fields(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_book_category(db_session)
+
+    item = create_collection_item(
+        session=db_session,
+        data=CollectionItemCreateInput(
+            household_id=household.id,
+            category_id=category.id,
+            title="Eredeti cím",
+            subtitle="Eredeti alcím",
+            notes="Eredeti megjegyzés",
+        ),
+    )
+
+    update_collection_item(
+        session=db_session,
+        item=item,
+        data=CollectionItemUpdateInput(
+            title="Módosított cím",
+        ),
+    )
+
+    assert item.title == "Módosított cím"
+    assert item.subtitle == "Eredeti alcím"
+    assert item.notes == "Eredeti megjegyzés"
+    assert item.status == "active"
+
+
+def test_update_collection_item_replaces_identifiers(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_book_category(db_session)
+
+    item = create_collection_item(
+        session=db_session,
+        data=CollectionItemCreateInput(
+            household_id=household.id,
+            category_id=category.id,
+            title="Teszt könyv",
+            identifiers=[
+                IdentifierInput(
+                    identifier_type="isbn13",
+                    identifier_value="9789631111111",
+                    is_primary=True,
+                )
+            ],
+        ),
+    )
+
+    update_collection_item(
+        session=db_session,
+        item=item,
+        data=CollectionItemUpdateInput(
+            identifiers=[
+                IdentifierInput(
+                    identifier_type="isbn10",
+                    identifier_value="9632222222",
+                    is_primary=True,
+                )
+            ],
+        ),
+    )
+
+    db_session.refresh(item)
+
+    identifiers = db_session.scalars(
+        select(ItemIdentifier).where(
+            ItemIdentifier.item_id == item.id
+        )
+    ).all()
+
+    assert len(identifiers) == 1
+    assert identifiers[0].identifier_type == "isbn10"
+    assert identifiers[0].identifier_value == "9632222222"
+
+
+def test_update_collection_item_replaces_dynamic_fields(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_book_category(db_session)
+
+    item = create_collection_item(
+        session=db_session,
+        data=CollectionItemCreateInput(
+            household_id=household.id,
+            category_id=category.id,
+            title="Teszt könyv",
+            field_values={
+                "author": "Régi szerző",
+                "publish_year": 1980,
+            },
+        ),
+    )
+
+    update_collection_item(
+        session=db_session,
+        item=item,
+        data=CollectionItemUpdateInput(
+            field_values={
+                "author": "Új szerző",
+                "publish_year": 2020,
+            },
+        ),
+    )
+
+    db_session.refresh(item)
+
+    field_values = db_session.scalars(
+        select(ItemFieldValue).where(
+            ItemFieldValue.item_id == item.id
+        )
+    ).all()
+
+    values_by_key = {
+        field_value.field.field_key: field_value
+        for field_value in field_values
+    }
+
+    assert len(field_values) == 2
+    assert values_by_key["author"].value_text == "Új szerző"
+    assert values_by_key["publish_year"].value_integer == 2020
+
+
+def test_update_collection_item_rejects_unknown_field(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_book_category(db_session)
+
+    item = create_collection_item(
+        session=db_session,
+        data=CollectionItemCreateInput(
+            household_id=household.id,
+            category_id=category.id,
+            title="Teszt könyv",
+        ),
+    )
+
+    try:
+        update_collection_item(
+            session=db_session,
+            item=item,
+            data=CollectionItemUpdateInput(
+                field_values={
+                    "unknown": "érték",
+                },
+            ),
+        )
+    except ValueError as error:
+        assert "Ismeretlen kategóriamezők" in str(error)
     else:
         raise AssertionError("ValueError kivételre számítottunk.")

@@ -51,6 +51,18 @@ class CollectionItemCreateInput:
     field_values: dict[str, Any] = field(default_factory=dict)
 
 
+@dataclass(slots=True)
+class CollectionItemUpdateInput:
+    title: str | None = None
+    subtitle: str | None = None
+    notes: str | None = None
+    status: str | None = None
+    is_active: bool | None = None
+    updated_by_user_id: int | None = None
+    identifiers: list[IdentifierInput] | None = None
+    field_values: dict[str, Any] | None = None
+
+
 def _ensure_household_exists(
     session: Session,
     household_id: int,
@@ -433,6 +445,128 @@ def create_collection_item(
                 value=value,
             )
         )
+
+    session.flush()
+
+    return item
+
+def update_collection_item(
+    session: Session,
+    item: CollectionItem,
+    data: CollectionItemUpdateInput,
+) -> CollectionItem:
+    """
+    Meglévő gyűjteményi elem részleges módosítása.
+
+    A None értékű inputmezők nem módosítják az adott mezőt.
+    Az identifiers és field_values listák megadása teljes cserét jelent.
+    A hívó kezeli a commitot vagy rollbacket.
+    """
+    if data.title is not None:
+        normalized_title = data.title.strip()
+
+        if not normalized_title:
+            raise ValueError("A cím nem lehet üres.")
+
+        item.title = normalized_title
+
+    if data.subtitle is not None:
+        item.subtitle = data.subtitle
+
+    if data.notes is not None:
+        item.notes = data.notes
+
+    if data.status is not None:
+        item.status = data.status
+
+    if data.is_active is not None:
+        item.is_active = data.is_active
+
+    updater = _ensure_user_exists(
+        session=session,
+        user_id=data.updated_by_user_id,
+    )
+
+    if data.updated_by_user_id is not None:
+        item.updated_by_user = updater
+
+    category_fields = _get_category_fields(
+        session=session,
+        category_id=item.category_id,
+    )
+
+    if data.identifiers is not None:
+        item.identifiers.clear()
+        session.flush()
+
+        for identifier_input in data.identifiers:
+            identifier_value = (
+                identifier_input.identifier_value.strip()
+            )
+
+            if not identifier_value:
+                raise ValueError(
+                    "Az azonosító értéke nem lehet üres."
+                )
+
+            item.identifiers.append(
+                ItemIdentifier(
+                    identifier_type=identifier_input.identifier_type,
+                    identifier_value=identifier_value,
+                    provider_code=identifier_input.provider_code,
+                    is_primary=identifier_input.is_primary,
+                )
+            )
+
+    if data.field_values is not None:
+        unknown_field_keys = (
+            set(data.field_values) - set(category_fields)
+        )
+
+        if unknown_field_keys:
+            unknown = ", ".join(sorted(unknown_field_keys))
+
+            raise ValueError(
+                f"Ismeretlen kategóriamezők: {unknown}"
+            )
+
+        missing_required_fields = [
+            category_field.field_key
+            for category_field in category_fields.values()
+            if category_field.is_required
+            and (
+                category_field.field_key
+                not in data.field_values
+                or data.field_values[
+                    category_field.field_key
+                ] is None
+            )
+        ]
+
+        if missing_required_fields:
+            missing = ", ".join(
+                sorted(missing_required_fields)
+            )
+
+            raise ValueError(
+                f"Hiányzó kötelező mezők: {missing}"
+            )
+
+        item.field_values.clear()
+        session.flush()
+
+        for field_key, value in data.field_values.items():
+            if value is None:
+                continue
+
+            item.field_values.append(
+                _build_field_value(
+                    session=session,
+                    item=item,
+                    category_field=category_fields[field_key],
+                    value=value,
+                )
+            )
 
     session.flush()
 

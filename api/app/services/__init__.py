@@ -5,6 +5,8 @@ from app.services.auth import (
 )
 from app.services.collection_items import (
     CollectionItemCreateInput,
+    CollectionItemUpdateInput,
+    update_collection_item,
     IdentifierInput,
     create_collection_item,
 )
@@ -15,6 +17,8 @@ __all__ = [
     "get_user_by_email",
     "normalize_email",
     "CollectionItemCreateInput",
+    "CollectionItemUpdateInput",
+    "update_collection_item",
     "IdentifierInput",
     "create_collection_item",
 ]

@@ -126,3 +126,41 @@ class CollectionItemListResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
+class CollectionItemUpdateRequest(BaseModel):
+    title: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=300,
+    )
+
+    subtitle: str | None = Field(
+        default=None,
+        max_length=300,
+    )
+
+    notes: str | None = None
+
+    status: str | None = None
+
+    is_active: bool | None = None
+
+    updated_by_user_id: int | None = Field(
+        default=None,
+        gt=0,
+    )
+
+    identifiers: list[ItemIdentifierCreate] | None = None
+
+    field_values: dict[
+        str,
+        str
+        | int
+        | float
+        | Decimal
+        | bool
+        | date
+        | list[Any]
+        | dict[str, Any]
+        | None,
+    ] | None = None
