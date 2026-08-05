@@ -247,3 +247,128 @@ def test_get_collection_item_returns_404_for_unknown_public_id(
     assert response.json() == {
         "detail": "A gyűjteményi elem nem található."
     }
+
+def test_list_collection_items(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    for title in [
+        "B könyv",
+        "A könyv",
+        "C könyv",
+    ]:
+        response = test_client.post(
+            "/items",
+            json={
+                "household_id": household.id,
+                "category_id": category.id,
+                "title": title,
+            },
+        )
+
+        assert response.status_code == 201
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id": household.id,
+            "limit": 2,
+            "offset": 0,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 3
+    assert data["limit"] == 2
+    assert data["offset"] == 0
+    assert len(data["items"]) == 2
+
+    assert [
+        item["title"]
+        for item in data["items"]
+    ] == [
+        "A könyv",
+        "B könyv",
+    ]
+
+
+def test_list_collection_items_filters_by_category(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    first_category = create_test_book_category(db_session)
+
+    second_category = Category(
+        household_id=None,
+        name="Második kategória",
+        slug="second-list-category",
+        is_system=True,
+        is_active=True,
+        supports_barcode=False,
+        metadata_lookup_type="manual",
+        sort_order=20,
+    )
+
+    db_session.add(second_category)
+    db_session.flush()
+
+    first_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": first_category.id,
+            "title": "Első kategóriás",
+        },
+    )
+
+    second_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": second_category.id,
+            "title": "Második kategóriás",
+        },
+    )
+
+    assert first_response.status_code == 201
+    assert second_response.status_code == 201
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id": household.id,
+            "category_id": second_category.id,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+    assert data["items"][0]["title"] == "Második kategóriás"
+
+
+def test_list_collection_items_rejects_invalid_limit(
+    test_client: TestClient,
+) -> None:
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id": 1,
+            "limit": 201,
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "A limit értéke 1 és 200 közötti lehet."
+    }

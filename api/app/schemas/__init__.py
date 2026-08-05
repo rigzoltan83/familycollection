@@ -7,6 +7,8 @@ from app.schemas.auth import (
 from app.schemas.collection_items import (
     CollectionItemCreateRequest,
     CollectionItemResponse,
+    CollectionItemListEntry,
+    CollectionItemListResponse,
     ItemFieldValueResponse,
     ItemIdentifierCreate,
     ItemIdentifierResponse,
@@ -18,6 +20,8 @@ __all__ = [
     "LoginResponse",
     "CollectionItemCreateRequest",
     "CollectionItemResponse",
+    "CollectionItemListEntry",
+    "CollectionItemListResponse",
     "ItemFieldValueResponse",
     "ItemIdentifierCreate",
     "ItemIdentifierResponse",

@@ -108,3 +108,21 @@ class CollectionItemResponse(BaseModel):
 
     identifiers: list[ItemIdentifierResponse]
     field_values: list[ItemFieldValueResponse]
+
+class CollectionItemListEntry(BaseModel):
+    public_id: str
+    household_id: int
+    category_id: int
+    title: str
+    subtitle: str | None
+    status: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+
+class CollectionItemListResponse(BaseModel):
+    items: list[CollectionItemListEntry]
+    total: int
+    limit: int
+    offset: int

@@ -3,7 +3,7 @@ CollectionItem HTTP-végpontok.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.database import get_db_session
@@ -15,6 +15,8 @@ from app.models import (
 from app.schemas import (
     CollectionItemCreateRequest,
     CollectionItemResponse,
+    CollectionItemListEntry,
+    CollectionItemListResponse,
     ItemFieldValueResponse,
     ItemIdentifierResponse,
 )
@@ -87,6 +89,92 @@ def _build_item_response(
             )
             for field_value in item.field_values
         ],
+    )
+
+@router.get(
+    "",
+    response_model=CollectionItemListResponse,
+)
+def list_items(
+    household_id: int,
+    category_id: int | None = None,
+    item_status: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+    session: Session = Depends(get_db_session),
+) -> CollectionItemListResponse:
+    if household_id <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A household_id csak pozitív egész szám lehet.",
+        )
+
+    if category_id is not None and category_id <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A category_id csak pozitív egész szám lehet.",
+        )
+
+    if limit < 1 or limit > 200:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A limit értéke 1 és 200 közötti lehet.",
+        )
+
+    if offset < 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Az offset nem lehet negatív.",
+        )
+
+    filters = [
+        CollectionItem.household_id == household_id,
+        CollectionItem.is_active.is_(True),
+    ]
+
+    if category_id is not None:
+        filters.append(
+            CollectionItem.category_id == category_id
+        )
+
+    if item_status is not None:
+        filters.append(
+            CollectionItem.status == item_status
+        )
+
+    total = session.scalar(
+        select(func.count(CollectionItem.id)).where(*filters)
+    )
+
+    items = session.scalars(
+        select(CollectionItem)
+        .where(*filters)
+        .order_by(
+            CollectionItem.title.asc(),
+            CollectionItem.id.asc(),
+        )
+        .limit(limit)
+        .offset(offset)
+    ).all()
+
+    return CollectionItemListResponse(
+        items=[
+            CollectionItemListEntry(
+                public_id=item.public_id,
+                household_id=item.household_id,
+                category_id=item.category_id,
+                title=item.title,
+                subtitle=item.subtitle,
+                status=item.status,
+                is_active=item.is_active,
+                created_at=item.created_at,
+                updated_at=item.updated_at,
+            )
+            for item in items
+        ],
+        total=total or 0,
+        limit=limit,
+        offset=offset,
     )
 
 
