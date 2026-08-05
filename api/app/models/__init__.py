@@ -11,6 +11,7 @@ from app.models.category_field_option import CategoryFieldOption
 from app.models.collection_item import CollectionItem
 from app.models.item_field_value import ItemFieldValue
 from app.models.item_identifier import ItemIdentifier
+from app.models.legacy_book_migration import LegacyBookMigration
 
 __all__ = [
     "Household",
@@ -22,6 +23,7 @@ __all__ = [
     "CollectionItem",
     "ItemFieldValue",
     "ItemIdentifier",
+    "LegacyBookMigration",
     "MetadataProvider",
     "CategoryMetadataProvider",
 ]
