@@ -1152,3 +1152,37 @@ def update_book_by_legacy_id(
     session.flush()
 
     return True
+
+
+def resolve_storage_location_from_legacy_id(
+    session: Session,
+    *,
+    household_id: int,
+    legacy_location_id: int,
+) -> StorageLocation | None:
+    """
+    A régi locations.id alapján megkeresi az új, hierarchikus
+    storage_locations slot rekordot.
+
+    A legacy location azonosító a seed migráció során a slot
+    description mezőjében került megőrzésre.
+
+    Visszatérési érték:
+    - StorageLocation: ha megtalálható az aktív slot;
+    - None: ha nincs ilyen legacy hely.
+    """
+    if legacy_location_id <= 0:
+        return None
+
+    marker = (
+        f"%Régi location_id={legacy_location_id};%"
+    )
+
+    return session.scalar(
+        select(StorageLocation).where(
+            StorageLocation.household_id == household_id,
+            StorageLocation.location_type == "slot",
+            StorageLocation.is_active.is_(True),
+            StorageLocation.description.ilike(marker),
+        )
+    )

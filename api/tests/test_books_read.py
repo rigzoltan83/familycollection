@@ -19,6 +19,7 @@ from app.services import (
     list_books,
     list_latest_books,
     move_book_to_storage_location,
+    resolve_storage_location_from_legacy_id,
     soft_delete_book_by_legacy_id,
     update_collection_item_title,
     update_book_borrow_state,
@@ -1511,3 +1512,85 @@ def test_update_book_by_legacy_id_returns_false_for_missing_book(
     )
 
     assert updated is False
+
+
+def test_resolve_storage_location_from_legacy_id_returns_slot(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Nappali",
+        slug="nappali",
+        location_type="room",
+        sort_order=10,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi helyiség: Nappali"
+        ),
+    )
+
+    db_session.add(room)
+    db_session.flush()
+
+    shelf = StorageLocation(
+        household_id=household.id,
+        parent_id=room.id,
+        name="Újpolc",
+        slug="ujpolc",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi polc/szekrény: Nappali / Újpolc"
+        ),
+    )
+
+    db_session.add(shelf)
+    db_session.flush()
+
+    slot = StorageLocation(
+        household_id=household.id,
+        parent_id=shelf.id,
+        name="5. hely",
+        slug="slot-5",
+        location_type="slot",
+        sort_order=50,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi location_id=5; "
+            "útvonal=Nappali / Újpolc / 5"
+        ),
+    )
+
+    db_session.add(slot)
+    db_session.flush()
+
+    resolved = resolve_storage_location_from_legacy_id(
+        db_session,
+        household_id=household.id,
+        legacy_location_id=5,
+    )
+
+    assert resolved is not None
+    assert resolved.id == slot.id
+    assert resolved.location_type == "slot"
+
+
+def test_resolve_storage_location_from_legacy_id_returns_none_when_missing(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    resolved = resolve_storage_location_from_legacy_id(
+        db_session,
+        household_id=household.id,
+        legacy_location_id=999999,
+    )
+
+    assert resolved is None
