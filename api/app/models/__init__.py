@@ -7,6 +7,7 @@ from app.models.category_metadata_provider import (
     CategoryMetadataProvider,
 )
 from app.models.category_field import CategoryField
+from app.models.category_field_option import CategoryFieldOption
 
 __all__ = [
     "Household",
@@ -14,6 +15,7 @@ __all__ = [
     "HouseholdMember",
     "Category",
     "CategoryField",
+    "CategoryFieldOption",
     "MetadataProvider",
     "CategoryMetadataProvider",
 ]
