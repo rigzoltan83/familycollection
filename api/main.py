@@ -33,6 +33,7 @@ from app.services import (
     resolve_storage_location_from_legacy_id,
     update_book_by_legacy_id,
     create_manual_book,
+    list_all_books_for_export,
 )
 
 app = FastAPI(title="Family Collection API")
@@ -662,8 +663,12 @@ def delete_book(
 
 
 @app.get("/books/export.csv")
-def export_books_csv():
-    rows = db.export_books()
+def export_books_csv(
+    session: Session = Depends(get_db_session),
+):
+    records = list_all_books_for_export(
+        session=session
+    )
 
     output = io.StringIO()
 
@@ -693,45 +698,59 @@ def export_books_csv():
         "Teljes tárhely"
     ])
 
-    for row in rows:
-        book_id = row[0]
-        isbn = row[1]
-        title = row[2]
-        author = row[3]
-        publish_year = row[4]
-        publisher = row[5]
-        created = row[6]
-        updated = row[7]
-        borrowed_to = row[8]
-        room = row[9]
-        shelf = row[10]
-        slot = row[11]
-
+    for record in records:
         location_parts = [
             str(value)
-            for value in (room, shelf)
-            if value not in (None, "", "-")
+            for value in (
+                record.room,
+                record.shelf,
+            )
+            if value not in (
+                None,
+                "",
+                "-",
+            )
         ]
 
-        if slot is not None:
-            location_parts.append(f"Tárhely {slot}")
+        if record.slot is not None:
+            location_parts.append(
+                f"Tárhely {record.slot}"
+            )
 
-        full_location = " / ".join(location_parts)
+        full_location = " / ".join(
+            location_parts
+        )
 
         writer.writerow([
-            book_id,
-            isbn or "",
-            title or "",
-            author or "",
-            publish_year or "",
-            publisher or "",
-            created.isoformat(sep=" ") if created else "",
-            updated.isoformat(sep=" ") if updated else "",
-            borrowed_to or "",
-            room or "",
-            shelf or "",
-            slot if slot is not None else "",
-            full_location
+            record.id,
+            record.isbn or "",
+            record.title or "",
+            record.author or "",
+            record.year or "",
+            record.publisher or "",
+            (
+                record.added.isoformat(
+                    sep=" "
+                )
+                if record.added
+                else ""
+            ),
+            (
+                record.updated.isoformat(
+                    sep=" "
+                )
+                if record.updated
+                else ""
+            ),
+            record.borrower or "",
+            record.room or "",
+            record.shelf or "",
+            (
+                record.slot
+                if record.slot is not None
+                else ""
+            ),
+            full_location,
         ])
 
     csv_content = output.getvalue()

@@ -1429,3 +1429,34 @@ def create_manual_book(
     session.flush()
 
     return new_legacy_book_id
+
+
+def list_all_books_for_export(
+    session: Session,
+) -> list[BookReadRecord]:
+    """
+    Az összes aktív könyvet visszaadja exportáláshoz.
+
+    A sorrend a régi exporttal kompatibilis:
+    legacy könyvazonosító szerint növekvő.
+    """
+    migrations = session.scalars(
+        select(LegacyBookMigration)
+        .options(*_book_loader_options())
+        .join(
+            CollectionItem,
+            CollectionItem.id
+            == LegacyBookMigration.collection_item_id,
+        )
+        .where(
+            CollectionItem.is_active.is_(True),
+        )
+        .order_by(
+            LegacyBookMigration.legacy_book_id.asc(),
+        )
+    ).all()
+
+    return [
+        _build_book_record(migration)
+        for migration in migrations
+    ]

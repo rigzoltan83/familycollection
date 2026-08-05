@@ -1294,3 +1294,91 @@ def test_books_manual_isbn_requires_borrower_for_loaned_location(
 
     assert item.status == "loaned"
     assert migration.legacy_borrowed_to == "Kovács Péter"
+
+
+def test_books_export_csv_uses_collection_item_model(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="A három testőr Afrikában",
+        author="Jenő Rejtő",
+        publisher="Alexandra K.",
+        publish_year=2007,
+        identifier_type="isbn13",
+        identifier_value="9789633694503",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 8, 53, 42),
+    )
+
+    response = test_client.get(
+        "/books/export.csv"
+    )
+
+    assert response.status_code == 200
+
+    assert response.headers[
+        "content-type"
+    ].startswith(
+        "text/csv"
+    )
+
+    assert (
+        "attachment;"
+        in response.headers[
+            "content-disposition"
+        ]
+    )
+
+    content = response.content.decode(
+        "utf-8-sig"
+    )
+
+    lines = content.splitlines()
+
+    assert lines[0] == (
+        "Könyv ID;"
+        "ISBN;"
+        "Cím;"
+        "Szerző;"
+        "Kiadás éve;"
+        "Kiadó;"
+        "Felvitel dátuma;"
+        "Utolsó módosítás;"
+        "Kölcsönző;"
+        "Helyiség;"
+        "Polc;"
+        "Tárhely;"
+        "Teljes tárhely"
+    )
+
+    assert len(lines) == 2
+
+    assert lines[1] == (
+        "6;"
+        "9789633694503;"
+        "A három testőr Afrikában;"
+        "Jenő Rejtő;"
+        "2007;"
+        "Alexandra K.;"
+        "2026-07-14 08:53:42;"
+        "2026-07-14 08:53:42;"
+        ";"
+        "Nappali;"
+        "Újpolc;"
+        "5;"
+        "Nappali / Újpolc / Tárhely 5"
+    )

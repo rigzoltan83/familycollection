@@ -27,6 +27,7 @@ from app.services import (
     update_primary_identifier,
     update_book_by_legacy_id,
     create_manual_book,
+    list_all_books_for_export,
 )
 
 
@@ -1799,3 +1800,87 @@ def test_create_manual_book_rejects_non_book_category(
         raise AssertionError(
             "ValueError kivételre számítottunk."
         )
+
+
+def test_list_all_books_for_export_returns_active_books_in_legacy_id_order(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=20,
+        title="Második könyv",
+        author="Második szerző",
+        publisher="Második kiadó",
+        publish_year=2020,
+        identifier_type="isbn13",
+        identifier_value="9789632222222",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 15, 10, 0, 0),
+    )
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=10,
+        title="Első könyv",
+        author="Első szerző",
+        publisher="Első kiadó",
+        publish_year=2010,
+        identifier_type="isbn13",
+        identifier_value="9789631111111",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    inactive_item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=30,
+        title="Inaktív könyv",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        identifier_type=None,
+        identifier_value=None,
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 16, 10, 0, 0),
+    )
+
+    inactive_item.is_active = False
+    db_session.flush()
+
+    records = list_all_books_for_export(
+        db_session
+    )
+
+    assert [
+        record.id
+        for record in records
+    ] == [
+        10,
+        20,
+    ]
+
+    assert records[0].title == "Első könyv"
+    assert records[0].isbn == "9789631111111"
+    assert records[0].author == "Első szerző"
+    assert records[0].publisher == "Első kiadó"
+    assert records[0].year == 2010
+    assert records[0].room == "Nappali"
+    assert records[0].shelf == "Újpolc"
+    assert records[0].slot == 5
