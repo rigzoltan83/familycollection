@@ -147,6 +147,14 @@ class CollectionItem(
         back_populates="item",
     )
 
+    storage_assignments: Mapped[
+        list["ItemStorageAssignment"]
+    ] = relationship(
+        back_populates="item",
+        cascade="all, delete-orphan",
+        order_by="ItemStorageAssignment.assigned_at",
+    )
+
     def __repr__(self) -> str:
         return (
             f"CollectionItem(id={self.id!r}, "
