@@ -15,6 +15,11 @@ from app.schemas.collection_items import (
     ItemIdentifierResponse,
 )
 
+from app.schemas.storage import (
+    StorageTreeNodeResponse,
+    StorageTreeResponse,
+)
+
 __all__ = [
     "AuthenticatedUserResponse",
     "LoginRequest",
@@ -27,4 +32,6 @@ __all__ = [
     "ItemFieldValueResponse",
     "ItemIdentifierCreate",
     "ItemIdentifierResponse",
+    "StorageTreeNodeResponse",
+    "StorageTreeResponse",
 ]
