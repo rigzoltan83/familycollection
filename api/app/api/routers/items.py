@@ -3,7 +3,7 @@ CollectionItem HTTP-végpontok.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.database import get_db_session
@@ -100,6 +100,7 @@ def list_items(
     category_id: int | None = None,
     item_status: str | None = None,
     query: str | None = None,
+    identifier: str | None = None,
     limit: int = 50,
     offset: int = 0,
     session: Session = Depends(get_db_session),
@@ -134,6 +135,15 @@ def list_items(
         else None
     )
 
+    normalized_identifier = (
+        identifier.strip()
+        if identifier is not None
+        else None
+    )
+
+    if normalized_identifier == "":
+        normalized_identifier = None
+
     if normalized_query == "":
         normalized_query = None
 
@@ -141,6 +151,19 @@ def list_items(
         CollectionItem.household_id == household_id,
         CollectionItem.is_active.is_(True),
     ]
+
+    if normalized_identifier is not None:
+        filters.append(
+            exists(
+                select(ItemIdentifier.id).where(
+                    ItemIdentifier.item_id
+                    == CollectionItem.id,
+                    ItemIdentifier.is_active.is_(True),
+                    ItemIdentifier.identifier_value
+                    == normalized_identifier,
+                )
+            )
+        )
 
     if normalized_query is not None:
         search_pattern = f"%{normalized_query}%"
