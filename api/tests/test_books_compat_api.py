@@ -1,0 +1,504 @@
+from datetime import datetime
+
+from fastapi.testclient import TestClient
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.models import (
+    Category,
+    CategoryField,
+    CollectionItem,
+    Household,
+    ItemFieldValue,
+    ItemIdentifier,
+    ItemStorageAssignment,
+    LegacyBookMigration,
+    StorageLocation,
+)
+
+
+def create_test_household(
+    session: Session,
+) -> Household:
+    household = Household(
+        name="Books compat teszt",
+        slug="books-compat-test",
+        is_active=True,
+    )
+
+    session.add(household)
+    session.flush()
+
+    return household
+
+
+def create_test_book_category(
+    session: Session,
+) -> Category:
+    category = Category(
+        household_id=None,
+        name="Könyv",
+        slug="book",
+        description="Books compat tesztkategória",
+        icon="book",
+        is_system=True,
+        is_active=True,
+        supports_barcode=True,
+        metadata_lookup_type="manual",
+        sort_order=10,
+    )
+
+    session.add(category)
+    session.flush()
+
+    session.add_all(
+        [
+            CategoryField(
+                category_id=category.id,
+                name="Szerző",
+                field_key="author",
+                field_type="text",
+                is_required=False,
+                is_searchable=True,
+                is_filterable=False,
+                is_visible_in_list=True,
+                is_active=True,
+                sort_order=10,
+                validation_rules={},
+                default_value={},
+            ),
+            CategoryField(
+                category_id=category.id,
+                name="Kiadó",
+                field_key="publisher",
+                field_type="text",
+                is_required=False,
+                is_searchable=True,
+                is_filterable=True,
+                is_visible_in_list=False,
+                is_active=True,
+                sort_order=20,
+                validation_rules={},
+                default_value={},
+            ),
+            CategoryField(
+                category_id=category.id,
+                name="Megjelenési év",
+                field_key="publish_year",
+                field_type="year",
+                is_required=False,
+                is_searchable=False,
+                is_filterable=True,
+                is_visible_in_list=True,
+                is_active=True,
+                sort_order=30,
+                validation_rules={
+                    "minimum": 1000,
+                    "maximum": 9999,
+                },
+                default_value={},
+            ),
+        ]
+    )
+
+    session.flush()
+
+    return category
+
+
+def create_test_storage_hierarchy(
+    session: Session,
+    *,
+    household_id: int,
+) -> StorageLocation:
+    room = StorageLocation(
+        household_id=household_id,
+        parent_id=None,
+        name="Nappali",
+        slug="nappali",
+        location_type="room",
+        sort_order=10,
+        is_active=True,
+    )
+
+    session.add(room)
+    session.flush()
+
+    shelf = StorageLocation(
+        household_id=household_id,
+        parent_id=room.id,
+        name="Újpolc",
+        slug="ujpolc",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+    )
+
+    session.add(shelf)
+    session.flush()
+
+    slot = StorageLocation(
+        household_id=household_id,
+        parent_id=shelf.id,
+        name="5. hely",
+        slug="slot-5",
+        location_type="slot",
+        sort_order=50,
+        is_active=True,
+    )
+
+    session.add(slot)
+    session.flush()
+
+    return slot
+
+
+def create_migrated_book(
+    session: Session,
+    *,
+    household: Household,
+    category: Category,
+    storage_location: StorageLocation,
+    legacy_book_id: int,
+    title: str,
+    author: str | None,
+    publisher: str | None,
+    publish_year: int | None,
+    identifier_type: str | None,
+    identifier_value: str | None,
+    borrowed_to: str | None,
+    created_at: datetime,
+) -> CollectionItem:
+    item = CollectionItem(
+        household_id=household.id,
+        category_id=category.id,
+        title=title,
+        status="loaned" if borrowed_to else "active",
+        is_active=True,
+        created_at=created_at,
+        updated_at=created_at,
+    )
+
+    session.add(item)
+    session.flush()
+
+    fields = {
+        field.field_key: field
+        for field in session.scalars(
+            select(CategoryField).where(
+                CategoryField.category_id == category.id
+            )
+        ).all()
+    }
+
+    if author is not None:
+        session.add(
+            ItemFieldValue(
+                item_id=item.id,
+                field_id=fields["author"].id,
+                value_text=author,
+            )
+        )
+
+    if publisher is not None:
+        session.add(
+            ItemFieldValue(
+                item_id=item.id,
+                field_id=fields["publisher"].id,
+                value_text=publisher,
+            )
+        )
+
+    if publish_year is not None:
+        session.add(
+            ItemFieldValue(
+                item_id=item.id,
+                field_id=fields["publish_year"].id,
+                value_integer=publish_year,
+            )
+        )
+
+    if (
+        identifier_type is not None
+        and identifier_value is not None
+    ):
+        session.add(
+            ItemIdentifier(
+                item_id=item.id,
+                identifier_type=identifier_type,
+                identifier_value=identifier_value,
+                is_primary=True,
+                is_active=True,
+            )
+        )
+
+    session.add(
+        ItemStorageAssignment(
+            item_id=item.id,
+            storage_location_id=storage_location.id,
+            is_active=True,
+            assigned_at=created_at,
+            movement_reason="test",
+        )
+    )
+
+    session.add(
+        LegacyBookMigration(
+            legacy_book_id=legacy_book_id,
+            collection_item_id=item.id,
+            legacy_location_id=5,
+            legacy_isbn=identifier_value,
+            legacy_borrowed_to=borrowed_to,
+            legacy_room="Nappali",
+            legacy_shelf="Újpolc",
+            legacy_slot=5,
+            migration_status="migrated",
+        )
+    )
+
+    session.flush()
+
+    return item
+
+
+def test_books_latest_returns_legacy_compatible_json(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="A három testőr Afrikában",
+        author="Jenő Rejtő",
+        publisher="Alexandra K.",
+        publish_year=2007,
+        identifier_type="isbn13",
+        identifier_value="9789633694503",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 8, 53, 42),
+    )
+
+    response = test_client.get("/books/latest")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 1
+
+    assert data[0] == {
+        "id": 6,
+        "title": "A három testőr Afrikában",
+        "author": "Jenő Rejtő",
+        "isbn": "9789633694503",
+        "publisher": "Alexandra K.",
+        "year": 2007,
+        "added": "2026-07-14T08:53:42",
+        "room": "Nappali",
+        "shelf": "Újpolc",
+        "slot": 5,
+        "borrower": None,
+    }
+
+
+def test_books_all_returns_legacy_compatible_page(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=2,
+        title="B könyv",
+        author="Második szerző",
+        publisher=None,
+        publish_year=2002,
+        identifier_type="isbn13",
+        identifier_value="9789632222222",
+        borrowed_to="Teszt kölcsönző",
+        created_at=datetime(2026, 7, 15, 10, 0, 0),
+    )
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=1,
+        title="A könyv",
+        author="Első szerző",
+        publisher="Teszt kiadó",
+        publish_year=2001,
+        identifier_type="isbn13",
+        identifier_value="9789631111111",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    response = test_client.get(
+        "/books/all",
+        params={
+            "page": 1,
+            "page_size": 50,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["page"] == 1
+    assert data["page_size"] == 50
+    assert data["total"] == 2
+    assert data["total_pages"] == 1
+    assert data["search"] == ""
+
+    assert [
+        book["id"]
+        for book in data["books"]
+    ] == [1, 2]
+
+    assert data["books"][0]["isbn"] == "9789631111111"
+    assert data["books"][0]["author"] == "Első szerző"
+    assert data["books"][0]["room"] == "Nappali"
+    assert data["books"][0]["shelf"] == "Újpolc"
+    assert data["books"][0]["slot"] == 5
+
+    assert data["books"][1]["borrower"] == "Teszt kölcsönző"
+
+
+def test_books_all_supports_search(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=1,
+        title="A három testőr Afrikában",
+        author="Jenő Rejtő",
+        publisher="Alexandra K.",
+        publish_year=2007,
+        identifier_type="isbn13",
+        identifier_value="9789633694503",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=2,
+        title="Másik könyv",
+        author="Másik szerző",
+        publisher="Másik kiadó",
+        publish_year=2020,
+        identifier_type="isbn13",
+        identifier_value="9789632222222",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 15, 10, 0, 0),
+    )
+
+    response = test_client.get(
+        "/books/all",
+        params={
+            "search": "Rejtő",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 1
+    assert data["search"] == "Rejtő"
+    assert data["books"][0]["id"] == 1
+
+
+def test_books_detail_returns_legacy_compatible_json(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="A három testőr Afrikában",
+        author="Jenő Rejtő",
+        publisher="Alexandra K.",
+        publish_year=2007,
+        identifier_type="isbn13",
+        identifier_value="9789633694503",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 8, 53, 42),
+    )
+
+    response = test_client.get("/books/6")
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "id": 6,
+        "isbn": "9789633694503",
+        "title": "A három testőr Afrikában",
+        "author": "Jenő Rejtő",
+        "publisher": "Alexandra K.",
+        "year": 2007,
+        "created": "2026-07-14T08:53:42",
+        "location_id": 5,
+        "borrower": None,
+        "room": "Nappali",
+        "shelf": "Újpolc",
+        "slot": 5,
+    }
+
+
+def test_books_detail_returns_not_found(
+    test_client: TestClient,
+) -> None:
+    response = test_client.get("/books/999999")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "not_found",
+        "message": "A könyv nem található.",
+    }

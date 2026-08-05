@@ -5,7 +5,8 @@ from datetime import datetime
 from fastapi.responses import StreamingResponse
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
+from sqlalchemy.orm import Session
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -16,7 +17,7 @@ from metadata import fetch_book
 from app.api.routers.auth import router as auth_router
 from app.api.routers.items import router as items_router
 
-from app.core.database import SessionLocal
+from app.core.database import get_db_session
 from app.services import (
     get_book_by_legacy_id,
     list_books,
@@ -338,20 +339,81 @@ def add_manual_isbn_book(req: ManualIsbnBookRequest):
             "message": str(error)
         }
 
-@app.get("/books/latest")
-def latest():
-    with SessionLocal() as session:
-        records = list_latest_books(
-            session=session,
-            limit=20,
-        )
 
-        return [
+@app.get("/books/latest")
+def latest(
+    session: Session = Depends(get_db_session),
+):
+    records = list_latest_books(
+        session=session,
+        limit=20,
+    )
+
+    return [
+        {
+            "id": record.id,
+            "title": record.title,
+            "author": record.author,
+            "isbn": record.isbn,
+            "publisher": record.publisher,
+            "year": record.year,
+            "added": (
+                record.added.isoformat()
+                if record.added
+                else None
+            ),
+            "room": record.room,
+            "shelf": record.shelf,
+            "slot": record.slot,
+            "borrower": record.borrower,
+        }
+        for record in records
+    ]
+
+
+@app.get("/books/all")
+def all_books(
+    page: int = 1,
+    page_size: int = 50,
+    search: str = "",
+    session: Session = Depends(get_db_session),
+):
+    normalized_page = max(1, page)
+    normalized_page_size = max(
+        1,
+        min(page_size, 100),
+    )
+
+    result = list_books(
+        session=session,
+        page=normalized_page,
+        page_size=normalized_page_size,
+        search=search,
+    )
+
+    total_pages = (
+        (
+            result.total
+            + result.page_size
+            - 1
+        )
+        // result.page_size
+        if result.total > 0
+        else 1
+    )
+
+    return {
+        "page": result.page,
+        "page_size": result.page_size,
+        "total": result.total,
+        "total_pages": total_pages,
+        "search": search,
+        "books": [
             {
                 "id": record.id,
+                "isbn": record.isbn,
                 "title": record.title,
                 "author": record.author,
-                "isbn": record.isbn,
                 "publisher": record.publisher,
                 "year": record.year,
                 "added": (
@@ -364,68 +426,9 @@ def latest():
                 "slot": record.slot,
                 "borrower": record.borrower,
             }
-            for record in records
-        ]
-
-
-@app.get("/books/all")
-def all_books(
-    page: int = 1,
-    page_size: int = 50,
-    search: str = "",
-):
-    normalized_page = max(1, page)
-    normalized_page_size = max(
-        1,
-        min(page_size, 100),
-    )
-
-    with SessionLocal() as session:
-        result = list_books(
-            session=session,
-            page=normalized_page,
-            page_size=normalized_page_size,
-            search=search,
-        )
-
-        total_pages = (
-            (
-                result.total
-                + result.page_size
-                - 1
-            )
-            // result.page_size
-            if result.total > 0
-            else 1
-        )
-
-        return {
-            "page": result.page,
-            "page_size": result.page_size,
-            "total": result.total,
-            "total_pages": total_pages,
-            "search": search,
-            "books": [
-                {
-                    "id": record.id,
-                    "isbn": record.isbn,
-                    "title": record.title,
-                    "author": record.author,
-                    "publisher": record.publisher,
-                    "year": record.year,
-                    "added": (
-                        record.added.isoformat()
-                        if record.added
-                        else None
-                    ),
-                    "room": record.room,
-                    "shelf": record.shelf,
-                    "slot": record.slot,
-                    "borrower": record.borrower,
-                }
-                for record in result.records
-            ],
-        }
+            for record in result.records
+        ],
+    }
 
 
 @app.delete("/books/{book_id}")
@@ -545,38 +548,40 @@ def export_books_csv():
 
 
 @app.get("/books/{book_id}")
-def get_book(book_id: int):
+def get_book(
+    book_id: int,
+    session: Session = Depends(get_db_session),
+):
     try:
-        with SessionLocal() as session:
-            record = get_book_by_legacy_id(
-                session=session,
-                legacy_book_id=book_id,
-            )
+        record = get_book_by_legacy_id(
+            session=session,
+            legacy_book_id=book_id,
+        )
 
-            if record is None:
-                return {
-                    "status": "not_found",
-                    "message": "A könyv nem található.",
-                }
-
+        if record is None:
             return {
-                "id": record.id,
-                "isbn": record.isbn,
-                "title": record.title,
-                "author": record.author,
-                "publisher": record.publisher,
-                "year": record.year,
-                "created": (
-                    record.added.isoformat()
-                    if record.added
-                    else None
-                ),
-                "location_id": record.location_id,
-                "borrower": record.borrower,
-                "room": record.room,
-                "shelf": record.shelf,
-                "slot": record.slot,
+                "status": "not_found",
+                "message": "A könyv nem található.",
             }
+
+        return {
+            "id": record.id,
+            "isbn": record.isbn,
+            "title": record.title,
+            "author": record.author,
+            "publisher": record.publisher,
+            "year": record.year,
+            "created": (
+                record.added.isoformat()
+                if record.added
+                else None
+            ),
+            "location_id": record.location_id,
+            "borrower": record.borrower,
+            "room": record.room,
+            "shelf": record.shelf,
+            "slot": record.slot,
+        }
 
     except Exception as error:
         print("GET BOOK ERROR:", error)
