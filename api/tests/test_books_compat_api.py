@@ -561,3 +561,325 @@ def test_books_delete_returns_not_found_for_missing_book(
         "status": "not_found",
         "message": "A könyv nem található.",
     }
+
+
+def test_books_update_uses_collection_item_model(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    source_slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    target_room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Dolgozó",
+        slug="dolgozo",
+        location_type="room",
+        sort_order=20,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi helyiség: Dolgozó"
+        ),
+    )
+
+    db_session.add(target_room)
+    db_session.flush()
+
+    target_shelf = StorageLocation(
+        household_id=household.id,
+        parent_id=target_room.id,
+        name="Könyvespolc",
+        slug="konyvespolc",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi polc/szekrény: Dolgozó / Könyvespolc"
+        ),
+    )
+
+    db_session.add(target_shelf)
+    db_session.flush()
+
+    target_slot = StorageLocation(
+        household_id=household.id,
+        parent_id=target_shelf.id,
+        name="2. hely",
+        slug="slot-2",
+        location_type="slot",
+        sort_order=20,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi location_id=22; "
+            "útvonal=Dolgozó / Könyvespolc / 2"
+        ),
+    )
+
+    db_session.add(target_slot)
+    db_session.flush()
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=source_slot,
+        legacy_book_id=6,
+        title="Régi cím",
+        author="Régi szerző",
+        publisher="Régi kiadó",
+        publish_year=1999,
+        identifier_type="isbn13",
+        identifier_value="9789631111111",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    response = test_client.put(
+        "/books/6",
+        json={
+            "isbn": "978-963-222-222-2",
+            "title": "  Új cím  ",
+            "author": "  Új szerző  ",
+            "publisher": "  Új kiadó  ",
+            "publish_year": "2024",
+            "location_id": 22,
+            "borrower": "Ezt nem szabad megtartani",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "updated",
+        "id": 6,
+    }
+
+    db_session.refresh(item)
+
+    assert item.title == "Új cím"
+    assert item.status == "active"
+
+    active_identifiers = (
+        db_session.query(ItemIdentifier)
+        .filter(
+            ItemIdentifier.item_id == item.id,
+            ItemIdentifier.is_active.is_(True),
+        )
+        .all()
+    )
+
+    primary_identifier = next(
+        identifier
+        for identifier in active_identifiers
+        if identifier.is_primary
+    )
+
+    assert primary_identifier.identifier_type == "isbn13"
+    assert primary_identifier.identifier_value == "9789632222222"
+
+    values = {
+        value.field.field_key: value
+        for value in db_session.query(ItemFieldValue)
+        .filter(
+            ItemFieldValue.item_id == item.id
+        )
+        .all()
+    }
+
+    assert values["author"].value_text == "Új szerző"
+    assert values["publisher"].value_text == "Új kiadó"
+    assert values["publish_year"].value_integer == 2024
+
+    assignments = (
+        db_session.query(ItemStorageAssignment)
+        .filter(
+            ItemStorageAssignment.item_id == item.id
+        )
+        .order_by(ItemStorageAssignment.id)
+        .all()
+    )
+
+    assert len(assignments) == 2
+    assert assignments[0].is_active is False
+    assert assignments[1].is_active is True
+    assert assignments[1].storage_location_id == target_slot.id
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=6,
+        )
+        .one()
+    )
+
+    assert migration.legacy_isbn == "9789632222222"
+    assert migration.legacy_borrowed_to is None
+    assert migration.legacy_location_id is None
+    assert migration.legacy_room == "Dolgozó"
+    assert migration.legacy_shelf == "Könyvespolc"
+    assert migration.legacy_slot == 2
+
+
+def test_books_update_requires_borrower_for_loaned_location(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    source_slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    borrowed_room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Kölcsönadva",
+        slug="kolcsonadva",
+        location_type="area",
+        sort_order=30,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi helyiség: Kölcsönadva"
+        ),
+    )
+
+    db_session.add(borrowed_room)
+    db_session.flush()
+
+    borrowed_shelf = StorageLocation(
+        household_id=household.id,
+        parent_id=borrowed_room.id,
+        name="-",
+        slug="location",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi polc/szekrény: Kölcsönadva / -"
+        ),
+    )
+
+    db_session.add(borrowed_shelf)
+    db_session.flush()
+
+    borrowed_slot = StorageLocation(
+        household_id=household.id,
+        parent_id=borrowed_shelf.id,
+        name="1. hely",
+        slug="slot-1",
+        location_type="slot",
+        sort_order=10,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi location_id=26; "
+            "útvonal=Kölcsönadva / - / 1"
+        ),
+    )
+
+    db_session.add(borrowed_slot)
+    db_session.flush()
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=source_slot,
+        legacy_book_id=6,
+        title="Tesztkönyv",
+        author="Teszt szerző",
+        publisher="Teszt kiadó",
+        publish_year=2020,
+        identifier_type="isbn13",
+        identifier_value="9789631111111",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    missing_borrower_response = test_client.put(
+        "/books/6",
+        json={
+            "isbn": "9789631111111",
+            "title": "Tesztkönyv",
+            "author": "Teszt szerző",
+            "publisher": "Teszt kiadó",
+            "publish_year": "2020",
+            "location_id": 26,
+            "borrower": None,
+        },
+    )
+
+    assert missing_borrower_response.status_code == 200
+    assert missing_borrower_response.json() == {
+        "status": "error",
+        "message": (
+            "Kölcsönadásnál add meg, "
+            "kinél van a könyv."
+        ),
+    }
+
+    db_session.refresh(item)
+
+    assert item.status == "active"
+
+    successful_response = test_client.put(
+        "/books/6",
+        json={
+            "isbn": "9789631111111",
+            "title": "Tesztkönyv",
+            "author": "Teszt szerző",
+            "publisher": "Teszt kiadó",
+            "publish_year": "2020",
+            "location_id": 26,
+            "borrower": "  Kovács Péter  ",
+        },
+    )
+
+    assert successful_response.status_code == 200
+    assert successful_response.json() == {
+        "status": "updated",
+        "id": 6,
+    }
+
+    db_session.refresh(item)
+
+    assert item.status == "loaned"
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=6,
+        )
+        .one()
+    )
+
+    assert migration.legacy_borrowed_to == "Kovács Péter"
+    assert migration.legacy_room == "Kölcsönadva"
+    assert migration.legacy_shelf == "-"
+    assert migration.legacy_slot == 1
+
+    active_assignment = (
+        db_session.query(ItemStorageAssignment)
+        .filter(
+            ItemStorageAssignment.item_id == item.id,
+            ItemStorageAssignment.is_active.is_(True),
+        )
+        .one()
+    )
+
+    assert (
+        active_assignment.storage_location_id
+        == borrowed_slot.id
+    )

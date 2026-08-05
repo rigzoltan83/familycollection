@@ -6,6 +6,7 @@ from fastapi.responses import StreamingResponse
 from pathlib import Path
 
 from fastapi import Depends, FastAPI
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,12 +18,15 @@ from metadata import fetch_book
 from app.api.routers.auth import router as auth_router
 from app.api.routers.items import router as items_router
 
+from app.models import LegacyBookMigration
 from app.core.database import get_db_session
 from app.services import (
     get_book_by_legacy_id,
     list_books,
     list_latest_books,
     soft_delete_book_by_legacy_id,
+    resolve_storage_location_from_legacy_id,
+    update_book_by_legacy_id,
 )
 
 app = FastAPI(title="Family Collection API")
@@ -605,7 +609,11 @@ def get_book(
 
 
 @app.put("/books/{book_id}")
-def update_book(book_id: int, req: EditBookRequest):
+def update_book(
+    book_id: int,
+    req: EditBookRequest,
+    session: Session = Depends(get_db_session),
+):
     clean_isbn = (
         req.isbn
         .replace("-", "")
@@ -616,84 +624,195 @@ def update_book(book_id: int, req: EditBookRequest):
     if not clean_isbn:
         return {
             "status": "error",
-            "message": "Az ISBN nem lehet üres."
+            "message": "Az ISBN nem lehet üres.",
         }
-
-    if not clean_isbn.isdigit() or len(clean_isbn) not in (10, 13):
-        return {
-            "status": "error",
-            "message": "Az ISBN 10 vagy 13 számjegyből álljon."
-        }
-
-    if not req.title.strip():
-        return {
-            "status": "error",
-            "message": "A cím nem lehet üres."
-        }
-
-    places = db.get_places()
-
-    selected_place = next(
-        (
-            place
-            for place in places
-            if place["id"] == req.location_id
-        ),
-        None
-    )
-
-    if not selected_place:
-        return {
-            "status": "error",
-            "message": "A kiválasztott tárhely nem található."
-        }
-
-    borrower = req.borrower.strip() if req.borrower else None
 
     if (
-        selected_place["room"] == "Kölcsönadva"
-        and not borrower
+        not clean_isbn.isdigit()
+        or len(clean_isbn) not in (10, 13)
     ):
         return {
             "status": "error",
-            "message": "Kölcsönadásnál add meg, kinél van a könyv."
+            "message": (
+                "Az ISBN 10 vagy 13 számjegyből álljon."
+            ),
         }
 
-    if selected_place["room"] != "Kölcsönadva":
+    cleaned_title = req.title.strip()
+
+    if not cleaned_title:
+        return {
+            "status": "error",
+            "message": "A cím nem lehet üres.",
+        }
+
+    cleaned_publish_year = (
+        req.publish_year.strip()
+        if req.publish_year
+        else None
+    )
+
+    publish_year: int | None = None
+
+    if cleaned_publish_year:
+        if (
+            not cleaned_publish_year.isdigit()
+            or len(cleaned_publish_year) != 4
+        ):
+            return {
+                "status": "error",
+                "message": (
+                    "A kiadás éve négyjegyű szám legyen."
+                ),
+            }
+
+        publish_year = int(cleaned_publish_year)
+
+        if publish_year < 1000 or publish_year > 9999:
+            return {
+                "status": "error",
+                "message": (
+                    "A kiadás éve 1000 és 9999 közé essen."
+                ),
+            }
+
+    borrower = (
+        req.borrower.strip()
+        if req.borrower
+        else None
+    )
+
+    if borrower == "":
         borrower = None
 
     try:
-        updated = db.update_book(
-            book_id=book_id,
-            isbn=clean_isbn,
-            title=req.title.strip(),
-            author=req.author.strip() if req.author else None,
-            publisher=req.publisher.strip() if req.publisher else None,
-            publish_year=(
-                req.publish_year.strip()
-                if req.publish_year
+        migration = session.scalar(
+            select(LegacyBookMigration).where(
+                LegacyBookMigration.legacy_book_id
+                == book_id
+            )
+        )
+
+        if (
+            migration is None
+            or migration.collection_item is None
+            or not migration.collection_item.is_active
+        ):
+            return {
+                "status": "not_found",
+                "message": "A könyv nem található.",
+            }
+
+        household_id = (
+            migration.collection_item.household_id
+        )
+
+        target_location = (
+            resolve_storage_location_from_legacy_id(
+                session=session,
+                household_id=household_id,
+                legacy_location_id=req.location_id,
+            )
+        )
+
+        if target_location is None:
+            return {
+                "status": "error",
+                "message": (
+                    "A kiválasztott régi tárhelyhez "
+                    "nem található új tárhelyrekord."
+                ),
+            }
+
+        shelf_location = target_location.parent
+
+        room_location = (
+            shelf_location.parent
+            if shelf_location is not None
+            else None
+        )
+
+        if shelf_location is None or room_location is None:
+            return {
+                "status": "error",
+                "message": (
+                    "A kiválasztott tárhely hierarchiája hiányos."
+                ),
+            }
+
+        is_borrowed_location = (
+            room_location.name.strip().casefold()
+            == "Kölcsönadva".casefold()
+        )
+
+        if is_borrowed_location and borrower is None:
+            return {
+                "status": "error",
+                "message": (
+                    "Kölcsönadásnál add meg, "
+                    "kinél van a könyv."
+                ),
+            }
+
+        if not is_borrowed_location:
+            borrower = None
+
+        identifier_type = (
+            "isbn10"
+            if len(clean_isbn) == 10
+            else "isbn13"
+        )
+
+        updated = update_book_by_legacy_id(
+            session=session,
+            legacy_book_id=book_id,
+            title=cleaned_title,
+            identifier_type=identifier_type,
+            identifier_value=clean_isbn,
+            author=(
+                req.author.strip()
+                if req.author
                 else None
             ),
-            location_id=req.location_id,
-            borrowed_to=borrower
+            publisher=(
+                req.publisher.strip()
+                if req.publisher
+                else None
+            ),
+            publish_year=publish_year,
+            storage_location_id=target_location.id,
+            borrower=borrower,
         )
 
         if not updated:
+            session.rollback()
+
             return {
                 "status": "not_found",
-                "message": "A könyv nem található."
+                "message": "A könyv nem található.",
             }
+
+        session.commit()
 
         return {
             "status": "updated",
-            "id": book_id
+            "id": book_id,
+        }
+
+    except ValueError as error:
+        session.rollback()
+
+        return {
+            "status": "error",
+            "message": str(error),
         }
 
     except Exception as error:
+        session.rollback()
+
         print("UPDATE BOOK ERROR:", error)
 
         return {
             "status": "error",
-            "message": str(error)
+            "message": str(error),
         }
-
