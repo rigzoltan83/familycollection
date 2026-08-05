@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from app.models import (
     Category,
     CategoryField,
+    CategoryFieldOption,
     CollectionItem,
     Household,
     ItemFieldValue,
@@ -115,7 +116,117 @@ def _get_category_fields(
     }
 
 
+def _get_field_options(
+    session: Session,
+    field_id: int,
+) -> set[str]:
+    """
+    Az aktív választható értékek lekérése.
+    """
+    option_values = session.scalars(
+        select(CategoryFieldOption.value).where(
+            CategoryFieldOption.field_id == field_id,
+            CategoryFieldOption.is_active.is_(True),
+        )
+    ).all()
+
+    return set(option_values)
+
+
+def _validate_numeric_rules(
+    category_field: CategoryField,
+    numeric_value: int | Decimal,
+) -> None:
+    rules = category_field.validation_rules or {}
+
+    minimum = rules.get("minimum")
+    maximum = rules.get("maximum")
+
+    if minimum is not None and numeric_value < Decimal(str(minimum)):
+        raise ValueError(
+            f"A(z) {category_field.field_key} mező értéke "
+            f"nem lehet kisebb mint {minimum}."
+        )
+
+    if maximum is not None and numeric_value > Decimal(str(maximum)):
+        raise ValueError(
+            f"A(z) {category_field.field_key} mező értéke "
+            f"nem lehet nagyobb mint {maximum}."
+        )
+
+
+def _validate_text_rules(
+    category_field: CategoryField,
+    text_value: str,
+) -> None:
+    rules = category_field.validation_rules or {}
+
+    minimum_length = rules.get("minimum_length")
+    maximum_length = rules.get("maximum_length")
+
+    if (
+        minimum_length is not None
+        and len(text_value) < int(minimum_length)
+    ):
+        raise ValueError(
+            f"A(z) {category_field.field_key} mező legalább "
+            f"{minimum_length} karakter hosszú legyen."
+        )
+
+    if (
+        maximum_length is not None
+        and len(text_value) > int(maximum_length)
+    ):
+        raise ValueError(
+            f"A(z) {category_field.field_key} mező legfeljebb "
+            f"{maximum_length} karakter hosszú lehet."
+        )
+
+
+def _validate_select_value(
+    session: Session,
+    category_field: CategoryField,
+    value: Any,
+) -> None:
+    allowed_values = _get_field_options(
+        session=session,
+        field_id=category_field.id,
+    )
+
+    if category_field.field_type == "single_select":
+        if not isinstance(value, str):
+            raise ValueError(
+                f"A(z) {category_field.field_key} mező "
+                "egyetlen szöveges értéket vár."
+            )
+
+        if value not in allowed_values:
+            raise ValueError(
+                f"Érvénytelen választási érték a(z) "
+                f"{category_field.field_key} mezőnél: {value}"
+            )
+
+        return
+
+    if not isinstance(value, list):
+        raise ValueError(
+            f"A(z) {category_field.field_key} mező "
+            "értéklistát vár."
+        )
+
+    invalid_values = set(value) - allowed_values
+
+    if invalid_values:
+        invalid = ", ".join(sorted(str(item) for item in invalid_values))
+
+        raise ValueError(
+            f"Érvénytelen választási értékek a(z) "
+            f"{category_field.field_key} mezőnél: {invalid}"
+        )
+
+
 def _build_field_value(
+    session: Session,
     item: CollectionItem,
     category_field: CategoryField,
     value: Any,
@@ -136,21 +247,55 @@ def _build_field_value(
         "image",
         "file",
     }:
-        field_value.value_text = str(value)
+        text_value = str(value).strip()
+
+        _validate_text_rules(
+            category_field=category_field,
+            text_value=text_value,
+        )
+
+        field_value.value_text = text_value
 
     elif field_type in {
         "integer",
         "year",
     }:
-        field_value.value_integer = int(value)
+        try:
+            integer_value = int(value)
+        except (TypeError, ValueError) as error:
+            raise ValueError(
+                f"A(z) {category_field.field_key} mező "
+                "egész számot vár."
+            ) from error
+
+        _validate_numeric_rules(
+            category_field=category_field,
+            numeric_value=integer_value,
+        )
+
+        field_value.value_integer = integer_value
 
     elif field_type == "decimal":
-        field_value.value_decimal = Decimal(str(value))
+        try:
+            decimal_value = Decimal(str(value))
+        except Exception as error:
+            raise ValueError(
+                f"A(z) {category_field.field_key} mező "
+                "decimális számot vár."
+            ) from error
+
+        _validate_numeric_rules(
+            category_field=category_field,
+            numeric_value=decimal_value,
+        )
+
+        field_value.value_decimal = decimal_value
 
     elif field_type == "boolean":
         if not isinstance(value, bool):
             raise ValueError(
-                f"A(z) {category_field.field_key} mező logikai értéket vár."
+                f"A(z) {category_field.field_key} mező "
+                "logikai értéket vár."
             )
 
         field_value.value_boolean = value
@@ -167,6 +312,12 @@ def _build_field_value(
         "single_select",
         "multi_select",
     }:
+        _validate_select_value(
+            session=session,
+            category_field=category_field,
+            value=value,
+        )
+
         field_value.value_json = value
 
     else:
@@ -175,7 +326,6 @@ def _build_field_value(
         )
 
     return field_value
-
 
 def create_collection_item(
     session: Session,
@@ -277,6 +427,7 @@ def create_collection_item(
 
         session.add(
             _build_field_value(
+                session=session,
                 item=item,
                 category_field=category_fields[field_key],
                 value=value,

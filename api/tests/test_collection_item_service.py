@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.models import (
     Category,
     CategoryField,
+    CategoryFieldOption,
     CollectionItem,
     Household,
     ItemFieldValue,
@@ -101,7 +102,10 @@ def create_book_category(
                 is_visible_in_list=True,
                 is_active=True,
                 sort_order=20,
-                validation_rules={},
+                validation_rules={
+                        "minimum": 1000,
+                        "maximum": 9999,
+                },
                 default_value={},
             ),
         ]
@@ -317,5 +321,176 @@ def test_create_collection_item_rejects_other_household_category(
         )
     except ValueError as error:
         assert "nem a megadott háztartáshoz tartozik" in str(error)
+    else:
+        raise AssertionError("ValueError kivételre számítottunk.")
+
+def test_create_collection_item_rejects_year_below_minimum(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_book_category(db_session)
+
+    try:
+        create_collection_item(
+            session=db_session,
+            data=CollectionItemCreateInput(
+                household_id=household.id,
+                category_id=category.id,
+                title="Régi könyv",
+                field_values={
+                    "publish_year": 999,
+                },
+            ),
+        )
+    except ValueError as error:
+        assert "nem lehet kisebb mint 1000" in str(error)
+    else:
+        raise AssertionError("ValueError kivételre számítottunk.")
+
+
+def test_create_collection_item_accepts_valid_single_select(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    category = Category(
+        household_id=None,
+        name="Állapottesztes kategória",
+        slug="condition-test",
+        is_system=True,
+        is_active=True,
+        supports_barcode=False,
+        metadata_lookup_type="manual",
+        sort_order=10,
+    )
+
+    db_session.add(category)
+    db_session.flush()
+
+    field = CategoryField(
+        category_id=category.id,
+        name="Állapot",
+        field_key="condition",
+        field_type="single_select",
+        is_required=False,
+        is_searchable=False,
+        is_filterable=True,
+        is_visible_in_list=True,
+        is_active=True,
+        sort_order=10,
+        validation_rules={},
+        default_value={},
+    )
+
+    db_session.add(field)
+    db_session.flush()
+
+    db_session.add_all(
+        [
+            CategoryFieldOption(
+                field_id=field.id,
+                value="new",
+                label="Új",
+                sort_order=10,
+                is_active=True,
+            ),
+            CategoryFieldOption(
+                field_id=field.id,
+                value="used",
+                label="Használt",
+                sort_order=20,
+                is_active=True,
+            ),
+        ]
+    )
+
+    db_session.flush()
+
+    item = create_collection_item(
+        session=db_session,
+        data=CollectionItemCreateInput(
+            household_id=household.id,
+            category_id=category.id,
+            title="Teszt tárgy",
+            field_values={
+                "condition": "used",
+            },
+        ),
+    )
+
+    value = db_session.scalar(
+        select(ItemFieldValue).where(
+            ItemFieldValue.item_id == item.id,
+            ItemFieldValue.field_id == field.id,
+        )
+    )
+
+    assert value is not None
+    assert value.value_json == "used"
+
+
+def test_create_collection_item_rejects_invalid_single_select(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    category = Category(
+        household_id=None,
+        name="Tiltott választás teszt",
+        slug="invalid-condition-test",
+        is_system=True,
+        is_active=True,
+        supports_barcode=False,
+        metadata_lookup_type="manual",
+        sort_order=10,
+    )
+
+    db_session.add(category)
+    db_session.flush()
+
+    field = CategoryField(
+        category_id=category.id,
+        name="Állapot",
+        field_key="condition",
+        field_type="single_select",
+        is_required=False,
+        is_searchable=False,
+        is_filterable=True,
+        is_visible_in_list=True,
+        is_active=True,
+        sort_order=10,
+        validation_rules={},
+        default_value={},
+    )
+
+    db_session.add(field)
+    db_session.flush()
+
+    db_session.add(
+        CategoryFieldOption(
+            field_id=field.id,
+            value="new",
+            label="Új",
+            sort_order=10,
+            is_active=True,
+        )
+    )
+
+    db_session.flush()
+
+    try:
+        create_collection_item(
+            session=db_session,
+            data=CollectionItemCreateInput(
+                household_id=household.id,
+                category_id=category.id,
+                title="Teszt tárgy",
+                field_values={
+                    "condition": "broken",
+                },
+            ),
+        )
+    except ValueError as error:
+        assert "Érvénytelen választási érték" in str(error)
     else:
         raise AssertionError("ValueError kivételre számítottunk.")
