@@ -1,0 +1,110 @@
+"""
+CollectionItem API-sémák.
+"""
+
+from datetime import date, datetime
+from decimal import Decimal
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
+
+
+class ItemIdentifierCreate(BaseModel):
+    identifier_type: str = Field(
+        min_length=1,
+        max_length=50,
+    )
+    identifier_value: str = Field(
+        min_length=1,
+        max_length=255,
+    )
+    provider_code: str | None = Field(
+        default=None,
+        max_length=100,
+    )
+    is_primary: bool = False
+
+
+class CollectionItemCreateRequest(BaseModel):
+    household_id: int = Field(gt=0)
+    category_id: int = Field(gt=0)
+
+    title: str = Field(
+        min_length=1,
+        max_length=300,
+    )
+    subtitle: str | None = Field(
+        default=None,
+        max_length=300,
+    )
+    notes: str | None = None
+    status: str = "active"
+    created_by_user_id: int | None = Field(
+        default=None,
+        gt=0,
+    )
+
+    identifiers: list[ItemIdentifierCreate] = Field(
+        default_factory=list,
+    )
+
+    field_values: dict[
+        str,
+        str
+        | int
+        | float
+        | Decimal
+        | bool
+        | date
+        | list[Any]
+        | dict[str, Any]
+        | None,
+    ] = Field(
+        default_factory=dict,
+    )
+
+
+class ItemIdentifierResponse(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    public_id: str
+    identifier_type: str
+    identifier_value: str
+    provider_code: str | None
+    is_primary: bool
+    is_active: bool
+
+
+class ItemFieldValueResponse(BaseModel):
+    field_key: str
+    field_type: str
+
+    value_text: str | None = None
+    value_integer: int | None = None
+    value_decimal: Decimal | None = None
+    value_boolean: bool | None = None
+    value_date: date | None = None
+    value_json: Any | None = None
+
+
+class CollectionItemResponse(BaseModel):
+    public_id: str
+    household_id: int
+    category_id: int
+
+    title: str
+    subtitle: str | None
+    notes: str | None
+    status: str
+    is_active: bool
+
+    created_by_user_id: int | None
+    updated_by_user_id: int | None
+
+    created_at: datetime
+    updated_at: datetime
+
+    identifiers: list[ItemIdentifierResponse]
+    field_values: list[ItemFieldValueResponse]
