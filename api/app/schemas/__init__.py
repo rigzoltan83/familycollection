@@ -16,6 +16,8 @@ from app.schemas.collection_items import (
 )
 
 from app.schemas.storage import (
+    StorageLocationCreateRequest,
+    StorageLocationResponse,
     StorageTreeNodeResponse,
     StorageTreeResponse,
 )
@@ -34,4 +36,6 @@ __all__ = [
     "ItemIdentifierResponse",
     "StorageTreeNodeResponse",
     "StorageTreeResponse",
+    "StorageLocationCreateRequest",
+    "StorageLocationResponse",
 ]

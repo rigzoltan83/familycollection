@@ -197,3 +197,209 @@ def test_storage_tree_rejects_invalid_household_id(
             "A household_id csak pozitív egész szám lehet."
         ),
     }
+
+
+def test_create_storage_root_location(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    response = test_client.post(
+        "/storage",
+        json={
+            "household_id": household.id,
+            "name": "  Gyerekszoba  ",
+            "location_type": "ROOM",
+            "description": "  Felső emeleti szoba  ",
+            "sort_order": 20,
+        },
+    )
+
+    assert response.status_code == 201
+
+    data = response.json()
+
+    assert data["household_id"] == household.id
+    assert data["parent_public_id"] is None
+    assert data["name"] == "Gyerekszoba"
+    assert data["slug"] == "gyerekszoba"
+    assert data["location_type"] == "room"
+    assert data["description"] == "Felső emeleti szoba"
+    assert data["sort_order"] == 20
+    assert data["is_active"] is True
+    assert isinstance(data["public_id"], str)
+    assert data["public_id"]
+
+    location = (
+        db_session.query(StorageLocation)
+        .filter_by(
+            public_id=data["public_id"],
+        )
+        .one()
+    )
+
+    assert location.parent_id is None
+    assert location.household_id == household.id
+
+
+def test_create_storage_child_location(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Nappali",
+        slug="nappali",
+        location_type="room",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(room)
+    db_session.flush()
+
+    response = test_client.post(
+        "/storage",
+        json={
+            "household_id": household.id,
+            "parent_public_id": room.public_id,
+            "name": "  Új polc  ",
+            "slug": "  Új POLC  ",
+            "location_type": "SHELF",
+            "sort_order": 10,
+        },
+    )
+
+    assert response.status_code == 201
+
+    data = response.json()
+
+    assert data["household_id"] == household.id
+    assert data["parent_public_id"] == room.public_id
+    assert data["name"] == "Új polc"
+    assert data["slug"] == "uj-polc"
+    assert data["location_type"] == "shelf"
+    assert data["sort_order"] == 10
+    assert data["is_active"] is True
+
+    location = (
+        db_session.query(StorageLocation)
+        .filter_by(
+            public_id=data["public_id"],
+        )
+        .one()
+    )
+
+    assert location.parent_id == room.id
+
+
+def test_create_storage_rejects_duplicate_slug(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    first_response = test_client.post(
+        "/storage",
+        json={
+            "household_id": household.id,
+            "name": "Nappali",
+            "slug": "nappali",
+            "location_type": "room",
+        },
+    )
+
+    assert first_response.status_code == 201
+
+    duplicate_response = test_client.post(
+        "/storage",
+        json={
+            "household_id": household.id,
+            "name": "Másik nappali",
+            "slug": "nappali",
+            "location_type": "room",
+        },
+    )
+
+    assert duplicate_response.status_code == 400
+
+    assert duplicate_response.json() == {
+        "detail": (
+            "Ugyanilyen sluggal már létezik "
+            "tárhely ezen a szinten."
+        ),
+    }
+
+
+def test_create_storage_rejects_parent_from_other_household(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    first_household = create_test_household(db_session)
+
+    second_household = Household(
+        name="Másik háztartás",
+        slug="masik-haztartas",
+        is_active=True,
+    )
+
+    db_session.add(second_household)
+    db_session.flush()
+
+    parent = StorageLocation(
+        household_id=first_household.id,
+        parent_id=None,
+        name="Nappali",
+        slug="nappali",
+        location_type="room",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(parent)
+    db_session.flush()
+
+    response = test_client.post(
+        "/storage",
+        json={
+            "household_id": second_household.id,
+            "parent_public_id": parent.public_id,
+            "name": "Polc",
+            "location_type": "shelf",
+        },
+    )
+
+    assert response.status_code == 400
+
+    assert response.json() == {
+        "detail": (
+            "A szülő tárhely nem ehhez "
+            "a háztartáshoz tartozik."
+        ),
+    }
+
+
+def test_create_storage_rejects_invalid_location_type(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    response = test_client.post(
+        "/storage",
+        json={
+            "household_id": household.id,
+            "name": "Hibás típus",
+            "location_type": "spaceship",
+        },
+    )
+
+    assert response.status_code == 400
+
+    assert response.json() == {
+        "detail": "Nem támogatott tárhelytípus.",
+    }

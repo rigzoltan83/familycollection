@@ -7,11 +7,15 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db_session
 from app.schemas import (
+    StorageLocationCreateRequest,
+    StorageLocationResponse,
     StorageTreeNodeResponse,
     StorageTreeResponse,
 )
 from app.services import (
+    StorageLocationCreateInput,
     StorageTreeNode,
+    create_storage_location,
     list_storage_tree,
 )
 
@@ -70,6 +74,24 @@ def _collect_public_ids(
     return public_ids_by_id
 
 
+def _build_location_response(
+    location,
+    *,
+    parent_public_id: str | None,
+) -> StorageLocationResponse:
+    return StorageLocationResponse(
+        public_id=location.public_id,
+        household_id=location.household_id,
+        parent_public_id=parent_public_id,
+        name=location.name,
+        slug=location.slug,
+        location_type=location.location_type,
+        description=location.description,
+        sort_order=location.sort_order,
+        is_active=location.is_active,
+    )
+
+
 @router.get(
     "/tree",
     response_model=StorageTreeResponse,
@@ -105,3 +127,52 @@ def get_storage_tree(
             for node in nodes
         ],
     )
+
+
+@router.post(
+    "",
+    response_model=StorageLocationResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_storage(
+    request: StorageLocationCreateRequest,
+    session: Session = Depends(get_db_session),
+) -> StorageLocationResponse:
+    try:
+        location = create_storage_location(
+            session=session,
+            data=StorageLocationCreateInput(
+                household_id=request.household_id,
+                parent_public_id=request.parent_public_id,
+                name=request.name,
+                slug=request.slug,
+                location_type=request.location_type,
+                description=request.description,
+                sort_order=request.sort_order,
+                is_active=request.is_active,
+            ),
+        )
+
+        parent_public_id = None
+
+        if location.parent is not None:
+            parent_public_id = location.parent.public_id
+
+        session.commit()
+
+        return _build_location_response(
+            location,
+            parent_public_id=parent_public_id,
+        )
+
+    except ValueError as error:
+        session.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+
+    except Exception:
+        session.rollback()
+        raise

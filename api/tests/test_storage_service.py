@@ -1,8 +1,11 @@
 from sqlalchemy.orm import Session
 
 from app.models import Household, StorageLocation
-from app.services import list_storage_tree
-
+from app.services import (
+    StorageLocationCreateInput,
+    create_storage_location,
+    list_storage_tree,
+)
 
 def create_test_household(
     session: Session,
@@ -267,3 +270,170 @@ def test_list_storage_tree_includes_inactive_locations_when_requested(
 
     assert tree[0].is_active is True
     assert tree[1].is_active is False
+
+
+def test_create_storage_location_creates_root_location(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    location = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            name="  Gyerekszoba  ",
+            location_type="ROOM",
+            description="  Felső emeleti szoba  ",
+            sort_order=20,
+        ),
+    )
+
+    assert location.id is not None
+    assert location.household_id == household.id
+    assert location.parent_id is None
+    assert location.name == "Gyerekszoba"
+    assert location.slug == "gyerekszoba"
+    assert location.location_type == "room"
+    assert location.description == "Felső emeleti szoba"
+    assert location.sort_order == 20
+    assert location.is_active is True
+
+
+def test_create_storage_location_creates_child_location(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    room = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            name="Nappali",
+            location_type="room",
+        ),
+    )
+
+    shelf = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            parent_public_id=room.public_id,
+            name="Új polc",
+            location_type="shelf",
+            slug="  Új POLC  ",
+            sort_order=10,
+        ),
+    )
+
+    assert shelf.parent_id == room.id
+    assert shelf.household_id == household.id
+    assert shelf.name == "Új polc"
+    assert shelf.slug == "uj-polc"
+    assert shelf.location_type == "shelf"
+
+    tree = list_storage_tree(
+        db_session,
+        household_id=household.id,
+    )
+
+    assert len(tree) == 1
+    assert tree[0].public_id == room.public_id
+    assert len(tree[0].children) == 1
+    assert tree[0].children[0].public_id == shelf.public_id
+
+
+def test_create_storage_location_rejects_duplicate_slug_on_same_level(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            name="Nappali",
+            location_type="room",
+            slug="nappali",
+        ),
+    )
+
+    try:
+        create_storage_location(
+            session=db_session,
+            data=StorageLocationCreateInput(
+                household_id=household.id,
+                name="Másik nappali",
+                location_type="room",
+                slug="nappali",
+            ),
+        )
+    except ValueError as error:
+        assert "már létezik tárhely" in str(error)
+    else:
+        raise AssertionError(
+            "ValueError kivételre számítottunk."
+        )
+
+
+def test_create_storage_location_rejects_parent_from_other_household(
+    db_session: Session,
+) -> None:
+    first_household = create_test_household(db_session)
+
+    second_household = Household(
+        name="Másik háztartás",
+        slug="masik-haztartas",
+        is_active=True,
+    )
+
+    db_session.add(second_household)
+    db_session.flush()
+
+    parent = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=first_household.id,
+            name="Nappali",
+            location_type="room",
+        ),
+    )
+
+    try:
+        create_storage_location(
+            session=db_session,
+            data=StorageLocationCreateInput(
+                household_id=second_household.id,
+                parent_public_id=parent.public_id,
+                name="Polc",
+                location_type="shelf",
+            ),
+        )
+    except ValueError as error:
+        assert "nem ehhez a háztartáshoz tartozik" in str(error)
+    else:
+        raise AssertionError(
+            "ValueError kivételre számítottunk."
+        )
+
+
+def test_create_storage_location_rejects_negative_sort_order(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    try:
+        create_storage_location(
+            session=db_session,
+            data=StorageLocationCreateInput(
+                household_id=household.id,
+                name="Hibás tárhely",
+                location_type="room",
+                sort_order=-1,
+            ),
+        )
+    except ValueError as error:
+        assert "sort_order nem lehet negatív" in str(error)
+    else:
+        raise AssertionError(
+            "ValueError kivételre számítottunk."
+        )
