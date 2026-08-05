@@ -135,7 +135,9 @@ class ItemFieldValue(
         nullable=True,
     )
 
-    item: Mapped["CollectionItem"] = relationship()
+    item: Mapped["CollectionItem"] = relationship(
+        back_populates="field_values",
+    )
 
     field: Mapped["CategoryField"] = relationship()
 

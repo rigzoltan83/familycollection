@@ -105,7 +105,9 @@ class ItemIdentifier(
         server_default=text("true"),
     )
 
-    item: Mapped["CollectionItem"] = relationship()
+    item: Mapped["CollectionItem"] = relationship(
+        back_populates="identifiers",
+    )
 
     def __repr__(self) -> str:
         return (

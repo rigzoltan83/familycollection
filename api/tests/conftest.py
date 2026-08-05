@@ -7,7 +7,7 @@ akadályozza meg.
 """
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.database import Base
@@ -70,24 +70,53 @@ def prepare_test_database():
 @pytest.fixture
 def db_session():
     """
-    Minden teszthez külön tranzakciót biztosít.
+    Minden teszt külön külső tranzakcióban fut.
 
-    A teszt végén rollback történik, így a tesztek nem hagynak
-    tartós adatot maguk után.
+    A tesztelt alkalmazás session.commit() hívásai csak egy belső
+    SAVEPOINT-ot zárnak le. A teszt végén a külső tranzakció
+    visszagörgetése minden módosítást eltávolít.
     """
     connection = TEST_ENGINE.connect()
-    transaction = connection.begin()
+    outer_transaction = connection.begin()
 
     session = TestingSessionLocal(
         bind=connection,
+        join_transaction_mode="create_savepoint",
     )
+
+    session.begin_nested()
+
+    @event.listens_for(
+        session,
+        "after_transaction_end",
+    )
+    def restart_savepoint(
+        session: Session,
+        transaction,
+    ) -> None:
+        if (
+            transaction.nested
+            and transaction._parent is not None
+            and not transaction._parent.nested
+        ):
+            session.begin_nested()
 
     try:
         yield session
     finally:
+        event.remove(
+            session,
+            "after_transaction_end",
+            restart_savepoint,
+        )
+
         session.close()
-        transaction.rollback()
+
+        if outer_transaction.is_active:
+            outer_transaction.rollback()
+
         connection.close()
+
 
 @pytest.fixture
 def test_client(db_session: Session):

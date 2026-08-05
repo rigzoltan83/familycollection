@@ -14,10 +14,12 @@ import db
 from metadata import fetch_book
 
 from app.api.routers.auth import router as auth_router
+from app.api.routers.items import router as items_router
 
 app = FastAPI(title="Family Collection API")
 
 app.include_router(auth_router)
+app.include_router(items_router)
 
 app.mount(
     "/ui",

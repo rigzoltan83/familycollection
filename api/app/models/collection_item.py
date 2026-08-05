@@ -137,6 +137,16 @@ class CollectionItem(
         foreign_keys=[updated_by_user_id],
     )
 
+    identifiers: Mapped[list["ItemIdentifier"]] = relationship(
+        cascade="all, delete-orphan",
+        back_populates="item",
+    )
+
+    field_values: Mapped[list["ItemFieldValue"]] = relationship(
+        cascade="all, delete-orphan",
+        back_populates="item",
+    )
+
     def __repr__(self) -> str:
         return (
             f"CollectionItem(id={self.id!r}, "

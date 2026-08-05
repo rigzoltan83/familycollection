@@ -1,0 +1,145 @@
+"""
+CollectionItem HTTP-végpontok.
+"""
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.orm import Session, selectinload
+
+from app.core.database import get_db_session
+from app.models import (
+    CollectionItem,
+    ItemFieldValue,
+    ItemIdentifier,
+)
+from app.schemas import (
+    CollectionItemCreateRequest,
+    CollectionItemResponse,
+    ItemFieldValueResponse,
+    ItemIdentifierResponse,
+)
+from app.services import (
+    CollectionItemCreateInput,
+    IdentifierInput,
+    create_collection_item,
+)
+
+
+router = APIRouter(
+    prefix="/items",
+    tags=["collection-items"],
+)
+
+
+def _load_item_for_response(
+    session: Session,
+    item_id: int,
+) -> CollectionItem:
+    item = session.scalar(
+        select(CollectionItem)
+        .options(
+            selectinload(CollectionItem.identifiers),
+            selectinload(CollectionItem.field_values).selectinload(
+                ItemFieldValue.field
+            ),
+        )
+        .where(CollectionItem.id == item_id)
+    )
+
+    if item is None:
+        raise RuntimeError(
+            "A létrehozott gyűjteményi elem nem tölthető vissza."
+        )
+
+    return item
+
+
+def _build_item_response(
+    item: CollectionItem,
+) -> CollectionItemResponse:
+    return CollectionItemResponse(
+        public_id=item.public_id,
+        household_id=item.household_id,
+        category_id=item.category_id,
+        title=item.title,
+        subtitle=item.subtitle,
+        notes=item.notes,
+        status=item.status,
+        is_active=item.is_active,
+        created_by_user_id=item.created_by_user_id,
+        updated_by_user_id=item.updated_by_user_id,
+        created_at=item.created_at,
+        updated_at=item.updated_at,
+        identifiers=[
+            ItemIdentifierResponse.model_validate(identifier)
+            for identifier in item.identifiers
+        ],
+        field_values=[
+            ItemFieldValueResponse(
+                field_key=field_value.field.field_key,
+                field_type=field_value.field.field_type,
+                value_text=field_value.value_text,
+                value_integer=field_value.value_integer,
+                value_decimal=field_value.value_decimal,
+                value_boolean=field_value.value_boolean,
+                value_date=field_value.value_date,
+                value_json=field_value.value_json,
+            )
+            for field_value in item.field_values
+        ],
+    )
+
+
+@router.post(
+    "",
+    response_model=CollectionItemResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_item(
+    request: CollectionItemCreateRequest,
+    session: Session = Depends(get_db_session),
+) -> CollectionItemResponse:
+    try:
+        item = create_collection_item(
+            session=session,
+            data=CollectionItemCreateInput(
+                household_id=request.household_id,
+                category_id=request.category_id,
+                title=request.title,
+                subtitle=request.subtitle,
+                notes=request.notes,
+                status=request.status,
+                created_by_user_id=request.created_by_user_id,
+                identifiers=[
+                    IdentifierInput(
+                        identifier_type=identifier.identifier_type,
+                        identifier_value=identifier.identifier_value,
+                        provider_code=identifier.provider_code,
+                        is_primary=identifier.is_primary,
+                    )
+                    for identifier in request.identifiers
+                ],
+                field_values=request.field_values,
+            ),
+        )
+
+        session.commit()
+
+    except ValueError as error:
+        session.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+
+    except Exception:
+        session.rollback()
+        raise
+
+    loaded_item = _load_item_for_response(
+        session=session,
+        item_id=item.id,
+    )
+
+    return _build_item_response(loaded_item)
