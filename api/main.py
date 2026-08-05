@@ -95,7 +95,10 @@ def places():
     return db.get_places()
 
 @app.post("/scan")
-def scan(req: ScanRequest):
+def scan(
+    req: ScanRequest,
+    session: Session = Depends(get_db_session),
+):
     clean_isbn = (
         req.isbn
         .replace("-", "")
@@ -118,21 +121,41 @@ def scan(req: ScanRequest):
             "message": "Érvénytelen ISBN."
         }
 
-    places = db.get_places()
+    try:
+        household = session.scalar(
+            select(Household).where(
+                Household.is_active.is_(True)
+            )
+        )
 
-    selected_place = next(
-        (
-            place
-            for place in places
-            if place["id"] == req.location_id
-        ),
-        None
-    )
+        if household is None:
+            return {
+                "status": "error",
+                "message": "Nincs aktív háztartás.",
+            }
 
-    if not selected_place:
+        target_location = (
+            resolve_storage_location_from_legacy_id(
+                session=session,
+                household_id=household.id,
+                legacy_location_id=req.location_id,
+            )
+        )
+
+        if target_location is None:
+            return {
+                "status": "error",
+                "message": (
+                    "A kiválasztott tárhely nem található."
+                ),
+            }
+
+    except Exception as error:
+        print("SCAN LOCATION ERROR:", error)
+
         return {
             "status": "error",
-            "message": "A kiválasztott tárhely nem található."
+            "message": str(error),
         }
 
     borrowed_to = (
@@ -141,16 +164,37 @@ def scan(req: ScanRequest):
         else None
     )
 
-    if (
-        selected_place["room"] == "Kölcsönadva"
-        and not borrowed_to
-    ):
+    if borrowed_to == "":
+        borrowed_to = None
+
+    shelf_location = target_location.parent
+
+    room_location = (
+        shelf_location.parent
+        if shelf_location is not None
+        else None
+    )
+
+    if shelf_location is None or room_location is None:
         return {
             "status": "error",
-            "message": "Add meg, kinél van a könyv."
+            "message": (
+                "A kiválasztott tárhely hierarchiája hiányos."
+            ),
         }
 
-    if selected_place["room"] != "Kölcsönadva":
+    is_borrowed_location = (
+        room_location.name.strip().casefold()
+        == "Kölcsönadva".casefold()
+    )
+
+    if is_borrowed_location and borrowed_to is None:
+        return {
+            "status": "error",
+            "message": "Add meg, kinél van a könyv.",
+        }
+
+    if not is_borrowed_location:
         borrowed_to = None
 
     metadata = fetch_book(clean_isbn)
@@ -175,23 +219,90 @@ def scan(req: ScanRequest):
         }
 
     try:
-        book_id = db.insert_book(
-            isbn=clean_isbn,
-            title=metadata.get("title") or clean_isbn,
+        category = session.scalar(
+            select(Category).where(
+                Category.slug == "book",
+                Category.is_active.is_(True),
+            )
+        )
+
+        if category is None:
+            return {
+                "status": "error",
+                "message": (
+                    "Az aktív book kategória nem található."
+                ),
+            }
+
+        metadata_year = metadata.get("year")
+        publish_year: int | None = None
+
+        if metadata_year is not None:
+            metadata_year_text = str(
+                metadata_year
+            ).strip()
+
+            if (
+                metadata_year_text.isdigit()
+                and len(metadata_year_text) == 4
+            ):
+                publish_year = int(
+                    metadata_year_text
+                )
+
+        legacy_book_id = create_manual_book(
+            session=session,
+            household_id=household.id,
+            category_id=category.id,
+            identifier=clean_isbn,
+            title=(
+                metadata.get("title")
+                or clean_isbn
+            ),
             author=metadata.get("author"),
             publisher=metadata.get("publisher"),
-            publish_year=metadata.get("year"),
-            location_id=req.location_id,
-            borrowed_to=borrowed_to,
+            publish_year=publish_year,
+            legacy_location_id=req.location_id,
+            storage_location_id=target_location.id,
         )
+
+        if borrowed_to is not None:
+            updated = update_book_borrow_state(
+                session=session,
+                legacy_book_id=legacy_book_id,
+                borrower=borrowed_to,
+            )
+
+            if not updated:
+                session.rollback()
+
+                return {
+                    "status": "error",
+                    "message": (
+                        "A létrehozott könyv kölcsönadási "
+                        "állapota nem frissíthető."
+                    ),
+                }
+
+        session.commit()
 
         return {
             "status": "created",
-            "id": book_id,
+            "id": legacy_book_id,
             "data": metadata,
         }
 
+    except ValueError as error:
+        session.rollback()
+
+        return {
+            "status": "error",
+            "message": str(error),
+        }
+
     except Exception as error:
+        session.rollback()
+
         print("BOOK INSERT ERROR:", error)
 
         return {
