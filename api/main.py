@@ -26,6 +26,7 @@ from app.models import (
 from app.core.database import get_db_session
 from app.services import (
     get_book_by_legacy_id,
+    update_book_borrow_state,
     list_books,
     list_latest_books,
     soft_delete_book_by_legacy_id,
@@ -331,7 +332,10 @@ def add_manual_book(
 
 
 @app.post("/books/manual-isbn")
-def add_manual_isbn_book(req: ManualIsbnBookRequest):
+def add_manual_isbn_book(
+    req: ManualIsbnBookRequest,
+    session: Session = Depends(get_db_session),
+):
     clean_isbn = (
         req.isbn
         .replace("-", "")
@@ -349,31 +353,41 @@ def add_manual_isbn_book(req: ManualIsbnBookRequest):
             "status": "error",
             "message": (
                 "Az ISBN 10 vagy 13 számjegyből álljon."
-            )
+            ),
         }
 
     if not title:
         return {
             "status": "error",
-            "message": "A cím nem lehet üres."
+            "message": "A cím nem lehet üres.",
         }
 
-    places = db.get_places()
+    publish_year: int | None = None
 
-    selected_place = next(
-        (
-            place
-            for place in places
-            if place["id"] == req.location_id
-        ),
-        None
-    )
+    if req.publish_year:
+        publish_year_text = req.publish_year.strip()
 
-    if not selected_place:
-        return {
-            "status": "error",
-            "message": "A kiválasztott tárhely nem található."
-        }
+        if publish_year_text:
+            if (
+                not publish_year_text.isdigit()
+                or len(publish_year_text) != 4
+            ):
+                return {
+                    "status": "error",
+                    "message": (
+                        "A kiadás éve négyjegyű szám legyen."
+                    ),
+                }
+
+            publish_year = int(publish_year_text)
+
+            if publish_year < 1000 or publish_year > 9999:
+                return {
+                    "status": "error",
+                    "message": (
+                        "A kiadás éve 1000 és 9999 közé essen."
+                    ),
+                }
 
     borrower = (
         req.borrower.strip()
@@ -381,43 +395,143 @@ def add_manual_isbn_book(req: ManualIsbnBookRequest):
         else None
     )
 
+    if borrower == "":
+        borrower = None
+
     try:
-        book_id = db.insert_book(
-            isbn=clean_isbn,
-            title=title,
-            author=(
-                req.author.strip()
-                if req.author
-                else None
-            ),
-            publisher=(
-                req.publisher.strip()
-                if req.publisher
-                else None
-            ),
-            publish_year=(
-                req.publish_year.strip()
-                if req.publish_year
-                else None
-            ),
-            location_id=req.location_id,
-            borrowed_to=borrower
+        household = session.scalar(
+            select(Household).where(
+                Household.is_active.is_(True)
+            )
         )
+
+        if household is None:
+            return {
+                "status": "error",
+                "message": "Nincs aktív háztartás.",
+            }
+
+        category = session.scalar(
+            select(Category).where(
+                Category.slug == "book",
+                Category.is_active.is_(True),
+            )
+        )
+
+        if category is None:
+            return {
+                "status": "error",
+                "message": (
+                    "Az aktív book kategória nem található."
+                ),
+            }
+
+        target_location = (
+            resolve_storage_location_from_legacy_id(
+                session=session,
+                household_id=household.id,
+                legacy_location_id=req.location_id,
+            )
+        )
+
+        if target_location is None:
+            return {
+                "status": "error",
+                "message": (
+                    "A kiválasztott tárhely nem található."
+                ),
+            }
+
+        shelf_location = target_location.parent
+
+        room_location = (
+            shelf_location.parent
+            if shelf_location is not None
+            else None
+        )
+
+        if shelf_location is None or room_location is None:
+            return {
+                "status": "error",
+                "message": (
+                    "A kiválasztott tárhely hierarchiája hiányos."
+                ),
+            }
+
+        is_borrowed_location = (
+            room_location.name.strip().casefold()
+            == "Kölcsönadva".casefold()
+        )
+
+        if is_borrowed_location and borrower is None:
+            return {
+                "status": "error",
+                "message": (
+                    "Kölcsönadásnál add meg, "
+                    "kinél van a könyv."
+                ),
+            }
+
+        if not is_borrowed_location:
+            borrower = None
+
+        legacy_book_id = create_manual_book(
+            session=session,
+            household_id=household.id,
+            category_id=category.id,
+            identifier=clean_isbn,
+            title=title,
+            author=req.author,
+            publisher=req.publisher,
+            publish_year=publish_year,
+            legacy_location_id=req.location_id,
+            storage_location_id=target_location.id,
+        )
+
+        if borrower is not None:
+            updated = update_book_borrow_state(
+                session=session,
+                legacy_book_id=legacy_book_id,
+                borrower=borrower,
+            )
+
+            if not updated:
+                session.rollback()
+
+                return {
+                    "status": "error",
+                    "message": (
+                        "A létrehozott könyv kölcsönadási "
+                        "állapota nem frissíthető."
+                    ),
+                }
+
+        session.commit()
 
         return {
             "status": "created",
-            "id": book_id
+            "id": legacy_book_id,
+        }
+
+    except ValueError as error:
+        session.rollback()
+
+        return {
+            "status": "error",
+            "message": str(error),
         }
 
     except Exception as error:
+        session.rollback()
+
         print(
             "MANUAL ISBN INSERT ERROR:",
-            error
+            error,
         )
 
         return {
             "status": "error",
-            "message": str(error)
+            "message": str(error),
         }
 
 

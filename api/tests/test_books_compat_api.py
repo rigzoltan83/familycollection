@@ -1047,3 +1047,250 @@ def test_books_manual_returns_error_for_unknown_location(
         "status": "error",
         "message": "A kiválasztott tárhely nem található.",
     }
+
+
+def test_books_manual_isbn_creates_book_in_collection_item_model(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Nappali",
+        slug="nappali",
+        location_type="room",
+        sort_order=10,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi helyiség: Nappali"
+        ),
+    )
+
+    db_session.add(room)
+    db_session.flush()
+
+    shelf = StorageLocation(
+        household_id=household.id,
+        parent_id=room.id,
+        name="Újpolc",
+        slug="ujpolc",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi polc/szekrény: Nappali / Újpolc"
+        ),
+    )
+
+    db_session.add(shelf)
+    db_session.flush()
+
+    slot = StorageLocation(
+        household_id=household.id,
+        parent_id=shelf.id,
+        name="5. hely",
+        slug="slot-5",
+        location_type="slot",
+        sort_order=50,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi location_id=5; "
+            "útvonal=Nappali / Újpolc / 5"
+        ),
+    )
+
+    db_session.add(slot)
+    db_session.flush()
+
+    response = test_client.post(
+        "/books/manual-isbn",
+        json={
+            "isbn": "978-963-369-450-3",
+            "title": " Manuális ISBN könyv ",
+            "author": " Rejtő Jenő ",
+            "publisher": " Alexandra ",
+            "publish_year": "2007",
+            "location_id": 5,
+            "borrower": "Ezt normál helyen el kell dobni",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["status"] == "created"
+    assert isinstance(data["id"], int)
+    assert data["id"] > 0
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=data["id"],
+        )
+        .one()
+    )
+
+    item = migration.collection_item
+
+    assert item is not None
+    assert item.title == "Manuális ISBN könyv"
+    assert item.status == "active"
+    assert item.household_id == household.id
+    assert item.category_id == category.id
+
+    identifier = (
+        db_session.query(ItemIdentifier)
+        .filter(
+            ItemIdentifier.item_id == item.id,
+            ItemIdentifier.is_primary.is_(True),
+            ItemIdentifier.is_active.is_(True),
+        )
+        .one()
+    )
+
+    assert identifier.identifier_type == "isbn13"
+    assert identifier.identifier_value == "9789633694503"
+
+    values = {
+        value.field.field_key: value
+        for value in db_session.query(ItemFieldValue)
+        .filter(
+            ItemFieldValue.item_id == item.id
+        )
+        .all()
+    }
+
+    assert values["author"].value_text == "Rejtő Jenő"
+    assert values["publisher"].value_text == "Alexandra"
+    assert values["publish_year"].value_integer == 2007
+
+    assignment = (
+        db_session.query(ItemStorageAssignment)
+        .filter(
+            ItemStorageAssignment.item_id == item.id,
+            ItemStorageAssignment.is_active.is_(True),
+        )
+        .one()
+    )
+
+    assert assignment.storage_location_id == slot.id
+
+    assert migration.legacy_location_id == 5
+    assert migration.legacy_isbn == "9789633694503"
+    assert migration.legacy_borrowed_to is None
+    assert migration.legacy_room == "Nappali"
+    assert migration.legacy_shelf == "Újpolc"
+    assert migration.legacy_slot == 5
+
+
+def test_books_manual_isbn_requires_borrower_for_loaned_location(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    create_test_book_category(db_session)
+
+    borrowed_room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Kölcsönadva",
+        slug="kolcsonadva",
+        location_type="area",
+        sort_order=30,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi helyiség: Kölcsönadva"
+        ),
+    )
+
+    db_session.add(borrowed_room)
+    db_session.flush()
+
+    borrowed_shelf = StorageLocation(
+        household_id=household.id,
+        parent_id=borrowed_room.id,
+        name="-",
+        slug="location",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi polc/szekrény: Kölcsönadva / -"
+        ),
+    )
+
+    db_session.add(borrowed_shelf)
+    db_session.flush()
+
+    borrowed_slot = StorageLocation(
+        household_id=household.id,
+        parent_id=borrowed_shelf.id,
+        name="1. hely",
+        slug="slot-1",
+        location_type="slot",
+        sort_order=10,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi location_id=26; "
+            "útvonal=Kölcsönadva / - / 1"
+        ),
+    )
+
+    db_session.add(borrowed_slot)
+    db_session.flush()
+
+    missing = test_client.post(
+        "/books/manual-isbn",
+        json={
+            "isbn": "9789633694503",
+            "title": "Teszt",
+            "location_id": 26,
+            "borrower": None,
+        },
+    )
+
+    assert missing.status_code == 200
+    assert missing.json() == {
+        "status": "error",
+        "message": (
+            "Kölcsönadásnál add meg, "
+            "kinél van a könyv."
+        ),
+    }
+
+    created = test_client.post(
+        "/books/manual-isbn",
+        json={
+            "isbn": "9789633694503",
+            "title": "Teszt",
+            "location_id": 26,
+            "borrower": "  Kovács Péter  ",
+        },
+    )
+
+    assert created.status_code == 200
+
+    data = created.json()
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=data["id"],
+        )
+        .one()
+    )
+
+    item = migration.collection_item
+
+    assert item.status == "loaned"
+    assert migration.legacy_borrowed_to == "Kovács Péter"
