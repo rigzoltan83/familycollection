@@ -17,6 +17,9 @@ from app.services.legacy_books import (
     normalize_legacy_identifier,
     normalize_publish_year,
     prepare_legacy_book,
+    LegacyBookMigrationResult,
+    LegacyLocationSource,
+    migrate_legacy_book,
 )
 
 
@@ -35,4 +38,7 @@ __all__ = [
     "normalize_legacy_identifier",
     "normalize_publish_year",
     "prepare_legacy_book",
+    "LegacyBookMigrationResult",
+    "LegacyLocationSource",
+    "migrate_legacy_book",
 ]

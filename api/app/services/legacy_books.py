@@ -17,6 +17,21 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.models import (
+    Category,
+    CollectionItem,
+    ItemStorageAssignment,
+    LegacyBookMigration,
+    StorageLocation,
+)
+from app.services.collection_items import (
+    CollectionItemCreateInput,
+    IdentifierInput,
+    create_collection_item,
+)
 
 @dataclass(slots=True)
 class LegacyBookSource:
@@ -30,6 +45,21 @@ class LegacyBookSource:
     borrowed_to: str | None
     created: datetime | None
     updated: datetime | None
+
+
+@dataclass(slots=True)
+class LegacyLocationSource:
+    legacy_location_id: int
+    room: str
+    shelf: str
+    slot: int
+
+
+@dataclass(slots=True)
+class LegacyBookMigrationResult:
+    migration: LegacyBookMigration
+    item: CollectionItem
+    created: bool
 
 
 @dataclass(slots=True)
@@ -228,4 +258,272 @@ def prepare_legacy_book(
         created_at=source.created,
         updated_at=source.updated,
         warnings=warnings,
+    )
+
+def _slugify_legacy_location_part(
+    value: str,
+) -> str:
+    """
+    Ugyanazt a sluglogikát használja, mint a legacy
+    storage-location seed migráció.
+    """
+    import unicodedata
+
+    normalized = unicodedata.normalize(
+        "NFKD",
+        value.strip(),
+    )
+
+    ascii_value = "".join(
+        character
+        for character in normalized
+        if not unicodedata.combining(character)
+    )
+
+    slug = re.sub(
+        r"[^a-zA-Z0-9]+",
+        "-",
+        ascii_value,
+    ).strip("-").lower()
+
+    return slug or "location"
+
+
+def _find_legacy_storage_location(
+    session: Session,
+    *,
+    household_id: int,
+    location: LegacyLocationSource,
+) -> StorageLocation:
+    room_slug = _slugify_legacy_location_part(
+        location.room
+    )
+
+    shelf_slug = _slugify_legacy_location_part(
+        location.shelf
+    )
+
+    slot_slug = f"slot-{location.slot}"
+
+    room = session.scalar(
+        select(StorageLocation).where(
+            StorageLocation.household_id == household_id,
+            StorageLocation.parent_id.is_(None),
+            StorageLocation.slug == room_slug,
+            StorageLocation.is_active.is_(True),
+        )
+    )
+
+    if room is None:
+        raise ValueError(
+            "A régi tárolóhely helyisége nem található: "
+            f"{location.room}"
+        )
+
+    shelf = session.scalar(
+        select(StorageLocation).where(
+            StorageLocation.household_id == household_id,
+            StorageLocation.parent_id == room.id,
+            StorageLocation.slug == shelf_slug,
+            StorageLocation.is_active.is_(True),
+        )
+    )
+
+    if shelf is None:
+        raise ValueError(
+            "A régi tárolóhely polca nem található: "
+            f"{location.room} / {location.shelf}"
+        )
+
+    slot = session.scalar(
+        select(StorageLocation).where(
+            StorageLocation.household_id == household_id,
+            StorageLocation.parent_id == shelf.id,
+            StorageLocation.slug == slot_slug,
+            StorageLocation.is_active.is_(True),
+        )
+    )
+
+    if slot is None:
+        raise ValueError(
+            "A régi tárolóhely rekesze nem található: "
+            f"{location.room} / {location.shelf} / "
+            f"{location.slot}"
+        )
+
+    return slot
+
+
+def _get_existing_legacy_migration(
+    session: Session,
+    legacy_book_id: int,
+) -> LegacyBookMigration | None:
+    return session.scalar(
+        select(LegacyBookMigration).where(
+            LegacyBookMigration.legacy_book_id
+            == legacy_book_id
+        )
+    )
+
+
+def migrate_legacy_book(
+    session: Session,
+    *,
+    source: LegacyBookSource,
+    location: LegacyLocationSource,
+    household_id: int,
+    category_id: int,
+) -> LegacyBookMigrationResult:
+    """
+    Egyetlen régi books rekord átmigrálása.
+
+    A hívó kezeli a commitot vagy rollbacket.
+    A művelet legacy_book_id alapján idempotens.
+    """
+    existing_migration = _get_existing_legacy_migration(
+        session=session,
+        legacy_book_id=source.legacy_book_id,
+    )
+
+    if existing_migration is not None:
+        if existing_migration.collection_item is None:
+            raise ValueError(
+                "A meglévő migrációs naplóhoz nem tartozik "
+                "gyűjteményi elem."
+            )
+
+        return LegacyBookMigrationResult(
+            migration=existing_migration,
+            item=existing_migration.collection_item,
+            created=False,
+        )
+
+    prepared = prepare_legacy_book(source)
+
+    category = session.get(Category, category_id)
+
+    if category is None:
+        raise ValueError(
+            "A migrációhoz megadott kategória nem létezik."
+        )
+
+    if category.slug != "book":
+        raise ValueError(
+            "A legacy könyvek csak a book kategóriába "
+            "migrálhatók."
+        )
+
+    storage_location = _find_legacy_storage_location(
+        session=session,
+        household_id=household_id,
+        location=location,
+    )
+
+    identifiers: list[IdentifierInput] = []
+
+    if prepared.identifier is not None:
+        identifiers.append(
+            IdentifierInput(
+                identifier_type=(
+                    prepared.identifier.identifier_type
+                ),
+                identifier_value=(
+                    prepared.identifier.identifier_value
+                ),
+                provider_code=None,
+                is_primary=True,
+            )
+        )
+
+    field_values: dict[str, object] = {}
+
+    if prepared.author is not None:
+        field_values["author"] = prepared.author
+
+    if prepared.publisher is not None:
+        field_values["publisher"] = prepared.publisher
+
+    if prepared.publish_year is not None:
+        field_values["publish_year"] = (
+            prepared.publish_year
+        )
+
+    item_status = (
+        "loaned"
+        if prepared.legacy_borrowed_to is not None
+        else "active"
+    )
+
+    item = create_collection_item(
+        session=session,
+        data=CollectionItemCreateInput(
+            household_id=household_id,
+            category_id=category_id,
+            title=prepared.title,
+            status=item_status,
+            identifiers=identifiers,
+            field_values=field_values,
+        ),
+    )
+
+    if prepared.created_at is not None:
+        item.created_at = prepared.created_at
+
+    if prepared.updated_at is not None:
+        item.updated_at = prepared.updated_at
+
+    storage_assignment = ItemStorageAssignment(
+        item=item,
+        storage_location=storage_location,
+        is_active=True,
+        assigned_at=(
+            prepared.created_at
+            if prepared.created_at is not None
+            else datetime.now()
+        ),
+        movement_reason="legacy_book_migration",
+        notes=(
+            "A régi books és locations táblákból "
+            "automatikusan létrehozott tárolási rekord."
+        ),
+    )
+
+    session.add(storage_assignment)
+
+    migration_status = (
+        "warning"
+        if prepared.warnings
+        else "migrated"
+    )
+
+    migration_notes = (
+        "\n".join(prepared.warnings)
+        if prepared.warnings
+        else None
+    )
+
+    migration = LegacyBookMigration(
+        legacy_book_id=prepared.legacy_book_id,
+        collection_item=item,
+        legacy_location_id=(
+            prepared.legacy_location_id
+        ),
+        legacy_isbn=prepared.legacy_isbn,
+        legacy_borrowed_to=(
+            prepared.legacy_borrowed_to
+        ),
+        legacy_room=location.room.strip(),
+        legacy_shelf=location.shelf.strip(),
+        legacy_slot=location.slot,
+        migration_status=migration_status,
+        migration_notes=migration_notes,
+    )
+
+    session.add(migration)
+    session.flush()
+
+    return LegacyBookMigrationResult(
+        migration=migration,
+        item=item,
+        created=True,
     )

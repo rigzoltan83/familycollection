@@ -7,6 +7,23 @@ from app.services import (
     normalize_legacy_identifier,
     normalize_publish_year,
     prepare_legacy_book,
+    LegacyLocationSource,
+    migrate_legacy_book,
+)
+
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
+
+from app.models import (
+    Category,
+    CategoryField,
+    CollectionItem,
+    Household,
+    ItemFieldValue,
+    ItemIdentifier,
+    ItemStorageAssignment,
+    LegacyBookMigration,
+    StorageLocation,
 )
 
 
@@ -137,3 +154,364 @@ def test_prepare_rejects_empty_title() -> None:
                 updated=None,
             )
         )
+
+def create_test_household(
+    session: Session,
+) -> Household:
+    household = Household(
+        name="Legacy migrációs teszt",
+        slug="legacy-migration-test",
+        is_active=True,
+    )
+
+    session.add(household)
+    session.flush()
+
+    return household
+
+
+def create_test_book_category(
+    session: Session,
+) -> Category:
+    category = Category(
+        household_id=None,
+        name="Könyv",
+        slug="book",
+        description="Legacy migrációs könyvkategória",
+        icon="book",
+        is_system=True,
+        is_active=True,
+        supports_barcode=True,
+        metadata_lookup_type="manual",
+        sort_order=10,
+    )
+
+    session.add(category)
+    session.flush()
+
+    session.add_all(
+        [
+            CategoryField(
+                category_id=category.id,
+                name="Szerző",
+                field_key="author",
+                field_type="text",
+                is_required=False,
+                is_searchable=True,
+                is_filterable=False,
+                is_visible_in_list=True,
+                is_active=True,
+                sort_order=10,
+                validation_rules={},
+                default_value={},
+            ),
+            CategoryField(
+                category_id=category.id,
+                name="Kiadó",
+                field_key="publisher",
+                field_type="text",
+                is_required=False,
+                is_searchable=True,
+                is_filterable=True,
+                is_visible_in_list=False,
+                is_active=True,
+                sort_order=20,
+                validation_rules={},
+                default_value={},
+            ),
+            CategoryField(
+                category_id=category.id,
+                name="Megjelenési év",
+                field_key="publish_year",
+                field_type="year",
+                is_required=False,
+                is_searchable=False,
+                is_filterable=True,
+                is_visible_in_list=True,
+                is_active=True,
+                sort_order=30,
+                validation_rules={
+                    "minimum": 1000,
+                    "maximum": 9999,
+                },
+                default_value={},
+            ),
+        ]
+    )
+
+    session.flush()
+
+    return category
+
+
+def create_test_storage_hierarchy(
+    session: Session,
+    *,
+    household_id: int,
+) -> StorageLocation:
+    room = StorageLocation(
+        household_id=household_id,
+        parent_id=None,
+        name="Nappali",
+        slug="nappali",
+        location_type="room",
+        sort_order=10,
+        is_active=True,
+    )
+
+    session.add(room)
+    session.flush()
+
+    shelf = StorageLocation(
+        household_id=household_id,
+        parent_id=room.id,
+        name="Újpolc",
+        slug="ujpolc",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+    )
+
+    session.add(shelf)
+    session.flush()
+
+    slot = StorageLocation(
+        household_id=household_id,
+        parent_id=shelf.id,
+        name="5. hely",
+        slug="slot-5",
+        location_type="slot",
+        sort_order=50,
+        is_active=True,
+    )
+
+    session.add(slot)
+    session.flush()
+
+    return slot
+
+
+def test_migrate_legacy_book_creates_complete_item(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    storage_location = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    created_at = datetime(2026, 7, 14, 8, 53, 42)
+    updated_at = datetime(2026, 7, 14, 8, 54, 22)
+
+    result = migrate_legacy_book(
+        session=db_session,
+        source=LegacyBookSource(
+            legacy_book_id=6,
+            isbn="9789633694503",
+            title="A három testőr Afrikában",
+            author="Jenő Rejtő",
+            publisher="Alexandra K.",
+            publish_year="2007",
+            location_id=5,
+            borrowed_to=None,
+            created=created_at,
+            updated=updated_at,
+        ),
+        location=LegacyLocationSource(
+            legacy_location_id=5,
+            room="Nappali",
+            shelf="Újpolc",
+            slot=5,
+        ),
+        household_id=household.id,
+        category_id=category.id,
+    )
+
+    assert result.created is True
+    assert result.item.id is not None
+    assert result.migration.id is not None
+
+    item = db_session.get(
+        CollectionItem,
+        result.item.id,
+    )
+
+    assert item is not None
+    assert item.title == "A három testőr Afrikában"
+    assert item.status == "active"
+    assert item.household_id == household.id
+    assert item.category_id == category.id
+    assert item.created_at == created_at
+    assert item.updated_at == updated_at
+
+    identifier = db_session.scalar(
+        select(ItemIdentifier).where(
+            ItemIdentifier.item_id == item.id
+        )
+    )
+
+    assert identifier is not None
+    assert identifier.identifier_type == "isbn13"
+    assert identifier.identifier_value == "9789633694503"
+    assert identifier.is_primary is True
+
+    values = db_session.scalars(
+        select(ItemFieldValue).where(
+            ItemFieldValue.item_id == item.id
+        )
+    ).all()
+
+    values_by_key = {
+        value.field.field_key: value
+        for value in values
+    }
+
+    assert len(values) == 3
+    assert values_by_key["author"].value_text == "Jenő Rejtő"
+    assert values_by_key["publisher"].value_text == "Alexandra K."
+    assert values_by_key["publish_year"].value_integer == 2007
+
+    assignment = db_session.scalar(
+        select(ItemStorageAssignment).where(
+            ItemStorageAssignment.item_id == item.id,
+            ItemStorageAssignment.is_active.is_(True),
+        )
+    )
+
+    assert assignment is not None
+    assert assignment.storage_location_id == storage_location.id
+    assert assignment.assigned_at == created_at
+    assert assignment.movement_reason == "legacy_book_migration"
+
+    migration = db_session.scalar(
+        select(LegacyBookMigration).where(
+            LegacyBookMigration.legacy_book_id == 6
+        )
+    )
+
+    assert migration is not None
+    assert migration.collection_item_id == item.id
+    assert migration.legacy_location_id == 5
+    assert migration.legacy_isbn == "9789633694503"
+    assert migration.legacy_room == "Nappali"
+    assert migration.legacy_shelf == "Újpolc"
+    assert migration.legacy_slot == 5
+    assert migration.migration_status == "migrated"
+    assert migration.migration_notes is None
+
+
+def test_migrate_legacy_book_is_idempotent(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    source = LegacyBookSource(
+        legacy_book_id=6,
+        isbn="9789633694503",
+        title="A három testőr Afrikában",
+        author="Jenő Rejtő",
+        publisher="Alexandra K.",
+        publish_year="2007",
+        location_id=5,
+        borrowed_to=None,
+        created=None,
+        updated=None,
+    )
+
+    location = LegacyLocationSource(
+        legacy_location_id=5,
+        room="Nappali",
+        shelf="Újpolc",
+        slot=5,
+    )
+
+    first_result = migrate_legacy_book(
+        session=db_session,
+        source=source,
+        location=location,
+        household_id=household.id,
+        category_id=category.id,
+    )
+
+    second_result = migrate_legacy_book(
+        session=db_session,
+        source=source,
+        location=location,
+        household_id=household.id,
+        category_id=category.id,
+    )
+
+    assert first_result.created is True
+    assert second_result.created is False
+    assert second_result.item.id == first_result.item.id
+    assert second_result.migration.id == first_result.migration.id
+
+    item_count = db_session.scalar(
+        select(func.count(CollectionItem.id)).where(
+            CollectionItem.household_id == household.id
+        )
+    )
+
+    migration_count = db_session.scalar(
+        select(func.count(LegacyBookMigration.id)).where(
+            LegacyBookMigration.legacy_book_id == 6
+        )
+    )
+
+    assert item_count == 1
+    assert migration_count == 1
+
+
+def test_migrate_placeholder_x_creates_warning_without_identifier(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    result = migrate_legacy_book(
+        session=db_session,
+        source=LegacyBookSource(
+            legacy_book_id=265,
+            isbn="X",
+            title="Grimm mesék",
+            author=None,
+            publisher=None,
+            publish_year=None,
+            location_id=5,
+            borrowed_to=None,
+            created=None,
+            updated=None,
+        ),
+        location=LegacyLocationSource(
+            legacy_location_id=5,
+            room="Nappali",
+            shelf="Újpolc",
+            slot=5,
+        ),
+        household_id=household.id,
+        category_id=category.id,
+    )
+
+    identifier = db_session.scalar(
+        select(ItemIdentifier).where(
+            ItemIdentifier.item_id == result.item.id
+        )
+    )
+
+    assert identifier is None
+    assert result.migration.migration_status == "warning"
+    assert result.migration.migration_notes is not None
+    assert "helykitöltő ISBN" in result.migration.migration_notes
