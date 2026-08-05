@@ -1070,3 +1070,99 @@ def test_update_collection_item_api_rejects_invalid_field(
 
     assert response.status_code == 400
     assert "Ismeretlen kategóriamezők" in response.json()["detail"]
+
+def test_delete_collection_item_soft_deletes_item(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Törlendő könyv",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    public_id = create_response.json()["public_id"]
+
+    response = test_client.delete(
+        f"/items/{public_id}"
+    )
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+    detail_response = test_client.get(
+        f"/items/{public_id}"
+    )
+
+    assert detail_response.status_code == 404
+
+    list_response = test_client.get(
+        "/items",
+        params={
+            "household_id": household.id,
+        },
+    )
+
+    assert list_response.status_code == 200
+    assert list_response.json()["total"] == 0
+
+    from app.models import CollectionItem
+
+    item = db_session.query(CollectionItem).filter_by(
+        public_id=public_id
+    ).one()
+
+    assert item.is_active is False
+
+
+def test_delete_collection_item_returns_404_for_unknown_item(
+    test_client: TestClient,
+) -> None:
+    response = test_client.delete(
+        "/items/01AAAAAAAAAAAAAAAAAAAAAAAA"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "A gyűjteményi elem nem található."
+    }
+
+
+def test_delete_collection_item_returns_404_when_already_deleted(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Egyszer törölhető könyv",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    public_id = create_response.json()["public_id"]
+
+    first_response = test_client.delete(
+        f"/items/{public_id}"
+    )
+
+    second_response = test_client.delete(
+        f"/items/{public_id}"
+    )
+
+    assert first_response.status_code == 204
+    assert second_response.status_code == 404
