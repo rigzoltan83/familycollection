@@ -38,6 +38,7 @@ from app.services.books_read import (
     update_collection_item_title,
     update_primary_identifier,
     update_book_metadata_fields,
+    update_book_borrow_state,
 )
 
 
@@ -73,4 +74,5 @@ __all__ = [
     "update_collection_item_title",
     "update_book_metadata_fields",
     "update_primary_identifier",
+    "update_book_borrow_state",
 ]

@@ -997,3 +997,67 @@ def move_book_to_storage_location(
     session.flush()
 
     return True
+
+
+def update_book_borrow_state(
+    session: Session,
+    legacy_book_id: int,
+    *,
+    borrower: str | None,
+) -> bool:
+    """
+    Frissíti egy aktív könyv kölcsönadási állapotát.
+
+    - nem üres borrower esetén:
+      status = "loaned"
+      legacy_borrowed_to = borrower
+
+    - None vagy üres borrower esetén:
+      status = "active"
+      legacy_borrowed_to = None
+
+    Visszatérési érték:
+    - True: a könyv megtalálható volt és frissült;
+    - False: nincs ilyen aktív könyv.
+    """
+    migration = session.scalar(
+        select(LegacyBookMigration)
+        .join(
+            CollectionItem,
+            CollectionItem.id
+            == LegacyBookMigration.collection_item_id,
+        )
+        .where(
+            LegacyBookMigration.legacy_book_id
+            == legacy_book_id,
+            CollectionItem.is_active.is_(True),
+        )
+    )
+
+    if migration is None:
+        return False
+
+    item = migration.collection_item
+
+    if item is None:
+        return False
+
+    cleaned_borrower = (
+        borrower.strip()
+        if borrower is not None
+        else None
+    )
+
+    if cleaned_borrower == "":
+        cleaned_borrower = None
+
+    if cleaned_borrower is None:
+        item.status = "active"
+        migration.legacy_borrowed_to = None
+    else:
+        item.status = "loaned"
+        migration.legacy_borrowed_to = cleaned_borrower
+
+    session.flush()
+
+    return True

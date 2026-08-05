@@ -21,6 +21,7 @@ from app.services import (
     move_book_to_storage_location,
     soft_delete_book_by_legacy_id,
     update_collection_item_title,
+    update_book_borrow_state,
     update_book_metadata_fields,
     update_primary_identifier,
 )
@@ -1233,3 +1234,101 @@ def test_move_book_to_same_storage_location_does_not_create_history(
     assert assignments[0].is_active is True
     assert assignments[0].removed_at is None
     assert assignments[0].storage_location_id == slot.id
+
+
+def test_update_book_borrow_state_sets_loaned_status(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="Tesztkönyv",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        identifier_type=None,
+        identifier_value=None,
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14),
+    )
+
+    updated = update_book_borrow_state(
+        db_session,
+        legacy_book_id=6,
+        borrower="  Teszt kölcsönző  ",
+    )
+
+    assert updated is True
+
+    db_session.refresh(item)
+
+    assert item.status == "loaned"
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=6,
+        )
+        .one()
+    )
+
+    assert migration.legacy_borrowed_to == "Teszt kölcsönző"
+
+
+def test_update_book_borrow_state_clears_borrower_and_sets_active(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="Tesztkönyv",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        identifier_type=None,
+        identifier_value=None,
+        borrowed_to="Teszt kölcsönző",
+        created_at=datetime(2026, 7, 14),
+    )
+
+    updated = update_book_borrow_state(
+        db_session,
+        legacy_book_id=6,
+        borrower="   ",
+    )
+
+    assert updated is True
+
+    db_session.refresh(item)
+
+    assert item.status == "active"
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=6,
+        )
+        .one()
+    )
+
+    assert migration.legacy_borrowed_to is None
