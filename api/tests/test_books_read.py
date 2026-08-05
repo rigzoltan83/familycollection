@@ -18,6 +18,7 @@ from app.services import (
     get_book_by_legacy_id,
     list_books,
     list_latest_books,
+    move_book_to_storage_location,
     soft_delete_book_by_legacy_id,
     update_collection_item_title,
     update_book_metadata_fields,
@@ -1076,3 +1077,159 @@ def test_update_book_metadata_fields_removes_empty_values(
     assert "author" not in values
     assert "publisher" not in values
     assert "publish_year" not in values
+
+
+def test_move_book_to_storage_location(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    target_slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    source_room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Dolgozó",
+        slug="dolgozo",
+        location_type="room",
+        sort_order=20,
+        is_active=True,
+    )
+
+    db_session.add(source_room)
+    db_session.flush()
+
+    source_shelf = StorageLocation(
+        household_id=household.id,
+        parent_id=source_room.id,
+        name="Könyvespolc",
+        slug="konyvespolc",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(source_shelf)
+    db_session.flush()
+
+    source_slot = StorageLocation(
+        household_id=household.id,
+        parent_id=source_shelf.id,
+        name="2. hely",
+        slug="slot-2",
+        location_type="slot",
+        sort_order=20,
+        is_active=True,
+    )
+
+    db_session.add(source_slot)
+    db_session.flush()
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=source_slot,
+        legacy_book_id=6,
+        title="Tesztkönyv",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        identifier_type=None,
+        identifier_value=None,
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14),
+    )
+
+    updated = move_book_to_storage_location(
+        db_session,
+        legacy_book_id=6,
+        storage_location_id=target_slot.id,
+    )
+
+    assert updated is True
+
+    assignments = (
+        db_session.query(ItemStorageAssignment)
+        .filter(
+            ItemStorageAssignment.item_id == item.id
+        )
+        .order_by(ItemStorageAssignment.id)
+        .all()
+    )
+
+    assert len(assignments) == 2
+
+    assert assignments[0].is_active is False
+    assert assignments[0].removed_at is not None
+
+    assert assignments[1].is_active is True
+    assert (
+        assignments[1].storage_location_id
+        == target_slot.id
+    )
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=6,
+        )
+        .one()
+    )
+
+    assert migration.legacy_room == "Nappali"
+    assert migration.legacy_shelf == "Újpolc"
+    assert migration.legacy_slot == 5
+
+
+def test_move_book_to_same_storage_location_does_not_create_history(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="Tesztkönyv",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        identifier_type=None,
+        identifier_value=None,
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14),
+    )
+
+    updated = move_book_to_storage_location(
+        db_session,
+        legacy_book_id=6,
+        storage_location_id=slot.id,
+    )
+
+    assert updated is True
+
+    assignments = (
+        db_session.query(ItemStorageAssignment)
+        .filter(
+            ItemStorageAssignment.item_id == item.id
+        )
+        .all()
+    )
+
+    assert len(assignments) == 1
+    assert assignments[0].is_active is True
+    assert assignments[0].removed_at is None
+    assert assignments[0].storage_location_id == slot.id

@@ -863,3 +863,137 @@ def update_book_metadata_fields(
     session.flush()
 
     return True
+
+
+def move_book_to_storage_location(
+    session: Session,
+    legacy_book_id: int,
+    *,
+    storage_location_id: int,
+    moved_by_user_id: int | None = None,
+    movement_reason: str = "book_update",
+    notes: str | None = None,
+) -> bool:
+    """
+    Áthelyez egy aktív könyvet egy másik tárolóhelyre.
+
+    A korábbi aktív tárolási rekord lezárásra kerül, majd
+    új aktív ItemStorageAssignment rekord jön létre.
+
+    Visszatérési érték:
+    - True: a könyv megtalálható volt és áthelyezésre került;
+    - False: nincs ilyen aktív könyv.
+    """
+    migration = session.scalar(
+        select(LegacyBookMigration)
+        .join(
+            CollectionItem,
+            CollectionItem.id
+            == LegacyBookMigration.collection_item_id,
+        )
+        .where(
+            LegacyBookMigration.legacy_book_id
+            == legacy_book_id,
+            CollectionItem.is_active.is_(True),
+        )
+    )
+
+    if migration is None:
+        return False
+
+    item = migration.collection_item
+
+    if item is None:
+        return False
+
+    target_location = session.get(
+        StorageLocation,
+        storage_location_id,
+    )
+
+    if target_location is None:
+        raise ValueError(
+            "A megadott tárolóhely nem létezik."
+        )
+
+    if not target_location.is_active:
+        raise ValueError(
+            "A megadott tárolóhely nem aktív."
+        )
+
+    if target_location.household_id != item.household_id:
+        raise ValueError(
+            "A tárolóhely nem ehhez a háztartáshoz tartozik."
+        )
+
+    if target_location.location_type != "slot":
+        raise ValueError(
+            "Könyv csak slot típusú tárolóhelyre helyezhető."
+        )
+
+    active_assignment = session.scalar(
+        select(ItemStorageAssignment).where(
+            ItemStorageAssignment.item_id == item.id,
+            ItemStorageAssignment.is_active.is_(True),
+        )
+    )
+
+    if (
+        active_assignment is not None
+        and active_assignment.storage_location_id
+        == target_location.id
+    ):
+        return True
+
+    now = datetime.now()
+
+    if active_assignment is not None:
+        active_assignment.is_active = False
+        active_assignment.removed_at = now
+
+    new_assignment = ItemStorageAssignment(
+        item_id=item.id,
+        storage_location_id=target_location.id,
+        is_active=True,
+        assigned_at=now,
+        moved_by_user_id=moved_by_user_id,
+        movement_reason=movement_reason.strip() or "book_update",
+        notes=(
+            notes.strip()
+            if notes is not None and notes.strip()
+            else None
+        ),
+    )
+
+    session.add(new_assignment)
+
+    shelf_location = target_location.parent
+
+    room_location = (
+        shelf_location.parent
+        if shelf_location is not None
+        else None
+    )
+
+    if shelf_location is None or room_location is None:
+        raise ValueError(
+            "A tárolóhely hierarchiája hiányos."
+        )
+
+    slot_number = _slot_number_from_location(
+        target_location
+    )
+
+    if slot_number is None:
+        raise ValueError(
+            "A tárolóhely slot száma nem állapítható meg."
+        )
+
+    migration.legacy_location_id = None
+    migration.legacy_room = room_location.name
+    migration.legacy_shelf = shelf_location.name
+    migration.legacy_slot = slot_number
+
+    session.flush()
+
+    return True
