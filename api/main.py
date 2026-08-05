@@ -192,8 +192,12 @@ def scan(req: ScanRequest):
             "message": str(error)
         }
 
+
 @app.post("/books/manual")
-def add_manual_book(req: ManualBookRequest):
+def add_manual_book(
+    req: ManualBookRequest,
+    session: Session = Depends(get_db_session),
+):
     identifier = req.identifier.strip()
     title = req.title.strip()
 

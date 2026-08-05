@@ -26,6 +26,7 @@ from app.services import (
     update_book_metadata_fields,
     update_primary_identifier,
     update_book_by_legacy_id,
+    create_manual_book,
 )
 
 
@@ -1594,3 +1595,207 @@ def test_resolve_storage_location_from_legacy_id_returns_none_when_missing(
     )
 
     assert resolved is None
+
+
+def test_create_manual_book_creates_complete_structure(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    legacy_id = create_manual_book(
+        session=db_session,
+        household_id=household.id,
+        category_id=category.id,
+        identifier="9789633694503",
+        title=" Manuális könyv ",
+        author=" Rejtő Jenő ",
+        publisher=" Alexandra ",
+        publish_year=2007,
+        legacy_location_id=5,
+        storage_location_id=slot.id,
+    )
+
+    assert legacy_id > 0
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=legacy_id,
+        )
+        .one()
+    )
+
+    item = migration.collection_item
+
+    assert item is not None
+    assert item.title == "Manuális könyv"
+    assert item.status == "active"
+
+    identifier = (
+        db_session.query(ItemIdentifier)
+        .filter(
+            ItemIdentifier.item_id == item.id,
+            ItemIdentifier.is_primary.is_(True),
+        )
+        .one()
+    )
+
+    assert identifier.identifier_type == "isbn13"
+    assert identifier.identifier_value == "9789633694503"
+
+    values = {
+        value.field.field_key: value
+        for value in db_session.query(ItemFieldValue)
+        .filter(
+            ItemFieldValue.item_id == item.id
+        )
+        .all()
+    }
+
+    assert values["author"].value_text == "Rejtő Jenő"
+    assert values["publisher"].value_text == "Alexandra"
+    assert values["publish_year"].value_integer == 2007
+
+    assignment = (
+        db_session.query(ItemStorageAssignment)
+        .filter_by(
+            item_id=item.id,
+            is_active=True,
+        )
+        .one()
+    )
+
+    assert assignment.storage_location_id == slot.id
+
+    assert migration.legacy_location_id == 5
+
+
+def test_create_manual_book_accepts_custom_identifier(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    legacy_id = create_manual_book(
+        session=db_session,
+        household_id=household.id,
+        category_id=category.id,
+        identifier="Saját jelzet 42",
+        title="Jelzetes könyv",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        legacy_location_id=5,
+        storage_location_id=slot.id,
+    )
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=legacy_id,
+        )
+        .one()
+    )
+
+    item = migration.collection_item
+
+    assert item is not None
+
+    identifier = (
+        db_session.query(ItemIdentifier)
+        .filter(
+            ItemIdentifier.item_id == item.id,
+            ItemIdentifier.is_primary.is_(True),
+        )
+        .one()
+    )
+
+    assert identifier.identifier_type == "custom"
+    assert identifier.identifier_value == "Saját jelzet 42"
+
+    assert migration.legacy_isbn == "Saját jelzet 42"
+
+
+def test_create_manual_book_rejects_missing_storage_location(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    try:
+        create_manual_book(
+            session=db_session,
+            household_id=household.id,
+            category_id=category.id,
+            identifier="9789633694503",
+            title="Tesztkönyv",
+            author=None,
+            publisher=None,
+            publish_year=None,
+            legacy_location_id=5,
+            storage_location_id=999999,
+        )
+    except ValueError as error:
+        assert "tárolóhely nem létezik" in str(error)
+    else:
+        raise AssertionError(
+            "ValueError kivételre számítottunk."
+        )
+
+
+def test_create_manual_book_rejects_non_book_category(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    category = Category(
+        household_id=None,
+        name="Társasjáték",
+        slug="boardgame",
+        description="Nem könyvkategória",
+        icon="dice",
+        is_system=True,
+        is_active=True,
+        supports_barcode=True,
+        metadata_lookup_type="manual",
+        sort_order=20,
+    )
+
+    db_session.add(category)
+    db_session.flush()
+
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    try:
+        create_manual_book(
+            session=db_session,
+            household_id=household.id,
+            category_id=category.id,
+            identifier="9789633694503",
+            title="Tesztkönyv",
+            author=None,
+            publisher=None,
+            publish_year=None,
+            legacy_location_id=5,
+            storage_location_id=slot.id,
+        )
+    except ValueError as error:
+        assert "book kategória" in str(error)
+    else:
+        raise AssertionError(
+            "ValueError kivételre számítottunk."
+        )

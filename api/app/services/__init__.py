@@ -30,6 +30,7 @@ from app.services.legacy_books import (
 from app.services.books_read import (
     BookReadPage,
     BookReadRecord,
+    create_manual_book,
     get_book_by_legacy_id,
     list_books,
     list_latest_books,
@@ -68,6 +69,7 @@ __all__ = [
     "load_legacy_book_sources_from_database",
     "BookReadPage",
     "BookReadRecord",
+    "create_manual_book",
     "get_book_by_legacy_id",
     "list_books",
     "list_latest_books",

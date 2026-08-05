@@ -14,6 +14,7 @@ from sqlalchemy import String, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.models import (
+    Category,
     CategoryField,
     CollectionItem,
     ItemFieldValue,
@@ -21,6 +22,11 @@ from app.models import (
     ItemStorageAssignment,
     LegacyBookMigration,
     StorageLocation,
+)
+from app.services.collection_items import (
+    CollectionItemCreateInput,
+    IdentifierInput,
+    create_collection_item,
 )
 
 
@@ -1186,3 +1192,240 @@ def resolve_storage_location_from_legacy_id(
             StorageLocation.description.ilike(marker),
         )
     )
+
+
+def _classify_manual_identifier(
+    identifier: str,
+) -> tuple[str, str]:
+    """
+    Meghatározza a manuálisan megadott azonosító típusát.
+
+    - 10 számjegy: isbn10
+    - 13 számjegy: isbn13
+    - minden más: custom
+    """
+    cleaned_identifier = identifier.strip()
+
+    if not cleaned_identifier:
+        raise ValueError(
+            "Adj meg valamilyen azonosítót vagy jelzetet."
+        )
+
+    compact_identifier = (
+        cleaned_identifier
+        .replace("-", "")
+        .replace(" ", "")
+    )
+
+    if compact_identifier.isdigit():
+        if len(compact_identifier) == 10:
+            return (
+                "isbn10",
+                compact_identifier,
+            )
+
+        if len(compact_identifier) == 13:
+            return (
+                "isbn13",
+                compact_identifier,
+            )
+
+    return (
+        "custom",
+        cleaned_identifier,
+    )
+
+
+def create_manual_book(
+    session: Session,
+    *,
+    household_id: int,
+    category_id: int,
+    identifier: str,
+    title: str,
+    author: str | None,
+    publisher: str | None,
+    publish_year: int | None,
+    legacy_location_id: int,
+    storage_location_id: int,
+) -> int:
+    """
+    Manuálisan rögzített könyv létrehozása az új adatmodellben.
+
+    Létrehozza:
+
+    - a CollectionItem rekordot;
+    - az elsődleges azonosítót;
+    - a dinamikus könyvmezőket;
+    - az aktív tárhely-hozzárendelést;
+    - a kompatibilitási LegacyBookMigration rekordot.
+
+    Visszatérési értéke az új kompatibilis numerikus könyv-ID.
+    """
+    cleaned_title = title.strip()
+
+    if not cleaned_title:
+        raise ValueError(
+            "A cím nem lehet üres."
+        )
+
+    category = session.get(
+        Category,
+        category_id,
+    )
+
+    if (
+        category is None
+        or not category.is_active
+        or category.slug != "book"
+    ):
+        raise ValueError(
+            "Az aktív book kategória nem található."
+        )
+
+    target_location = session.get(
+        StorageLocation,
+        storage_location_id,
+    )
+
+    if target_location is None:
+        raise ValueError(
+            "A megadott tárolóhely nem létezik."
+        )
+
+    if not target_location.is_active:
+        raise ValueError(
+            "A megadott tárolóhely nem aktív."
+        )
+
+    if target_location.household_id != household_id:
+        raise ValueError(
+            "A tárolóhely nem ehhez a háztartáshoz tartozik."
+        )
+
+    if target_location.location_type != "slot":
+        raise ValueError(
+            "Könyv csak slot típusú tárolóhelyre helyezhető."
+        )
+
+    shelf_location = target_location.parent
+
+    room_location = (
+        shelf_location.parent
+        if shelf_location is not None
+        else None
+    )
+
+    if shelf_location is None or room_location is None:
+        raise ValueError(
+            "A tárolóhely hierarchiája hiányos."
+        )
+
+    slot_number = _slot_number_from_location(
+        target_location
+    )
+
+    if slot_number is None:
+        raise ValueError(
+            "A tárolóhely slot száma nem állapítható meg."
+        )
+
+    identifier_type, identifier_value = (
+        _classify_manual_identifier(identifier)
+    )
+
+    cleaned_author = (
+        author.strip()
+        if author is not None and author.strip()
+        else None
+    )
+
+    cleaned_publisher = (
+        publisher.strip()
+        if publisher is not None and publisher.strip()
+        else None
+    )
+
+    if publish_year is not None:
+        if publish_year < 1000 or publish_year > 9999:
+            raise ValueError(
+                "A kiadás éve 1000 és 9999 közé essen."
+            )
+
+    field_values: dict[str, object] = {}
+
+    if cleaned_author is not None:
+        field_values["author"] = cleaned_author
+
+    if cleaned_publisher is not None:
+        field_values["publisher"] = cleaned_publisher
+
+    if publish_year is not None:
+        field_values["publish_year"] = publish_year
+
+    item = create_collection_item(
+        session=session,
+        data=CollectionItemCreateInput(
+            household_id=household_id,
+            category_id=category_id,
+            title=cleaned_title,
+            status="active",
+            identifiers=[
+                IdentifierInput(
+                    identifier_type=identifier_type,
+                    identifier_value=identifier_value,
+                    provider_code=None,
+                    is_primary=True,
+                )
+            ],
+            field_values=field_values,
+        ),
+    )
+
+    assignment = ItemStorageAssignment(
+        item_id=item.id,
+        storage_location_id=target_location.id,
+        is_active=True,
+        assigned_at=datetime.now(),
+        movement_reason="manual_book_creation",
+        notes=(
+            "Manuális könyvrögzítéskor létrehozott "
+            "tárhely-hozzárendelés."
+        ),
+    )
+
+    session.add(assignment)
+
+    highest_legacy_book_id = session.scalar(
+        select(
+            func.max(
+                LegacyBookMigration.legacy_book_id
+            )
+        )
+    )
+
+    new_legacy_book_id = (
+        int(highest_legacy_book_id or 0)
+        + 1
+    )
+
+    migration = LegacyBookMigration(
+        legacy_book_id=new_legacy_book_id,
+        collection_item_id=item.id,
+        legacy_location_id=legacy_location_id,
+        legacy_isbn=identifier_value,
+        legacy_borrowed_to=None,
+        legacy_room=room_location.name,
+        legacy_shelf=shelf_location.name,
+        legacy_slot=slot_number,
+        migration_status="migrated",
+        migration_notes=(
+            "Az új adatmodellben manuálisan "
+            "létrehozott könyv."
+        ),
+    )
+
+    session.add(migration)
+    session.flush()
+
+    return new_legacy_book_id
