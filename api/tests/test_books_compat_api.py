@@ -883,3 +883,167 @@ def test_books_update_requires_borrower_for_loaned_location(
         active_assignment.storage_location_id
         == borrowed_slot.id
     )
+
+
+def test_books_manual_creates_book_in_collection_item_model(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Nappali",
+        slug="nappali",
+        location_type="room",
+        sort_order=10,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi helyiség: Nappali"
+        ),
+    )
+
+    db_session.add(room)
+    db_session.flush()
+
+    shelf = StorageLocation(
+        household_id=household.id,
+        parent_id=room.id,
+        name="Újpolc",
+        slug="ujpolc",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi polc/szekrény: Nappali / Újpolc"
+        ),
+    )
+
+    db_session.add(shelf)
+    db_session.flush()
+
+    slot = StorageLocation(
+        household_id=household.id,
+        parent_id=shelf.id,
+        name="5. hely",
+        slug="slot-5",
+        location_type="slot",
+        sort_order=50,
+        is_active=True,
+        description=(
+            "[legacy-locations-seed:test] "
+            "Régi location_id=5; "
+            "útvonal=Nappali / Újpolc / 5"
+        ),
+    )
+
+    db_session.add(slot)
+    db_session.flush()
+
+    response = test_client.post(
+        "/books/manual",
+        json={
+            "identifier": " Saját jelzet 42 ",
+            "title": " Manuális könyv ",
+            "author": " Rejtő Jenő ",
+            "publisher": " Alexandra ",
+            "publish_year": "2007",
+            "location_id": 5,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["status"] == "created"
+    assert isinstance(data["id"], int)
+    assert data["id"] > 0
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=data["id"],
+        )
+        .one()
+    )
+
+    item = migration.collection_item
+
+    assert item is not None
+    assert item.title == "Manuális könyv"
+    assert item.status == "active"
+    assert item.household_id == household.id
+    assert item.category_id == category.id
+
+    identifier = (
+        db_session.query(ItemIdentifier)
+        .filter(
+            ItemIdentifier.item_id == item.id,
+            ItemIdentifier.is_primary.is_(True),
+            ItemIdentifier.is_active.is_(True),
+        )
+        .one()
+    )
+
+    assert identifier.identifier_type == "custom"
+    assert identifier.identifier_value == "Saját jelzet 42"
+
+    values = {
+        value.field.field_key: value
+        for value in db_session.query(ItemFieldValue)
+        .filter(
+            ItemFieldValue.item_id == item.id
+        )
+        .all()
+    }
+
+    assert values["author"].value_text == "Rejtő Jenő"
+    assert values["publisher"].value_text == "Alexandra"
+    assert values["publish_year"].value_integer == 2007
+
+    assignment = (
+        db_session.query(ItemStorageAssignment)
+        .filter(
+            ItemStorageAssignment.item_id == item.id,
+            ItemStorageAssignment.is_active.is_(True),
+        )
+        .one()
+    )
+
+    assert assignment.storage_location_id == slot.id
+    assert assignment.movement_reason == "manual_book_creation"
+
+    assert migration.legacy_location_id == 5
+    assert migration.legacy_isbn == "Saját jelzet 42"
+    assert migration.legacy_room == "Nappali"
+    assert migration.legacy_shelf == "Újpolc"
+    assert migration.legacy_slot == 5
+
+
+def test_books_manual_returns_error_for_unknown_location(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    create_test_household(db_session)
+    create_test_book_category(db_session)
+
+    response = test_client.post(
+        "/books/manual",
+        json={
+            "identifier": "ABC-123",
+            "title": "Teszt",
+            "location_id": 999999,
+        },
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "status": "error",
+        "message": "A kiválasztott tárhely nem található.",
+    }
