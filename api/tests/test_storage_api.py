@@ -1,7 +1,13 @@
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.models import Household, StorageLocation
+from app.models import (
+    Category,
+    CollectionItem,
+    Household,
+    ItemStorageAssignment,
+    StorageLocation,
+)
 
 
 def create_test_household(
@@ -509,4 +515,173 @@ def test_update_storage_location_rejects_empty_request(
             "Legalább egy módosítandó mezőt "
             "meg kell adni."
         ),
+    }
+
+
+def test_delete_storage_location_deletes_unused_leaf(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    location = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Törölhető hely",
+        slug="torolheto-hely",
+        location_type="slot",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(location)
+    db_session.flush()
+
+    public_id = location.public_id
+    location_id = location.id
+
+    response = test_client.delete(
+        f"/storage/{public_id}"
+    )
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+    assert (
+        db_session.get(
+            StorageLocation,
+            location_id,
+        )
+        is None
+    )
+
+
+def test_delete_storage_location_rejects_location_with_children(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    parent = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Szülő",
+        slug="szulo",
+        location_type="room",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(parent)
+    db_session.flush()
+
+    child = StorageLocation(
+        household_id=household.id,
+        parent_id=parent.id,
+        name="Gyermek",
+        slug="gyermek",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(child)
+    db_session.flush()
+
+    response = test_client.delete(
+        f"/storage/{parent.public_id}"
+    )
+
+    assert response.status_code == 409
+
+    assert response.json() == {
+        "detail": (
+            "A tárhely nem törölhető, "
+            "mert gyermekelemek tartoznak hozzá."
+        ),
+    }
+
+
+def test_delete_storage_location_rejects_assignment_history(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    category = Category(
+        household_id=None,
+        name="Könyv",
+        slug="book",
+        description="Teszt könyvkategória",
+        icon="book",
+        is_system=True,
+        is_active=True,
+        supports_barcode=True,
+        metadata_lookup_type="manual",
+        sort_order=10,
+    )
+
+    db_session.add(category)
+    db_session.flush()
+
+    location = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Használt hely",
+        slug="hasznalt-hely",
+        location_type="slot",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(location)
+    db_session.flush()
+
+    item = CollectionItem(
+        household_id=household.id,
+        category_id=category.id,
+        title="Tesztkönyv",
+        status="active",
+        is_active=True,
+    )
+
+    db_session.add(item)
+    db_session.flush()
+
+    assignment = ItemStorageAssignment(
+        item_id=item.id,
+        storage_location_id=location.id,
+        is_active=False,
+        movement_reason="test_history",
+    )
+
+    db_session.add(assignment)
+    db_session.flush()
+
+    response = test_client.delete(
+        f"/storage/{location.public_id}"
+    )
+
+    assert response.status_code == 409
+
+    assert response.json() == {
+        "detail": (
+            "A tárhely nem törölhető, "
+            "mert gyűjteményi elem tárhelyelőzménye "
+            "kapcsolódik hozzá."
+        ),
+    }
+
+
+def test_delete_storage_location_returns_not_found(
+    test_client: TestClient,
+) -> None:
+    response = test_client.delete(
+        "/storage/01KZZZZZZZZZZZZZZZZZZZZZZZ"
+    )
+
+    assert response.status_code == 404
+
+    assert response.json() == {
+        "detail": "A tárhely nem található.",
     }

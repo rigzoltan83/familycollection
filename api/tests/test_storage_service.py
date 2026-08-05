@@ -1,10 +1,17 @@
 from sqlalchemy.orm import Session
 
-from app.models import Household, StorageLocation
+from app.models import (
+    Category,
+    CollectionItem,
+    Household,
+    ItemStorageAssignment,
+    StorageLocation,
+)
 from app.services import (
     StorageLocationCreateInput,
     StorageLocationUpdateInput,
     create_storage_location,
+    delete_storage_location,
     list_storage_tree,
     update_storage_location,
 )
@@ -620,3 +627,134 @@ def test_update_storage_location_returns_none_when_missing(
     )
 
     assert updated is None
+
+
+def test_delete_storage_location_deletes_unused_leaf(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    location = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            name="Törölhető hely",
+            location_type="slot",
+        ),
+    )
+
+    deleted = delete_storage_location(
+        session=db_session,
+        public_id=location.public_id,
+    )
+
+    assert deleted is True
+
+    assert (
+        db_session.get(
+            StorageLocation,
+            location.id,
+        )
+        is None
+    )
+
+
+def test_delete_storage_location_rejects_location_with_children(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    parent = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            name="Szülő",
+            location_type="room",
+        ),
+    )
+
+    create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            parent_public_id=parent.public_id,
+            name="Gyermek",
+            location_type="shelf",
+        ),
+    )
+
+    try:
+        delete_storage_location(
+            session=db_session,
+            public_id=parent.public_id,
+        )
+    except ValueError as error:
+        assert "gyermekelemek tartoznak hozzá" in str(error)
+    else:
+        raise AssertionError(
+            "ValueError kivételre számítottunk."
+        )
+
+
+def test_delete_storage_location_rejects_location_with_assignment_history(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    category = Category(
+        household_id=None,
+        name="Könyv",
+        slug="book",
+        description="Teszt könyvkategória",
+        icon="book",
+        is_system=True,
+        is_active=True,
+        supports_barcode=True,
+        metadata_lookup_type="manual",
+        sort_order=10,
+    )
+
+    db_session.add(category)
+    db_session.flush()
+
+    slot = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            name="Használt tárhely",
+            location_type="slot",
+        ),
+    )
+
+    item = CollectionItem(
+        household_id=household.id,
+        category_id=category.id,
+        title="Tesztkönyv",
+        status="active",
+        is_active=True,
+    )
+
+    db_session.add(item)
+    db_session.flush()
+
+    assignment = ItemStorageAssignment(
+        item_id=item.id,
+        storage_location_id=slot.id,
+        is_active=False,
+        movement_reason="test_history",
+    )
+
+    db_session.add(assignment)
+    db_session.flush()
+
+    try:
+        delete_storage_location(
+            session=db_session,
+            public_id=slot.public_id,
+        )
+    except ValueError as error:
+        assert "tárhelyelőzménye kapcsolódik hozzá" in str(error)
+    else:
+        raise AssertionError(
+            "ValueError kivételre számítottunk."
+        )

@@ -18,6 +18,7 @@ from app.services import (
     StorageLocationUpdateInput,
     StorageTreeNode,
     create_storage_location,
+    delete_storage_location,
     list_storage_tree,
     update_storage_location,
 )
@@ -245,6 +246,47 @@ def update_storage(
 
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+
+    except Exception:
+        session.rollback()
+        raise
+
+
+@router.delete(
+    "/{public_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_storage(
+    public_id: str,
+    session: Session = Depends(get_db_session),
+) -> None:
+    try:
+        deleted = delete_storage_location(
+            session=session,
+            public_id=public_id,
+        )
+
+        if not deleted:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="A tárhely nem található.",
+            )
+
+        session.commit()
+
+        return None
+
+    except HTTPException:
+        session.rollback()
+        raise
+
+    except ValueError as error:
+        session.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
             detail=str(error),
         ) from error
 

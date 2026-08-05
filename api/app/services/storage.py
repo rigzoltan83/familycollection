@@ -12,8 +12,11 @@ from dataclasses import dataclass, field
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.models import Household, StorageLocation
-
+from app.models import (
+    Household,
+    ItemStorageAssignment,
+    StorageLocation,
+)
 
 @dataclass(slots=True)
 class StorageTreeNode:
@@ -501,3 +504,77 @@ def update_storage_location(
     session.flush()
 
     return location
+
+
+def delete_storage_location(
+    session: Session,
+    *,
+    public_id: str,
+) -> bool:
+    """
+    Fizikailag töröl egy használaton kívüli tárhelyet.
+
+    A törlés csak akkor engedélyezett, ha:
+
+    - a tárhelynek nincs gyermeke;
+    - nincs hozzá sem aktív, sem történeti
+      ItemStorageAssignment rekord.
+
+    A hívó kezeli a commitot vagy rollbacket.
+
+    Visszatérési érték:
+    - True: a tárhely törlésre került;
+    - False: nincs ilyen tárhely.
+    """
+    cleaned_public_id = public_id.strip()
+
+    if not cleaned_public_id:
+        raise ValueError(
+            "A public_id nem lehet üres."
+        )
+
+    location = session.scalar(
+        select(StorageLocation).where(
+            StorageLocation.public_id
+            == cleaned_public_id
+        )
+    )
+
+    if location is None:
+        return False
+
+    child_count = session.scalar(
+        select(
+            func.count(StorageLocation.id)
+        ).where(
+            StorageLocation.parent_id
+            == location.id
+        )
+    )
+
+    if child_count:
+        raise ValueError(
+            "A tárhely nem törölhető, "
+            "mert gyermekelemek tartoznak hozzá."
+        )
+
+    assignment_count = session.scalar(
+        select(
+            func.count(ItemStorageAssignment.id)
+        ).where(
+            ItemStorageAssignment.storage_location_id
+            == location.id
+        )
+    )
+
+    if assignment_count:
+        raise ValueError(
+            "A tárhely nem törölhető, "
+            "mert gyűjteményi elem tárhelyelőzménye "
+            "kapcsolódik hozzá."
+        )
+
+    session.delete(location)
+    session.flush()
+
+    return True
