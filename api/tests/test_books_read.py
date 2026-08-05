@@ -19,6 +19,7 @@ from app.services import (
     list_books,
     list_latest_books,
     soft_delete_book_by_legacy_id,
+    update_collection_item_title,
 )
 
 
@@ -794,3 +795,53 @@ def test_soft_delete_book_by_legacy_id_returns_false_when_missing(
     )
 
     assert deleted is False
+
+def test_update_collection_item_title(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="Régi cím",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        identifier_type=None,
+        identifier_value=None,
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    updated = update_collection_item_title(
+        db_session,
+        legacy_book_id=6,
+        title="  Új cím  ",
+    )
+
+    assert updated is True
+
+    db_session.refresh(item)
+
+    assert item.title == "Új cím"
+
+
+def test_update_collection_item_title_returns_false_for_missing_book(
+    db_session: Session,
+) -> None:
+    updated = update_collection_item_title(
+        db_session,
+        legacy_book_id=999999,
+        title="Akármi",
+    )
+
+    assert updated is False

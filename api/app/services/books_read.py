@@ -458,3 +458,89 @@ def soft_delete_book_by_legacy_id(
     session.flush()
 
     return True
+
+def update_collection_item_title(
+    session: Session,
+    legacy_book_id: int,
+    title: str,
+) -> bool:
+    """
+    Frissíti a CollectionItem címét a legacy könyvazonosító alapján.
+    """
+
+    migration = session.scalar(
+        select(LegacyBookMigration)
+        .join(
+            CollectionItem,
+            CollectionItem.id
+            == LegacyBookMigration.collection_item_id,
+        )
+        .where(
+            LegacyBookMigration.legacy_book_id
+            == legacy_book_id,
+            CollectionItem.is_active.is_(True),
+        )
+    )
+
+    if migration is None:
+        return False
+
+    item = migration.collection_item
+
+    if item is None:
+        return False
+
+    item.title = title.strip()
+
+    session.flush()
+
+    return True
+
+
+def update_collection_item_title(
+    session: Session,
+    legacy_book_id: int,
+    title: str,
+) -> bool:
+    """
+    Frissíti az aktív CollectionItem címét
+    a régi könyvazonosító alapján.
+
+    Visszatérési érték:
+    - True: a könyv megtalálható volt és frissült;
+    - False: nincs ilyen aktív könyv.
+    """
+    cleaned_title = title.strip()
+
+    if not cleaned_title:
+        raise ValueError(
+            "A cím nem lehet üres."
+        )
+
+    migration = session.scalar(
+        select(LegacyBookMigration)
+        .join(
+            CollectionItem,
+            CollectionItem.id
+            == LegacyBookMigration.collection_item_id,
+        )
+        .where(
+            LegacyBookMigration.legacy_book_id
+            == legacy_book_id,
+            CollectionItem.is_active.is_(True),
+        )
+    )
+
+    if migration is None:
+        return False
+
+    item = migration.collection_item
+
+    if item is None:
+        return False
+
+    item.title = cleaned_title
+
+    session.flush()
+
+    return True
