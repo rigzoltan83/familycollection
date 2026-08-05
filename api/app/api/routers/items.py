@@ -482,3 +482,35 @@ def delete_item(
     item.is_active = False
 
     session.commit()
+
+@router.post(
+    "/{public_id}/restore",
+    response_model=CollectionItemResponse,
+)
+def restore_item(
+    public_id: str,
+    session: Session = Depends(get_db_session),
+) -> CollectionItemResponse:
+    item = session.scalar(
+        select(CollectionItem).where(
+            CollectionItem.public_id == public_id,
+            CollectionItem.is_active.is_(False),
+        )
+    )
+
+    if item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="A törölt gyűjteményi elem nem található.",
+        )
+
+    item.is_active = True
+
+    session.commit()
+
+    loaded_item = _load_item_for_response(
+        session=session,
+        item_id=item.id,
+    )
+
+    return _build_item_response(loaded_item)

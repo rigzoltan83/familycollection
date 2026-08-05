@@ -1166,3 +1166,100 @@ def test_delete_collection_item_returns_404_when_already_deleted(
 
     assert first_response.status_code == 204
     assert second_response.status_code == 404
+
+def test_restore_collection_item(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Visszaállítandó könyv",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    public_id = create_response.json()["public_id"]
+
+    delete_response = test_client.delete(
+        f"/items/{public_id}"
+    )
+
+    assert delete_response.status_code == 204
+
+    restore_response = test_client.post(
+        f"/items/{public_id}/restore"
+    )
+
+    assert restore_response.status_code == 200
+
+    data = restore_response.json()
+
+    assert data["public_id"] == public_id
+    assert data["title"] == "Visszaállítandó könyv"
+    assert data["is_active"] is True
+
+    detail_response = test_client.get(
+        f"/items/{public_id}"
+    )
+
+    assert detail_response.status_code == 200
+
+    list_response = test_client.get(
+        "/items",
+        params={
+            "household_id": household.id,
+        },
+    )
+
+    assert list_response.status_code == 200
+    assert list_response.json()["total"] == 1
+
+
+def test_restore_collection_item_returns_404_for_active_item(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Aktív könyv",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    public_id = create_response.json()["public_id"]
+
+    response = test_client.post(
+        f"/items/{public_id}/restore"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "A törölt gyűjteményi elem nem található."
+    }
+
+
+def test_restore_collection_item_returns_404_for_unknown_item(
+    test_client: TestClient,
+) -> None:
+    response = test_client.post(
+        "/items/01AAAAAAAAAAAAAAAAAAAAAAAA/restore"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "A törölt gyűjteményi elem nem található."
+    }
