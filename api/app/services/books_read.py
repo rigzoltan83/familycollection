@@ -657,3 +657,209 @@ def update_primary_identifier(
     session.flush()
 
     return True
+
+
+def update_book_metadata_fields(
+    session: Session,
+    legacy_book_id: int,
+    *,
+    author: str | None,
+    publisher: str | None,
+    publish_year: int | None,
+) -> bool:
+    """
+    Frissíti egy aktív könyv dinamikus mezőit:
+
+    - author
+    - publisher
+    - publish_year
+
+    A None vagy üres szöveges érték törli a meglévő mezőértéket.
+    A publish_year None értéke szintén törli az év mezőt.
+
+    Visszatérési érték:
+    - True: a könyv megtalálható volt és frissült;
+    - False: nincs ilyen aktív könyv.
+    """
+    migration = session.scalar(
+        select(LegacyBookMigration)
+        .join(
+            CollectionItem,
+            CollectionItem.id
+            == LegacyBookMigration.collection_item_id,
+        )
+        .where(
+            LegacyBookMigration.legacy_book_id
+            == legacy_book_id,
+            CollectionItem.is_active.is_(True),
+        )
+    )
+
+    if migration is None:
+        return False
+
+    item = migration.collection_item
+
+    if item is None:
+        return False
+
+    fields = {
+        field.field_key: field
+        for field in session.scalars(
+            select(CategoryField).where(
+                CategoryField.category_id == item.category_id,
+                CategoryField.field_key.in_(
+                    {
+                        "author",
+                        "publisher",
+                        "publish_year",
+                    }
+                ),
+                CategoryField.is_active.is_(True),
+            )
+        ).all()
+    }
+
+    required_field_keys = {
+        "author",
+        "publisher",
+        "publish_year",
+    }
+
+    missing_field_keys = (
+        required_field_keys
+        - set(fields)
+    )
+
+    if missing_field_keys:
+        raise ValueError(
+            "Hiányzó könyvmezők: "
+            + ", ".join(
+                sorted(missing_field_keys)
+            )
+        )
+
+    existing_values = {
+        value.field_id: value
+        for value in session.scalars(
+            select(ItemFieldValue).where(
+                ItemFieldValue.item_id == item.id,
+                ItemFieldValue.field_id.in_(
+                    [
+                        field.id
+                        for field in fields.values()
+                    ]
+                ),
+            )
+        ).all()
+    }
+
+    cleaned_author = (
+        author.strip()
+        if author is not None
+        else None
+    )
+
+    cleaned_publisher = (
+        publisher.strip()
+        if publisher is not None
+        else None
+    )
+
+    if cleaned_author == "":
+        cleaned_author = None
+
+    if cleaned_publisher == "":
+        cleaned_publisher = None
+
+    if publish_year is not None:
+        if publish_year < 1000:
+            raise ValueError(
+                "A megjelenési év nem lehet kisebb mint 1000."
+            )
+
+        if publish_year > 9999:
+            raise ValueError(
+                "A megjelenési év nem lehet nagyobb mint 9999."
+            )
+
+    def set_text_value(
+        field_key: str,
+        value: str | None,
+    ) -> None:
+        field = fields[field_key]
+        existing = existing_values.get(field.id)
+
+        if value is None:
+            if existing is not None:
+                session.delete(existing)
+
+            return
+
+        if existing is None:
+            session.add(
+                ItemFieldValue(
+                    item_id=item.id,
+                    field_id=field.id,
+                    value_text=value,
+                )
+            )
+
+            return
+
+        existing.value_text = value
+        existing.value_integer = None
+        existing.value_decimal = None
+        existing.value_boolean = None
+        existing.value_date = None
+        existing.value_json = None
+
+    def set_integer_value(
+        field_key: str,
+        value: int | None,
+    ) -> None:
+        field = fields[field_key]
+        existing = existing_values.get(field.id)
+
+        if value is None:
+            if existing is not None:
+                session.delete(existing)
+
+            return
+
+        if existing is None:
+            session.add(
+                ItemFieldValue(
+                    item_id=item.id,
+                    field_id=field.id,
+                    value_integer=value,
+                )
+            )
+
+            return
+
+        existing.value_text = None
+        existing.value_integer = value
+        existing.value_decimal = None
+        existing.value_boolean = None
+        existing.value_date = None
+        existing.value_json = None
+
+    set_text_value(
+        "author",
+        cleaned_author,
+    )
+
+    set_text_value(
+        "publisher",
+        cleaned_publisher,
+    )
+
+    set_integer_value(
+        "publish_year",
+        publish_year,
+    )
+
+    session.flush()
+
+    return True

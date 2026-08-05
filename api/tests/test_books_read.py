@@ -20,6 +20,7 @@ from app.services import (
     list_latest_books,
     soft_delete_book_by_legacy_id,
     update_collection_item_title,
+    update_book_metadata_fields,
     update_primary_identifier,
 )
 
@@ -975,3 +976,103 @@ def test_update_primary_identifier_creates_identifier_when_missing(
     )
 
     assert migration.legacy_isbn == "9789633333333"
+
+
+def test_update_book_metadata_fields_updates_existing_values(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="Tesztkönyv",
+        author="Régi szerző",
+        publisher="Régi kiadó",
+        publish_year=1999,
+        identifier_type=None,
+        identifier_value=None,
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14),
+    )
+
+    updated = update_book_metadata_fields(
+        db_session,
+        legacy_book_id=6,
+        author="Új szerző",
+        publisher="Új kiadó",
+        publish_year=2024,
+    )
+
+    assert updated is True
+
+    values = {
+        value.field.field_key: value
+        for value in db_session.query(ItemFieldValue)
+        .filter(
+            ItemFieldValue.item_id == item.id
+        )
+        .all()
+    }
+
+    assert values["author"].value_text == "Új szerző"
+    assert values["publisher"].value_text == "Új kiadó"
+    assert values["publish_year"].value_integer == 2024
+
+
+def test_update_book_metadata_fields_removes_empty_values(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="Tesztkönyv",
+        author="Régi szerző",
+        publisher="Régi kiadó",
+        publish_year=1999,
+        identifier_type=None,
+        identifier_value=None,
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14),
+    )
+
+    updated = update_book_metadata_fields(
+        db_session,
+        legacy_book_id=6,
+        author="   ",
+        publisher=None,
+        publish_year=None,
+    )
+
+    assert updated is True
+
+    values = {
+        value.field.field_key: value
+        for value in db_session.query(ItemFieldValue)
+        .filter(
+            ItemFieldValue.item_id == item.id
+        )
+        .all()
+    }
+
+    assert "author" not in values
+    assert "publisher" not in values
+    assert "publish_year" not in values
