@@ -9,16 +9,18 @@ from app.core.database import get_db_session
 from app.schemas import (
     StorageLocationCreateRequest,
     StorageLocationResponse,
+    StorageLocationUpdateRequest,
     StorageTreeNodeResponse,
     StorageTreeResponse,
 )
 from app.services import (
     StorageLocationCreateInput,
+    StorageLocationUpdateInput,
     StorageTreeNode,
     create_storage_location,
     list_storage_tree,
+    update_storage_location,
 )
-
 
 router = APIRouter(
     prefix="/storage",
@@ -164,6 +166,79 @@ def create_storage(
             location,
             parent_public_id=parent_public_id,
         )
+
+    except ValueError as error:
+        session.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+
+    except Exception:
+        session.rollback()
+        raise
+
+
+@router.patch(
+    "/{public_id}",
+    response_model=StorageLocationResponse,
+)
+def update_storage(
+    public_id: str,
+    request: StorageLocationUpdateRequest,
+    session: Session = Depends(get_db_session),
+) -> StorageLocationResponse:
+    fields_set = set(
+        request.model_fields_set
+    )
+
+    if not fields_set:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Legalább egy módosítandó mezőt "
+                "meg kell adni."
+            ),
+        )
+
+    try:
+        location = update_storage_location(
+            session=session,
+            public_id=public_id,
+            data=StorageLocationUpdateInput(
+                name=request.name,
+                slug=request.slug,
+                location_type=request.location_type,
+                description=request.description,
+                sort_order=request.sort_order,
+                is_active=request.is_active,
+                fields_set=fields_set,
+            ),
+        )
+
+        if location is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="A tárhely nem található.",
+            )
+
+        parent_public_id = (
+            location.parent.public_id
+            if location.parent is not None
+            else None
+        )
+
+        session.commit()
+
+        return _build_location_response(
+            location,
+            parent_public_id=parent_public_id,
+        )
+
+    except HTTPException:
+        session.rollback()
+        raise
 
     except ValueError as error:
         session.rollback()

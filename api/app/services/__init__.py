@@ -43,10 +43,12 @@ from app.services.books_read import (
     update_book_by_legacy_id,
 )
 from app.services.storage import (
-    StorageTreeNode,
-    list_storage_tree,
     StorageLocationCreateInput,
+    StorageLocationUpdateInput,
+    StorageTreeNode,
     create_storage_location,
+    list_storage_tree,
+    update_storage_location,
 )
 
 __all__ = [
@@ -90,4 +92,6 @@ __all__ = [
     "StorageLocationCreateInput",
     "create_storage_location",
     "list_storage_tree",
+    "StorageLocationUpdateInput",
+    "update_storage_location",
 ]

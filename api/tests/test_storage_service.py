@@ -3,8 +3,10 @@ from sqlalchemy.orm import Session
 from app.models import Household, StorageLocation
 from app.services import (
     StorageLocationCreateInput,
+    StorageLocationUpdateInput,
     create_storage_location,
     list_storage_tree,
+    update_storage_location,
 )
 
 def create_test_household(
@@ -437,3 +439,184 @@ def test_create_storage_location_rejects_negative_sort_order(
         raise AssertionError(
             "ValueError kivételre számítottunk."
         )
+
+
+def test_update_storage_location_updates_selected_fields(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    location = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            name="Régi név",
+            slug="regi-nev",
+            location_type="other",
+            description="Régi leírás",
+            sort_order=10,
+            is_active=True,
+        ),
+    )
+
+    updated = update_storage_location(
+        session=db_session,
+        public_id=location.public_id,
+        data=StorageLocationUpdateInput(
+            name="  Új név  ",
+            slug="  Új slug  ",
+            location_type="SHELF",
+            description="  Új leírás  ",
+            sort_order=20,
+            is_active=False,
+            fields_set={
+                "name",
+                "slug",
+                "location_type",
+                "description",
+                "sort_order",
+                "is_active",
+            },
+        ),
+    )
+
+    assert updated is not None
+    assert updated.id == location.id
+    assert updated.name == "Új név"
+    assert updated.slug == "uj-slug"
+    assert updated.location_type == "shelf"
+    assert updated.description == "Új leírás"
+    assert updated.sort_order == 20
+    assert updated.is_active is False
+
+
+def test_update_storage_location_preserves_unspecified_fields(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    location = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            name="Eredeti név",
+            slug="eredeti-nev",
+            location_type="cabinet",
+            description="Eredeti leírás",
+            sort_order=15,
+            is_active=True,
+        ),
+    )
+
+    updated = update_storage_location(
+        session=db_session,
+        public_id=location.public_id,
+        data=StorageLocationUpdateInput(
+            name="Módosított név",
+            fields_set={
+                "name",
+            },
+        ),
+    )
+
+    assert updated is not None
+    assert updated.name == "Módosított név"
+    assert updated.slug == "eredeti-nev"
+    assert updated.location_type == "cabinet"
+    assert updated.description == "Eredeti leírás"
+    assert updated.sort_order == 15
+    assert updated.is_active is True
+
+
+def test_update_storage_location_rejects_duplicate_slug(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    first_location = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            name="Első hely",
+            slug="elso-hely",
+            location_type="room",
+        ),
+    )
+
+    second_location = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            name="Második hely",
+            slug="masodik-hely",
+            location_type="room",
+        ),
+    )
+
+    try:
+        update_storage_location(
+            session=db_session,
+            public_id=second_location.public_id,
+            data=StorageLocationUpdateInput(
+                slug=first_location.slug,
+                fields_set={
+                    "slug",
+                },
+            ),
+        )
+    except ValueError as error:
+        assert "már létezik tárhely" in str(error)
+    else:
+        raise AssertionError(
+            "ValueError kivételre számítottunk."
+        )
+
+
+def test_update_storage_location_rejects_invalid_location_type(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    location = create_storage_location(
+        session=db_session,
+        data=StorageLocationCreateInput(
+            household_id=household.id,
+            name="Teszt hely",
+            location_type="other",
+        ),
+    )
+
+    try:
+        update_storage_location(
+            session=db_session,
+            public_id=location.public_id,
+            data=StorageLocationUpdateInput(
+                location_type="spaceship",
+                fields_set={
+                    "location_type",
+                },
+            ),
+        )
+    except ValueError as error:
+        assert "Nem támogatott tárhelytípus" in str(error)
+    else:
+        raise AssertionError(
+            "ValueError kivételre számítottunk."
+        )
+
+
+def test_update_storage_location_returns_none_when_missing(
+    db_session: Session,
+) -> None:
+    updated = update_storage_location(
+        session=db_session,
+        public_id="01KZZZZZZZZZZZZZZZZZZZZZZZ",
+        data=StorageLocationUpdateInput(
+            name="Bármi",
+            fields_set={
+                "name",
+            },
+        ),
+    )
+
+    assert updated is None

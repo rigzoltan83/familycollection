@@ -403,3 +403,110 @@ def test_create_storage_rejects_invalid_location_type(
     assert response.json() == {
         "detail": "Nem támogatott tárhelytípus.",
     }
+
+
+def test_update_storage_location_updates_selected_fields(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    location = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Régi név",
+        slug="regi-nev",
+        location_type="other",
+        description="Régi leírás",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(location)
+    db_session.flush()
+
+    response = test_client.patch(
+        f"/storage/{location.public_id}",
+        json={
+            "name": "  Új név  ",
+            "slug": "  Új slug  ",
+            "location_type": "SHELF",
+            "description": "  Új leírás  ",
+            "sort_order": 20,
+            "is_active": False,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["public_id"] == location.public_id
+    assert data["household_id"] == household.id
+    assert data["parent_public_id"] is None
+    assert data["name"] == "Új név"
+    assert data["slug"] == "uj-slug"
+    assert data["location_type"] == "shelf"
+    assert data["description"] == "Új leírás"
+    assert data["sort_order"] == 20
+    assert data["is_active"] is False
+
+    db_session.refresh(location)
+
+    assert location.name == "Új név"
+    assert location.slug == "uj-slug"
+    assert location.location_type == "shelf"
+    assert location.description == "Új leírás"
+    assert location.sort_order == 20
+    assert location.is_active is False
+
+
+def test_update_storage_location_returns_not_found(
+    test_client: TestClient,
+) -> None:
+    response = test_client.patch(
+        "/storage/01KZZZZZZZZZZZZZZZZZZZZZZZ",
+        json={
+            "name": "Bármi",
+        },
+    )
+
+    assert response.status_code == 404
+
+    assert response.json() == {
+        "detail": "A tárhely nem található.",
+    }
+
+
+def test_update_storage_location_rejects_empty_request(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+
+    location = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Teszt hely",
+        slug="teszt-hely",
+        location_type="room",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(location)
+    db_session.flush()
+
+    response = test_client.patch(
+        f"/storage/{location.public_id}",
+        json={},
+    )
+
+    assert response.status_code == 400
+
+    assert response.json() == {
+        "detail": (
+            "Legalább egy módosítandó mezőt "
+            "meg kell adni."
+        ),
+    }

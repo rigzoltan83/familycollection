@@ -44,6 +44,34 @@ class StorageLocationCreateInput:
     is_active: bool = True
 
 
+@dataclass(slots=True)
+class StorageLocationUpdateInput:
+    name: str | None = None
+    slug: str | None = None
+    location_type: str | None = None
+    description: str | None = None
+    sort_order: int | None = None
+    is_active: bool | None = None
+    fields_set: set[str] = field(
+        default_factory=set
+    )
+
+    def __post_init__(self) -> None:
+        if not self.fields_set:
+            self.fields_set = {
+                field_name
+                for field_name in (
+                    "name",
+                    "slug",
+                    "location_type",
+                    "description",
+                    "sort_order",
+                    "is_active",
+                )
+                if getattr(self, field_name) is not None
+            }
+
+
 def list_storage_tree(
     session: Session,
     *,
@@ -322,6 +350,154 @@ def create_storage_location(
     )
 
     session.add(location)
+    session.flush()
+
+    return location
+
+
+def update_storage_location(
+    session: Session,
+    *,
+    public_id: str,
+    data: StorageLocationUpdateInput,
+) -> StorageLocation | None:
+    """
+    Egy meglévő tárhely alapadatait módosítja.
+
+    A szülőkapcsolat módosítását ez a service még nem kezeli.
+    A hívó végzi a commitot vagy rollbacket.
+
+    Visszatérési érték:
+    - StorageLocation: sikeres módosítás;
+    - None: nincs ilyen tárhely.
+    """
+    cleaned_public_id = public_id.strip()
+
+    if not cleaned_public_id:
+        raise ValueError(
+            "A public_id nem lehet üres."
+        )
+
+    location = session.scalar(
+        select(StorageLocation).where(
+            StorageLocation.public_id
+            == cleaned_public_id
+        )
+    )
+
+    if location is None:
+        return None
+
+    allowed_location_types = {
+        "room",
+        "shelf",
+        "cabinet",
+        "drawer",
+        "box",
+        "slot",
+        "area",
+        "other",
+    }
+
+    if "name" in data.fields_set:
+        cleaned_name = (
+            data.name.strip()
+            if data.name is not None
+            else ""
+        )
+
+        if not cleaned_name:
+            raise ValueError(
+                "A tárhely neve nem lehet üres."
+            )
+
+        location.name = cleaned_name
+
+    if "location_type" in data.fields_set:
+        cleaned_location_type = (
+            data.location_type.strip().lower()
+            if data.location_type is not None
+            else ""
+        )
+
+        if (
+            cleaned_location_type
+            not in allowed_location_types
+        ):
+            raise ValueError(
+                "Nem támogatott tárhelytípus."
+            )
+
+        location.location_type = (
+            cleaned_location_type
+        )
+
+    if "sort_order" in data.fields_set:
+        if data.sort_order is None:
+            raise ValueError(
+                "A sort_order nem lehet null."
+            )
+
+        if data.sort_order < 0:
+            raise ValueError(
+                "A sort_order nem lehet negatív."
+            )
+
+        location.sort_order = data.sort_order
+
+    if "is_active" in data.fields_set:
+        if data.is_active is None:
+            raise ValueError(
+                "Az is_active nem lehet null."
+            )
+
+        location.is_active = data.is_active
+
+    if "description" in data.fields_set:
+        location.description = (
+            data.description.strip()
+            if (
+                data.description is not None
+                and data.description.strip()
+            )
+            else None
+        )
+
+    if "slug" in data.fields_set:
+        cleaned_slug = (
+            _normalize_storage_slug(data.slug)
+            if data.slug is not None
+            else ""
+        )
+
+        if not cleaned_slug:
+            raise ValueError(
+                "A tárhely slugja nem lehet üres."
+            )
+
+        duplicate_count = session.scalar(
+            select(
+                func.count(StorageLocation.id)
+            ).where(
+                StorageLocation.household_id
+                == location.household_id,
+                StorageLocation.parent_id
+                == location.parent_id,
+                StorageLocation.slug
+                == cleaned_slug,
+                StorageLocation.id
+                != location.id,
+            )
+        )
+
+        if duplicate_count:
+            raise ValueError(
+                "Ugyanilyen sluggal már létezik "
+                "tárhely ezen a szinten."
+            )
+
+        location.slug = cleaned_slug
+
     session.flush()
 
     return location

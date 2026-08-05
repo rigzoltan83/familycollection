@@ -46,6 +46,42 @@ class StorageLocationCreateRequest(BaseModel):
     is_active: bool = True
 
 
+class StorageLocationUpdateRequest(BaseModel):
+    """
+    Meglévő tárhely részleges módosítása.
+    """
+
+    name: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=150,
+    )
+
+    slug: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=150,
+    )
+
+    location_type: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=30,
+    )
+
+    description: str | None = Field(
+        default=None,
+        max_length=500,
+    )
+
+    sort_order: int | None = Field(
+        default=None,
+        ge=0,
+    )
+
+    is_active: bool | None = None
+
+
 class StorageLocationResponse(BaseModel):
     """
     Egyetlen létrehozott vagy lekért tárhely válasza.
