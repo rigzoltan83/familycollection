@@ -24,6 +24,7 @@ from app.services import (
     update_book_borrow_state,
     update_book_metadata_fields,
     update_primary_identifier,
+    update_book_by_legacy_id,
 )
 
 
@@ -1332,3 +1333,181 @@ def test_update_book_borrow_state_clears_borrower_and_sets_active(
     )
 
     assert migration.legacy_borrowed_to is None
+
+
+def test_update_book_by_legacy_id_updates_complete_book(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    source_slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    target_room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Dolgozó",
+        slug="dolgozo",
+        location_type="room",
+        sort_order=20,
+        is_active=True,
+    )
+
+    db_session.add(target_room)
+    db_session.flush()
+
+    target_shelf = StorageLocation(
+        household_id=household.id,
+        parent_id=target_room.id,
+        name="Könyvespolc",
+        slug="konyvespolc",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(target_shelf)
+    db_session.flush()
+
+    target_slot = StorageLocation(
+        household_id=household.id,
+        parent_id=target_shelf.id,
+        name="2. hely",
+        slug="slot-2",
+        location_type="slot",
+        sort_order=20,
+        is_active=True,
+    )
+
+    db_session.add(target_slot)
+    db_session.flush()
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=source_slot,
+        legacy_book_id=6,
+        title="Régi cím",
+        author="Régi szerző",
+        publisher="Régi kiadó",
+        publish_year=1999,
+        identifier_type="isbn13",
+        identifier_value="9789631111111",
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    updated = update_book_by_legacy_id(
+        db_session,
+        legacy_book_id=6,
+        title="  Új cím  ",
+        identifier_type="isbn13",
+        identifier_value="9789632222222",
+        author="  Új szerző  ",
+        publisher="  Új kiadó  ",
+        publish_year=2024,
+        storage_location_id=target_slot.id,
+        borrower="  Teszt kölcsönző  ",
+    )
+
+    assert updated is True
+
+    db_session.refresh(item)
+
+    assert item.title == "Új cím"
+    assert item.status == "loaned"
+
+    active_identifiers = (
+        db_session.query(ItemIdentifier)
+        .filter(
+            ItemIdentifier.item_id == item.id,
+            ItemIdentifier.is_active.is_(True),
+        )
+        .all()
+    )
+
+    primary_identifier = next(
+        identifier
+        for identifier in active_identifiers
+        if identifier.is_primary
+    )
+
+    assert primary_identifier.identifier_type == "isbn13"
+    assert primary_identifier.identifier_value == "9789632222222"
+
+    values = {
+        value.field.field_key: value
+        for value in db_session.query(ItemFieldValue)
+        .filter(
+            ItemFieldValue.item_id == item.id
+        )
+        .all()
+    }
+
+    assert values["author"].value_text == "Új szerző"
+    assert values["publisher"].value_text == "Új kiadó"
+    assert values["publish_year"].value_integer == 2024
+
+    assignments = (
+        db_session.query(ItemStorageAssignment)
+        .filter(
+            ItemStorageAssignment.item_id == item.id
+        )
+        .order_by(ItemStorageAssignment.id)
+        .all()
+    )
+
+    assert len(assignments) == 2
+
+    assert assignments[0].is_active is False
+    assert assignments[0].removed_at is not None
+
+    assert assignments[1].is_active is True
+    assert assignments[1].storage_location_id == target_slot.id
+    assert assignments[1].movement_reason == "book_update"
+
+    migration = (
+        db_session.query(LegacyBookMigration)
+        .filter_by(
+            legacy_book_id=6,
+        )
+        .one()
+    )
+
+    assert migration.legacy_isbn == "9789632222222"
+    assert migration.legacy_borrowed_to == "Teszt kölcsönző"
+    assert migration.legacy_location_id is None
+    assert migration.legacy_room == "Dolgozó"
+    assert migration.legacy_shelf == "Könyvespolc"
+    assert migration.legacy_slot == 2
+
+
+def test_update_book_by_legacy_id_returns_false_for_missing_book(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    create_test_book_category(db_session)
+
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    updated = update_book_by_legacy_id(
+        session=db_session,
+        legacy_book_id=999999,
+        title="Bármi",
+        identifier_type="isbn13",
+        identifier_value="9789630000000",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        storage_location_id=slot.id,
+        borrower=None,
+    )
+
+    assert updated is False

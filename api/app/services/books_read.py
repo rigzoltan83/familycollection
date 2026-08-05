@@ -1061,3 +1061,94 @@ def update_book_borrow_state(
     session.flush()
 
     return True
+
+
+def update_book_by_legacy_id(
+    session: Session,
+    legacy_book_id: int,
+    *,
+    title: str,
+    identifier_type: str,
+    identifier_value: str,
+    author: str | None,
+    publisher: str | None,
+    publish_year: int | None,
+    storage_location_id: int,
+    borrower: str | None,
+    moved_by_user_id: int | None = None,
+) -> bool:
+    """
+    Egy aktív legacy könyvhöz tartozó CollectionItem teljes
+    szerkesztése.
+
+    A művelet frissíti:
+
+    - a címet;
+    - az elsődleges azonosítót;
+    - a szerző, kiadó és megjelenési év mezőket;
+    - az aktuális tárolóhelyet és a helyelőzményt;
+    - a kölcsönadási státuszt.
+
+    A hívó kezeli a commitot vagy rollbacket.
+
+    Visszatérési érték:
+    - True: a könyv megtalálható volt és frissült;
+    - False: nincs ilyen aktív könyv.
+    """
+    title_updated = update_collection_item_title(
+        session=session,
+        legacy_book_id=legacy_book_id,
+        title=title,
+    )
+
+    if not title_updated:
+        return False
+
+    identifier_updated = update_primary_identifier(
+        session=session,
+        legacy_book_id=legacy_book_id,
+        identifier_type=identifier_type,
+        identifier_value=identifier_value,
+    )
+
+    if not identifier_updated:
+        return False
+
+    metadata_updated = update_book_metadata_fields(
+        session=session,
+        legacy_book_id=legacy_book_id,
+        author=author,
+        publisher=publisher,
+        publish_year=publish_year,
+    )
+
+    if not metadata_updated:
+        return False
+
+    storage_updated = move_book_to_storage_location(
+        session=session,
+        legacy_book_id=legacy_book_id,
+        storage_location_id=storage_location_id,
+        moved_by_user_id=moved_by_user_id,
+        movement_reason="book_update",
+        notes=(
+            "A könyv szerkesztése során létrehozott "
+            "tárhelyváltozás."
+        ),
+    )
+
+    if not storage_updated:
+        return False
+
+    borrow_state_updated = update_book_borrow_state(
+        session=session,
+        legacy_book_id=legacy_book_id,
+        borrower=borrower,
+    )
+
+    if not borrow_state_updated:
+        return False
+
+    session.flush()
+
+    return True
