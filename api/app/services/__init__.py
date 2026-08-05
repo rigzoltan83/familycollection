@@ -25,8 +25,6 @@ from app.services.legacy_books import (
     migrate_legacy_books_batch,
     load_legacy_book_sources_from_database,
 )
-
-
 from app.services.books_read import (
     BookReadPage,
     BookReadRecord,
@@ -44,7 +42,10 @@ from app.services.books_read import (
     update_book_borrow_state,
     update_book_by_legacy_id,
 )
-
+from app.services.storage import (
+    StorageTreeNode,
+    list_storage_tree,
+)
 
 __all__ = [
     "authenticate_user",
@@ -83,4 +84,6 @@ __all__ = [
     "update_primary_identifier",
     "update_book_borrow_state",
     "update_book_by_legacy_id",
+    "StorageTreeNode",
+    "list_storage_tree",
 ]
