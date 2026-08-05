@@ -61,6 +61,31 @@ class CollectionItemUpdateInput:
     updated_by_user_id: int | None = None
     identifiers: list[IdentifierInput] | None = None
     field_values: dict[str, Any] | None = None
+    fields_set: set[str] = field(default_factory=set)
+
+    def __post_init__(self) -> None:
+        """
+        Közvetlen szolgáltatáshívásnál a nem None mezőket
+        automatikusan módosítandónak tekinti.
+
+        Az API-réteg explicit fields_set értékkel a nullára
+        állítást is támogatja.
+        """
+        if not self.fields_set:
+            self.fields_set = {
+                field_name
+                for field_name in (
+                    "title",
+                    "subtitle",
+                    "notes",
+                    "status",
+                    "is_active",
+                    "updated_by_user_id",
+                    "identifiers",
+                    "field_values",
+                )
+                if getattr(self, field_name) is not None
+            }
 
 
 def _ensure_household_exists(
@@ -462,7 +487,11 @@ def update_collection_item(
     Az identifiers és field_values listák megadása teljes cserét jelent.
     A hívó kezeli a commitot vagy rollbacket.
     """
-    if data.title is not None:
+
+    if "title" in data.fields_set:
+        if data.title is None:
+            raise ValueError("A cím nem lehet üres.")
+
         normalized_title = data.title.strip()
 
         if not normalized_title:
@@ -470,16 +499,24 @@ def update_collection_item(
 
         item.title = normalized_title
 
-    if data.subtitle is not None:
+    if "subtitle" in data.fields_set:
         item.subtitle = data.subtitle
 
-    if data.notes is not None:
+    if "notes" in data.fields_set:
         item.notes = data.notes
 
-    if data.status is not None:
+    if "status" in data.fields_set:
+        if data.status is None:
+            raise ValueError("A státusz nem lehet üres.")
+
         item.status = data.status
 
-    if data.is_active is not None:
+    if "is_active" in data.fields_set:
+        if data.is_active is None:
+            raise ValueError(
+                "Az is_active értéke nem lehet üres."
+            )
+
         item.is_active = data.is_active
 
     updater = _ensure_user_exists(
@@ -487,7 +524,7 @@ def update_collection_item(
         user_id=data.updated_by_user_id,
     )
 
-    if data.updated_by_user_id is not None:
+    if "updated_by_user_id" in data.fields_set:
         item.updated_by_user = updater
 
     category_fields = _get_category_fields(
@@ -495,11 +532,13 @@ def update_collection_item(
         category_id=item.category_id,
     )
 
-    if data.identifiers is not None:
+    if "identifiers" in data.fields_set:
+        identifiers = data.identifiers or []
+
         item.identifiers.clear()
         session.flush()
 
-        for identifier_input in data.identifiers:
+        for identifier_input in identifiers:
             identifier_value = (
                 identifier_input.identifier_value.strip()
             )
@@ -518,9 +557,10 @@ def update_collection_item(
                 )
             )
 
-    if data.field_values is not None:
+    if "field_values" in data.fields_set:
+        field_values = data.field_values or {}
         unknown_field_keys = (
-            set(data.field_values) - set(category_fields)
+            set(field_values) - set(category_fields)
         )
 
         if unknown_field_keys:
@@ -555,7 +595,7 @@ def update_collection_item(
         item.field_values.clear()
         session.flush()
 
-        for field_key, value in data.field_values.items():
+        for field_key, value in field_values.items():
             if value is None:
                 continue
 

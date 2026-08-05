@@ -817,3 +817,256 @@ def test_list_collection_items_rejects_invalid_status(
             "missing vagy disposed lehet."
         )
     }
+
+def test_update_collection_item_api(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    user = create_test_user(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Régi cím",
+            "subtitle": "Régi alcím",
+            "notes": "Régi megjegyzés",
+            "created_by_user_id": user.id,
+            "identifiers": [
+                {
+                    "identifier_type": "isbn13",
+                    "identifier_value": "9789631111111",
+                    "is_primary": True,
+                }
+            ],
+            "field_values": {
+                "author": "Régi szerző",
+                "publish_year": 1980,
+            },
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    public_id = create_response.json()["public_id"]
+
+    response = test_client.patch(
+        f"/items/{public_id}",
+        json={
+            "title": "Új cím",
+            "subtitle": "Új alcím",
+            "notes": "Új megjegyzés",
+            "status": "archived",
+            "updated_by_user_id": user.id,
+            "identifiers": [
+                {
+                    "identifier_type": "isbn10",
+                    "identifier_value": "9632222222",
+                    "is_primary": True,
+                }
+            ],
+            "field_values": {
+                "author": "Új szerző",
+                "publish_year": 2020,
+            },
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["public_id"] == public_id
+    assert data["title"] == "Új cím"
+    assert data["subtitle"] == "Új alcím"
+    assert data["notes"] == "Új megjegyzés"
+    assert data["status"] == "archived"
+    assert data["updated_by_user_id"] == user.id
+
+    assert len(data["identifiers"]) == 1
+    assert data["identifiers"][0]["identifier_type"] == "isbn10"
+    assert data["identifiers"][0]["identifier_value"] == "9632222222"
+
+    values_by_key = {
+        field_value["field_key"]: field_value
+        for field_value in data["field_values"]
+    }
+
+    assert values_by_key["author"]["value_text"] == "Új szerző"
+    assert values_by_key["publish_year"]["value_integer"] == 2020
+
+
+def test_update_collection_item_api_keeps_unspecified_fields(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Eredeti cím",
+            "subtitle": "Eredeti alcím",
+            "notes": "Eredeti megjegyzés",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    public_id = create_response.json()["public_id"]
+
+    response = test_client.patch(
+        f"/items/{public_id}",
+        json={
+            "title": "Módosított cím",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["title"] == "Módosított cím"
+    assert data["subtitle"] == "Eredeti alcím"
+    assert data["notes"] == "Eredeti megjegyzés"
+    assert data["status"] == "active"
+
+
+def test_update_collection_item_api_can_clear_nullable_fields(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Teszt könyv",
+            "subtitle": "Törlendő alcím",
+            "notes": "Törlendő megjegyzés",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    public_id = create_response.json()["public_id"]
+
+    response = test_client.patch(
+        f"/items/{public_id}",
+        json={
+            "subtitle": None,
+            "notes": None,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["subtitle"] is None
+    assert data["notes"] is None
+
+
+def test_update_collection_item_api_can_clear_identifiers_and_fields(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Teszt könyv",
+            "identifiers": [
+                {
+                    "identifier_type": "isbn13",
+                    "identifier_value": "9789633333333",
+                    "is_primary": True,
+                }
+            ],
+            "field_values": {
+                "author": "Teszt szerző",
+                "publish_year": 2000,
+            },
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    public_id = create_response.json()["public_id"]
+
+    response = test_client.patch(
+        f"/items/{public_id}",
+        json={
+            "identifiers": [],
+            "field_values": {},
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["identifiers"] == []
+    assert data["field_values"] == []
+
+
+def test_update_collection_item_api_returns_404(
+    test_client: TestClient,
+) -> None:
+    response = test_client.patch(
+        "/items/01AAAAAAAAAAAAAAAAAAAAAAAA",
+        json={
+            "title": "Új cím",
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "A gyűjteményi elem nem található."
+    }
+
+
+def test_update_collection_item_api_rejects_invalid_field(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Teszt könyv",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    public_id = create_response.json()["public_id"]
+
+    response = test_client.patch(
+        f"/items/{public_id}",
+        json={
+            "field_values": {
+                "unknown_field": "érték",
+            },
+        },
+    )
+
+    assert response.status_code == 400
+    assert "Ismeretlen kategóriamezők" in response.json()["detail"]

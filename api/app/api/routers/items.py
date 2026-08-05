@@ -18,11 +18,14 @@ from app.schemas import (
     CollectionItemResponse,
     CollectionItemListEntry,
     CollectionItemListResponse,
+    CollectionItemUpdateRequest,
     ItemFieldValueResponse,
     ItemIdentifierResponse,
 )
 from app.services import (
     CollectionItemCreateInput,
+    CollectionItemUpdateInput,
+    update_collection_item,
     IdentifierInput,
     create_collection_item,
 )
@@ -346,6 +349,84 @@ def create_item(
     )
 
     return _build_item_response(loaded_item)
+
+
+@router.patch(
+    "/{public_id}",
+    response_model=CollectionItemResponse,
+)
+def update_item(
+    public_id: str,
+    request: CollectionItemUpdateRequest,
+    session: Session = Depends(get_db_session),
+) -> CollectionItemResponse:
+    item = session.scalar(
+        select(CollectionItem)
+        .options(
+            selectinload(CollectionItem.identifiers),
+            selectinload(CollectionItem.field_values).selectinload(
+                ItemFieldValue.field
+            ),
+        )
+        .where(CollectionItem.public_id == public_id)
+    )
+
+    if item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="A gyűjteményi elem nem található.",
+        )
+
+    try:
+        updated_item = update_collection_item(
+            session=session,
+            item=item,
+            data=CollectionItemUpdateInput(
+                title=request.title,
+                subtitle=request.subtitle,
+                notes=request.notes,
+                status=request.status,
+                is_active=request.is_active,
+                updated_by_user_id=request.updated_by_user_id,
+                identifiers=(
+                    [
+                        IdentifierInput(
+                            identifier_type=identifier.identifier_type,
+                            identifier_value=identifier.identifier_value,
+                            provider_code=identifier.provider_code,
+                            is_primary=identifier.is_primary,
+                        )
+                        for identifier in request.identifiers
+                    ]
+                    if request.identifiers is not None
+                    else None
+                ),
+                field_values=request.field_values,
+                fields_set=set(request.model_fields_set),
+            ),
+        )
+
+        session.commit()
+
+    except ValueError as error:
+        session.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+
+    except Exception:
+        session.rollback()
+        raise
+
+    loaded_item = _load_item_for_response(
+        session=session,
+        item_id=updated_item.id,
+    )
+
+    return _build_item_response(loaded_item)
+
 
 @router.get(
     "/{public_id}",
