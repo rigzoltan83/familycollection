@@ -18,6 +18,7 @@ from app.services import (
     get_book_by_legacy_id,
     list_books,
     list_latest_books,
+    soft_delete_book_by_legacy_id,
 )
 
 
@@ -743,3 +744,53 @@ def test_list_books_paginates_results(
         record.id
         for record in second_page.records
     ] == [3]
+
+def test_soft_delete_book_by_legacy_id_deactivates_item(
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="Törlendő könyv",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        identifier_type=None,
+        identifier_value=None,
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    deleted = soft_delete_book_by_legacy_id(
+        db_session,
+        6,
+    )
+
+    assert deleted is True
+    assert item.is_active is False
+
+    assert get_book_by_legacy_id(
+        db_session,
+        6,
+    ) is None
+
+
+def test_soft_delete_book_by_legacy_id_returns_false_when_missing(
+    db_session: Session,
+) -> None:
+    deleted = soft_delete_book_by_legacy_id(
+        db_session,
+        999999,
+    )
+
+    assert deleted is False

@@ -419,3 +419,42 @@ def list_books(
             for migration in migrations
         ],
     )
+
+def soft_delete_book_by_legacy_id(
+    session: Session,
+    legacy_book_id: int,
+) -> bool:
+    """
+    A régi könyvazonosító alapján soft delete-eli
+    a kapcsolódó CollectionItem rekordot.
+
+    Visszatérési érték:
+    - True: a könyv aktív volt és törlésre került;
+    - False: nincs ilyen aktív könyv.
+    """
+    migration = session.scalar(
+        select(LegacyBookMigration)
+        .join(
+            CollectionItem,
+            CollectionItem.id
+            == LegacyBookMigration.collection_item_id,
+        )
+        .where(
+            LegacyBookMigration.legacy_book_id
+            == legacy_book_id,
+            CollectionItem.is_active.is_(True),
+        )
+    )
+
+    if migration is None:
+        return False
+
+    item = migration.collection_item
+
+    if item is None:
+        return False
+
+    item.is_active = False
+    session.flush()
+
+    return True

@@ -22,6 +22,7 @@ from app.services import (
     get_book_by_legacy_id,
     list_books,
     list_latest_books,
+    soft_delete_book_by_legacy_id,
 )
 
 app = FastAPI(title="Family Collection API")
@@ -432,28 +433,39 @@ def all_books(
 
 
 @app.delete("/books/{book_id}")
-def delete_book(book_id: int):
+def delete_book(
+    book_id: int,
+    session: Session = Depends(get_db_session),
+):
     try:
-        deleted = db.delete_book(book_id)
+        deleted = soft_delete_book_by_legacy_id(
+            session=session,
+            legacy_book_id=book_id,
+        )
 
         if not deleted:
             return {
                 "status": "not_found",
-                "message": "A könyv nem található."
+                "message": "A könyv nem található.",
             }
+
+        session.commit()
 
         return {
             "status": "deleted",
-            "id": book_id
+            "id": book_id,
         }
 
     except Exception as error:
+        session.rollback()
+
         print("DELETE BOOK ERROR:", error)
 
         return {
             "status": "error",
-            "message": str(error)
+            "message": str(error),
         }
+
 
 @app.get("/books/export.csv")
 def export_books_csv():

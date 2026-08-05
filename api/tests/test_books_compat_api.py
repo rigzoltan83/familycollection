@@ -502,3 +502,62 @@ def test_books_detail_returns_not_found(
         "status": "not_found",
         "message": "A könyv nem található.",
     }
+
+def test_books_delete_soft_deletes_item(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=6,
+        title="Törlendő könyv",
+        author=None,
+        publisher=None,
+        publish_year=None,
+        identifier_type=None,
+        identifier_value=None,
+        borrowed_to=None,
+        created_at=datetime(2026, 7, 14, 10, 0, 0),
+    )
+
+    response = test_client.delete("/books/6")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "deleted",
+        "id": 6,
+    }
+
+    db_session.refresh(item)
+
+    assert item.is_active is False
+
+    detail_response = test_client.get("/books/6")
+
+    assert detail_response.status_code == 200
+    assert detail_response.json() == {
+        "status": "not_found",
+        "message": "A könyv nem található.",
+    }
+
+
+def test_books_delete_returns_not_found_for_missing_book(
+    test_client: TestClient,
+) -> None:
+    response = test_client.delete("/books/999999")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "status": "not_found",
+        "message": "A könyv nem található.",
+    }

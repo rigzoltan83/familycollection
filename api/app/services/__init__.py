@@ -33,6 +33,7 @@ from app.services.books_read import (
     get_book_by_legacy_id,
     list_books,
     list_latest_books,
+    soft_delete_book_by_legacy_id,
 )
 
 
@@ -63,4 +64,5 @@ __all__ = [
     "get_book_by_legacy_id",
     "list_books",
     "list_latest_books",
+    "soft_delete_book_by_legacy_id",
 ]
