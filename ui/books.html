@@ -406,6 +406,83 @@ header input {
     font-size: 14px;
 }
 
+.edit-image-card {
+    overflow: hidden;
+    border: 1px solid #444;
+    border-radius: 9px;
+    background: #242424;
+}
+
+.edit-image-preview {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: #111;
+}
+
+.edit-image-preview img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.edit-image-primary {
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    padding: 4px 7px;
+    border-radius: 5px;
+    background: rgba(35, 124, 69, 0.94);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.edit-image-caption {
+    padding: 9px 9px 3px;
+    color: #fff;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.edit-image-meta {
+    padding: 0 9px 9px;
+    color: #888;
+    font-size: 12px;
+}
+
+.edit-image-actions {
+    display: flex;
+    gap: 8px;
+    padding: 0 9px 10px;
+}
+
+.edit-image-action-button {
+    flex: 1;
+    padding: 6px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #3b3b3b;
+    color: white;
+    font-size: 13px;
+}
+
+.edit-image-action-button:hover {
+    background: #555;
+}
+
+.edit-image-action-button:disabled {
+    background: #237c45;
+    color: #fff;
+    cursor: default;
+    opacity: 0.9;
+}
+
+.edit-image-action-button.danger:hover {
+    background: #9b2d2d;
+}
+
 @media (max-width: 650px) {
     header {
         align-items: stretch;
@@ -566,7 +643,6 @@ header input {
                     id="editImageCameraButton"
                     type="button"
                     class="edit-image-button"
-                    disabled
                 >
                     📷 Fotó készítése
                 </button>
@@ -575,11 +651,26 @@ header input {
                     id="editImageFilesButton"
                     type="button"
                     class="edit-image-button"
-                    disabled
                 >
                     🖼️ Képek kiválasztása
                 </button>
             </div>
+
+            <input
+                id="editImageCameraInput"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                hidden
+            >
+
+            <input
+                id="editImageFilesInput"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                hidden
+            >
 
             <div class="edit-image-help">
                 Telefonon közvetlenül fotózhatsz,
@@ -1334,6 +1425,103 @@ document
    SZERKESZTŐ MEGNYITÁSA
 ----------------------- */
 
+const editImageGallery =
+    document.getElementById(
+        "editImageGallery"
+    );
+
+
+editImageGallery.addEventListener(
+    "click",
+    async event => {
+        const button =
+            event.target.closest(
+                "[data-image-id][data-action]"
+            );
+
+        if (!button) {
+            return;
+        }
+
+        const imagePublicId =
+            button.dataset.imageId;
+
+        const action =
+            button.dataset.action;
+
+        if (
+            action === "primary"
+            && !button.disabled
+        ) {
+            button.disabled = true;
+
+            await setEditorPrimaryImage(
+                imagePublicId
+            );
+        }
+    }
+);
+
+const editImageCameraButton =
+    document.getElementById(
+        "editImageCameraButton"
+    );
+
+const editImageFilesButton =
+    document.getElementById(
+        "editImageFilesButton"
+    );
+
+const editImageCameraInput =
+    document.getElementById(
+        "editImageCameraInput"
+    );
+
+const editImageFilesInput =
+    document.getElementById(
+        "editImageFilesInput"
+    );
+
+
+editImageCameraButton.addEventListener(
+    "click",
+    () => {
+        editImageCameraInput.click();
+    }
+);
+
+
+editImageFilesButton.addEventListener(
+    "click",
+    () => {
+        editImageFilesInput.click();
+    }
+);
+
+
+editImageCameraInput.addEventListener(
+    "change",
+    async () => {
+        await uploadEditorImageFiles(
+            editImageCameraInput.files
+        );
+
+        editImageCameraInput.value = "";
+    }
+);
+
+
+editImageFilesInput.addEventListener(
+    "change",
+    async () => {
+        await uploadEditorImageFiles(
+            editImageFilesInput.files
+        );
+
+        editImageFilesInput.value = "";
+    }
+);
+
 async function editBook(id) {
     if (!Number.isInteger(id) || id <= 0) {
         alert("Hibás könyvindex.");
@@ -1386,6 +1574,17 @@ filterEditorStorageOptions();
             .getElementById("editItemPublicId")
             .value =
                 book.public_id || "";
+
+        document
+            .getElementById("editImageStatus")
+            .textContent =
+                "Képek betöltése...";
+
+        await refreshEditorImages();
+
+        document
+            .getElementById("editImageStatus")
+            .textContent = "";
 
         document.getElementById("editIndex").value =
             book.id;
@@ -1442,6 +1641,355 @@ filterEditorStorageOptions();
             `Szerkesztési hiba: ${error.message}`
         );
     }
+}
+
+async function loadEditorImages(
+    itemPublicId
+) {
+    if (!itemPublicId) {
+        return [];
+    }
+
+    const response =
+        await fetch(
+            `/items/${itemPublicId}/images`
+        );
+
+    if (!response.ok) {
+        throw new Error(
+            "A képek nem tölthetők be."
+        );
+    }
+
+    return await response.json();
+}
+
+async function refreshEditorImages() {
+    const itemPublicId =
+        document
+            .getElementById("editItemPublicId")
+            .value
+            .trim();
+
+    if (!itemPublicId) {
+        throw new Error(
+            "Hiányzik a gyűjteményi elem azonosítója."
+        );
+    }
+
+    const images =
+        await loadEditorImages(
+            itemPublicId
+        );
+
+    updateEditorImageCount(
+        images.length
+    );
+
+    renderEditorImages(
+        images
+    );
+
+    return images;
+}
+
+async function uploadEditorImageFiles(
+    fileList
+) {
+    const files = Array.from(
+        fileList || []
+    );
+
+    if (files.length === 0) {
+        return;
+    }
+
+    const itemPublicId =
+        document
+            .getElementById("editItemPublicId")
+            .value
+            .trim();
+
+    if (!itemPublicId) {
+        throw new Error(
+            "Hiányzik a gyűjteményi elem azonosítója."
+        );
+    }
+
+    const statusElement =
+        document.getElementById(
+            "editImageStatus"
+        );
+
+    const cameraButton =
+        document.getElementById(
+            "editImageCameraButton"
+        );
+
+    const filesButton =
+        document.getElementById(
+            "editImageFilesButton"
+        );
+
+    cameraButton.disabled = true;
+    filesButton.disabled = true;
+
+    let uploadedCount = 0;
+
+    try {
+        for (const file of files) {
+            statusElement.textContent =
+                `Feltöltés: ${uploadedCount + 1}`
+                + ` / ${files.length}`;
+
+            const formData =
+                new FormData();
+
+            formData.append(
+                "file",
+                file,
+                file.name || "photo.jpg"
+            );
+
+            const response =
+                await fetch(
+                    `/items/${itemPublicId}/images`,
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+            let data = null;
+
+            try {
+                data = await response.json();
+            } catch {
+                data = null;
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.detail
+                    || `HTTP ${response.status}`
+                );
+            }
+
+            uploadedCount += 1;
+        }
+
+        statusElement.textContent =
+            uploadedCount === 1
+                ? "✅ A kép feltöltve."
+                : (
+                    `✅ ${uploadedCount} kép `
+                    + "feltöltve."
+                );
+
+        await refreshEditorImages();
+
+    } catch (error) {
+        console.error(
+            "Képfeltöltési hiba:",
+            error
+        );
+
+        statusElement.textContent =
+            `❌ Képfeltöltési hiba: `
+            + error.message;
+
+    } finally {
+        cameraButton.disabled = false;
+        filesButton.disabled = false;
+    }
+}
+
+async function setEditorPrimaryImage(
+    imagePublicId
+) {
+    if (!imagePublicId) {
+        throw new Error(
+            "Hiányzik a kép azonosítója."
+        );
+    }
+
+    const statusElement =
+        document.getElementById(
+            "editImageStatus"
+        );
+
+    statusElement.textContent =
+        "Borítókép beállítása...";
+
+    try {
+        const response =
+            await fetch(
+                `/item-images/${imagePublicId}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        is_primary: true
+                    })
+                }
+            );
+
+        let data = null;
+
+        try {
+            data = await response.json();
+        } catch {
+            data = null;
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                data?.detail
+                || `HTTP ${response.status}`
+            );
+        }
+
+        await refreshEditorImages();
+
+        statusElement.textContent =
+            "✅ Borítókép beállítva.";
+
+    } catch (error) {
+        console.error(
+            "Borítókép-beállítási hiba:",
+            error
+        );
+
+        statusElement.textContent =
+            "❌ Borítókép-beállítási hiba: "
+            + error.message;
+    }
+}
+
+function showEditorImageEmptyState() {
+    document
+        .getElementById("editImageGallery")
+        .innerHTML = `
+            <div
+                id="editImageEmpty"
+                class="edit-image-empty"
+            >
+                <div class="edit-image-empty-icon">
+                    🖼️
+                </div>
+
+                <div>
+                    Még nincs kép ehhez a könyvhöz.
+                </div>
+            </div>
+        `;
+}
+
+
+function updateEditorImageCount(
+    imageCount
+) {
+    document
+        .getElementById("editImageCount")
+        .textContent =
+            `${imageCount} kép`;
+}
+
+function renderEditorImages(
+    images
+) {
+    const gallery =
+        document.getElementById(
+            "editImageGallery"
+        );
+
+    if (!Array.isArray(images)) {
+        throw new Error(
+            "A képlista formátuma hibás."
+        );
+    }
+
+    if (images.length === 0) {
+        showEditorImageEmptyState();
+        return;
+    }
+
+    gallery.innerHTML = images
+        .map(image => {
+            const caption =
+                image.caption?.trim()
+                || "Kép";
+
+            const primaryBadge =
+                image.is_primary
+                ? `
+                    <div class="edit-image-primary">
+                        Elsődleges
+                    </div>
+                `
+                : "";
+
+            return `
+                <article class="edit-image-card">
+                    <div class="edit-image-preview">
+                        <img
+                            src="${escapeHtml(
+                                image.content_url
+                            )}"
+                            alt="${escapeHtml(caption)}"
+                            loading="lazy"
+                        >
+
+                        ${primaryBadge}
+                    </div>
+
+                    <div class="edit-image-caption">
+                        ${escapeHtml(caption)}
+                    </div>
+
+                    <div class="edit-image-meta">
+                        ${
+                            image.width ?? "-"
+                        }
+                        ×
+                        ${
+                            image.height ?? "-"
+                        }
+                        px
+                    </div>
+<div class="edit-image-actions">
+<button
+    type="button"
+    class="edit-image-action-button"
+    data-image-id="${escapeHtml(
+        image.public_id
+    )}"
+    data-action="primary"
+    ${image.is_primary ? "disabled" : ""}
+>
+    ${
+        image.is_primary
+            ? "⭐ Jelenlegi borítókép"
+            : "⭐ Legyen borítókép"
+    }
+</button>
+
+    <button
+        type="button"
+        class="edit-image-action-button danger"
+        data-image-id="${image.public_id}"
+        data-action="delete"
+    >
+        🗑 Törlés
+    </button>
+</div>
+                </article>
+            `;
+        })
+        .join("");
 }
 
 /* -----------------------
