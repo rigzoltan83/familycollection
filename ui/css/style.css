@@ -554,3 +554,151 @@ button:hover{
     background: #181818;
     color: #aaa;
 }
+
+/* ==================================================
+   ÚJ KÖNYVHÖZ KIVÁLASZTOTT KÉPEK
+================================================== */
+
+.pending-book-image-section {
+    margin: 16px 0;
+    padding: 14px;
+    border: 1px solid #444;
+    border-radius: 10px;
+    background: #181818;
+}
+
+.pending-book-image-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.pending-book-image-header strong {
+    color: #6dff6d;
+    font-size: 17px;
+}
+
+#pendingBookImageCount {
+    color: #aaa;
+    font-size: 13px;
+}
+
+.pending-book-image-preview {
+    min-height: 90px;
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(90px, 1fr)
+        );
+    gap: 10px;
+}
+
+.pending-book-image-empty {
+    grid-column: 1 / -1;
+    min-height: 90px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 14px;
+    border: 2px dashed #444;
+    border-radius: 8px;
+    color: #888;
+    text-align: center;
+}
+
+.pending-book-image-actions {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            3,
+            minmax(0, 1fr)
+        );
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.pending-book-image-button {
+    min-width: 0;
+    padding: 10px 8px;
+    border: none;
+    border-radius: 7px;
+    background: #2563a8;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.pending-book-image-button:hover:not(:disabled) {
+    background: #347dcc;
+}
+
+.pending-book-image-button:disabled {
+    background: #3b3b3b;
+    color: #777;
+    cursor: default;
+}
+
+.pending-book-image-clear {
+    background: #6f3434;
+}
+
+.pending-book-image-clear:hover:not(:disabled) {
+    background: #984343;
+}
+
+.pending-book-image-help {
+    margin-top: 9px;
+    color: #888;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.pending-book-image-thumbnail {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border: 1px solid #444;
+    border-radius: 8px;
+    background: #111;
+}
+
+.pending-book-image-thumbnail img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.pending-book-image-thumbnail-number {
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    min-width: 23px;
+    padding: 3px 5px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 11px;
+    text-align: center;
+}
+
+@media (max-width: 650px) {
+    .pending-book-image-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .pending-book-image-button {
+        width: 100%;
+    }
+
+    .pending-book-image-preview {
+        grid-template-columns:
+            repeat(
+                3,
+                minmax(0, 1fr)
+            );
+    }
+}

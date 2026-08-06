@@ -375,6 +375,85 @@
             placeholder="Írd be vagy olvasd be az ISBN-t..."
             autocomplete="off">
 
+        <!-- ==================================================
+             ÚJ KÖNYVHÖZ ELŐKÉSZÍTETT KÉPEK
+        ================================================== -->
+
+        <section
+            id="pendingBookImageSection"
+            class="pending-book-image-section"
+        >
+            <div class="pending-book-image-header">
+                <strong>Képek</strong>
+
+                <span id="pendingBookImageCount">
+                    0 kép kiválasztva
+                </span>
+            </div>
+
+            <div
+                id="pendingBookImagePreview"
+                class="pending-book-image-preview"
+            >
+                <div
+                    id="pendingBookImageEmpty"
+                    class="pending-book-image-empty"
+                >
+                    A könyvhöz még nincs kép kiválasztva.
+                </div>
+            </div>
+
+            <div class="pending-book-image-actions">
+                <button
+                    id="pendingBookCameraButton"
+                    type="button"
+                    class="pending-book-image-button"
+                >
+                    📷 Fotó készítése
+                </button>
+
+                <button
+                    id="pendingBookFilesButton"
+                    type="button"
+                    class="pending-book-image-button"
+                >
+                    🖼️ Képek kiválasztása
+                </button>
+
+                <button
+                    id="pendingBookImagesClearButton"
+                    type="button"
+                    class="
+                        pending-book-image-button
+                        pending-book-image-clear
+                    "
+                    disabled
+                >
+                    🧹 Képek törlése
+                </button>
+            </div>
+
+            <input
+                id="pendingBookCameraInput"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                hidden
+            >
+
+            <input
+                id="pendingBookFilesInput"
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+            >
+
+            <div class="pending-book-image-help">
+                A képek a könyv sikeres mentése után
+                automatikusan feltöltődnek.
+            </div>
+        </section>
 
         <button
             id="liveScannerButton"
