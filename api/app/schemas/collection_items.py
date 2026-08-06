@@ -89,6 +89,20 @@ class ItemFieldValueResponse(BaseModel):
     value_json: Any | None = None
 
 
+class ItemImageUpdateRequest(BaseModel):
+    caption: str | None = Field(
+        default=None,
+        max_length=200,
+    )
+
+    sort_order: int | None = Field(
+        default=None,
+        ge=0,
+    )
+
+    is_primary: bool | None = None
+
+
 class ItemImageResponse(BaseModel):
     model_config = ConfigDict(
         from_attributes=True,

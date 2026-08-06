@@ -15,6 +15,8 @@ from app.services.collection_items import (
     get_item_image_by_public_id,
     list_item_images,
     set_primary_item_image,
+    ItemImageUpdateInput,
+    update_item_image,
 )
 from app.services.legacy_books import (
     LegacyBookSource,
@@ -121,4 +123,6 @@ __all__ = [
     "get_item_image_by_public_id",
     "list_item_images",
     "set_primary_item_image",
+    "ItemImageUpdateInput",
+    "update_item_image",
 ]

@@ -1845,3 +1845,410 @@ def test_list_item_images_returns_404_for_unknown_item(
     assert response.json() == {
         "detail": "A gyűjteményi elem nem található."
     }
+
+
+def test_update_item_image_api(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Képmódosítás teszt",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    item_public_id = (
+        create_response.json()["public_id"]
+    )
+
+    image = Image.new(
+        "RGB",
+        (240, 180),
+        "white",
+    )
+
+    buffer = BytesIO()
+
+    image.save(
+        buffer,
+        format="JPEG",
+    )
+
+    image.close()
+
+    upload_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "borito.jpg",
+                buffer.getvalue(),
+                "image/jpeg",
+            ),
+        },
+        data={
+            "caption": "Régi képaláírás",
+            "sort_order": "20",
+        },
+    )
+
+    assert upload_response.status_code == 201
+
+    image_public_id = (
+        upload_response.json()["public_id"]
+    )
+
+    response = test_client.patch(
+        f"/item-images/{image_public_id}",
+        json={
+            "caption": "Új képaláírás",
+            "sort_order": 10,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["public_id"] == image_public_id
+    assert data["caption"] == "Új képaláírás"
+    assert data["sort_order"] == 10
+    assert data["is_primary"] is True
+    assert data["mime_type"] == "image/webp"
+
+
+def test_update_item_image_sets_new_primary(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Elsődleges kép teszt",
+        },
+    )
+
+    item_public_id = (
+        create_response.json()["public_id"]
+    )
+
+    def make_jpeg() -> bytes:
+        image = Image.new(
+            "RGB",
+            (120, 90),
+            "white",
+        )
+
+        buffer = BytesIO()
+
+        image.save(
+            buffer,
+            format="JPEG",
+        )
+
+        image.close()
+
+        return buffer.getvalue()
+
+    first_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "first.jpg",
+                make_jpeg(),
+                "image/jpeg",
+            ),
+        },
+    )
+
+    second_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "second.jpg",
+                make_jpeg(),
+                "image/jpeg",
+            ),
+        },
+    )
+
+    assert first_response.status_code == 201
+    assert second_response.status_code == 201
+
+    first_public_id = (
+        first_response.json()["public_id"]
+    )
+
+    second_public_id = (
+        second_response.json()["public_id"]
+    )
+
+    response = test_client.patch(
+        f"/item-images/{second_public_id}",
+        json={
+            "is_primary": True,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["is_primary"] is True
+
+    images_response = test_client.get(
+        f"/items/{item_public_id}/images"
+    )
+
+    assert images_response.status_code == 200
+
+    images = images_response.json()
+
+    assert images[0]["public_id"] == second_public_id
+    assert images[0]["is_primary"] is True
+
+    first = next(
+        image
+        for image in images
+        if image["public_id"] == first_public_id
+    )
+
+    assert first["is_primary"] is False
+
+
+def test_update_item_image_rejects_disabling_primary(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Elsődleges kikapcsolás teszt",
+        },
+    )
+
+    item_public_id = (
+        create_response.json()["public_id"]
+    )
+
+    image = Image.new(
+        "RGB",
+        (100, 100),
+        "white",
+    )
+
+    buffer = BytesIO()
+
+    image.save(
+        buffer,
+        format="JPEG",
+    )
+
+    image.close()
+
+    upload_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "primary.jpg",
+                buffer.getvalue(),
+                "image/jpeg",
+            ),
+        },
+    )
+
+    image_public_id = (
+        upload_response.json()["public_id"]
+    )
+
+    response = test_client.patch(
+        f"/item-images/{image_public_id}",
+        json={
+            "is_primary": False,
+        },
+    )
+
+    assert response.status_code == 400
+
+    assert response.json() == {
+        "detail": (
+            "Az elsődleges kép státusza "
+            "nem kapcsolható ki közvetlenül. "
+            "Jelölj ki helyette másik "
+            "elsődleges képet."
+        )
+    }
+
+
+def test_update_item_image_returns_404_for_unknown_image(
+    test_client: TestClient,
+) -> None:
+    response = test_client.patch(
+        (
+            "/item-images/"
+            "01AAAAAAAAAAAAAAAAAAAAAAAA"
+        ),
+        json={
+            "caption": "Nem létező kép",
+        },
+    )
+
+    assert response.status_code == 404
+
+    assert response.json() == {
+        "detail": "A kép nem található."
+    }
+
+
+def test_update_item_image_accepts_empty_caption_as_null(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Üres képaláírás teszt",
+        },
+    )
+
+    item_public_id = (
+        create_response.json()["public_id"]
+    )
+
+    image = Image.new(
+        "RGB",
+        (100, 80),
+        "white",
+    )
+
+    buffer = BytesIO()
+
+    image.save(
+        buffer,
+        format="JPEG",
+    )
+
+    image.close()
+
+    upload_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "caption.jpg",
+                buffer.getvalue(),
+                "image/jpeg",
+            ),
+        },
+        data={
+            "caption": "Eredeti",
+        },
+    )
+
+    image_public_id = (
+        upload_response.json()["public_id"]
+    )
+
+    response = test_client.patch(
+        f"/item-images/{image_public_id}",
+        json={
+            "caption": "   ",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["caption"] is None

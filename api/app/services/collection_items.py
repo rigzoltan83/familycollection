@@ -40,6 +40,14 @@ class IdentifierInput:
 
 
 @dataclass(slots=True)
+class ItemImageUpdateInput:
+    caption: str | None = None
+    sort_order: int | None = None
+    is_primary: bool | None = None
+    fields_set: set[str] = field(default_factory=set)
+
+
+@dataclass(slots=True)
 class CollectionItemCreateInput:
     household_id: int
     category_id: int
@@ -797,6 +805,78 @@ def get_item_image_by_public_id(
             == normalized_public_id
         )
     )
+
+
+def update_item_image(
+    session: Session,
+    image: ItemImage,
+    data: ItemImageUpdateInput,
+) -> ItemImage:
+    """
+    Képrekord részleges módosítása.
+
+    A hívó kezeli a commitot vagy rollbacket.
+    """
+    if "caption" in data.fields_set:
+        caption = (
+            data.caption.strip()
+            if data.caption
+            else None
+        )
+
+        if caption == "":
+            caption = None
+
+        if (
+            caption is not None
+            and len(caption) > 200
+        ):
+            raise ValueError(
+                "A képaláírás legfeljebb "
+                "200 karakter lehet."
+            )
+
+        image.caption = caption
+
+    if "sort_order" in data.fields_set:
+        if data.sort_order is None:
+            raise ValueError(
+                "A rendezési sorrend "
+                "nem lehet üres."
+            )
+
+        if data.sort_order < 0:
+            raise ValueError(
+                "A kép rendezési sorrendje "
+                "nem lehet negatív."
+            )
+
+        image.sort_order = data.sort_order
+
+    if "is_primary" in data.fields_set:
+        if data.is_primary is None:
+            raise ValueError(
+                "Az is_primary értéke "
+                "nem lehet üres."
+            )
+
+        if data.is_primary:
+            set_primary_item_image(
+                session=session,
+                image=image,
+            )
+
+        elif image.is_primary:
+            raise ValueError(
+                "Az elsődleges kép státusza "
+                "nem kapcsolható ki közvetlenül. "
+                "Jelölj ki helyette másik "
+                "elsődleges képet."
+            )
+
+    session.flush()
+
+    return image
 
 
 def set_primary_item_image(

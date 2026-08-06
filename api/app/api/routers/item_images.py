@@ -16,13 +16,96 @@ from app.services import (
     ImageStorageError,
     get_item_image_by_public_id,
     resolve_item_image_path,
+    ItemImageUpdateInput,
+    update_item_image,
 )
-
+from app.schemas import (
+    ItemImageResponse,
+    ItemImageUpdateRequest,
+)
 
 router = APIRouter(
     prefix="/item-images",
     tags=["item-images"],
 )
+
+
+def _build_item_image_response(
+    image,
+) -> ItemImageResponse:
+    return ItemImageResponse(
+        public_id=image.public_id,
+        item_id=image.item_id,
+        original_filename=image.original_filename,
+        caption=image.caption,
+        mime_type=image.mime_type,
+        file_size=image.file_size,
+        width=image.width,
+        height=image.height,
+        sort_order=image.sort_order,
+        is_primary=image.is_primary,
+        is_active=image.is_active,
+        created_at=image.created_at,
+        updated_at=image.updated_at,
+        content_url=(
+            f"/item-images/"
+            f"{image.public_id}/content"
+        ),
+    )
+
+
+@router.patch(
+    "/{image_public_id}",
+    response_model=ItemImageResponse,
+)
+def update_item_image_endpoint(
+    image_public_id: str,
+    request: ItemImageUpdateRequest,
+    session: Session = Depends(get_db_session),
+) -> ItemImageResponse:
+    image = get_item_image_by_public_id(
+        session=session,
+        public_id=image_public_id,
+    )
+
+    if image is None or not image.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="A kép nem található.",
+        )
+
+    try:
+        updated_image = update_item_image(
+            session=session,
+            image=image,
+            data=ItemImageUpdateInput(
+                caption=request.caption,
+                sort_order=request.sort_order,
+                is_primary=request.is_primary,
+                fields_set=set(
+                    request.model_fields_set
+                ),
+            ),
+        )
+
+        session.commit()
+        session.refresh(updated_image)
+
+    except ValueError as error:
+        session.rollback()
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+
+    except Exception:
+        session.rollback()
+        raise
+
+    return _build_item_image_response(
+        updated_image
+    )
 
 
 @router.get(

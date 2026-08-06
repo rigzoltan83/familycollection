@@ -14,6 +14,7 @@ from app.schemas.collection_items import (
     ItemIdentifierCreate,
     ItemIdentifierResponse,
     ItemImageResponse,
+    ItemImageUpdateRequest,
 )
 
 from app.schemas.storage import (
@@ -42,4 +43,5 @@ __all__ = [
     "StorageLocationResponse",
     "StorageLocationUpdateRequest",
     "ItemImageResponse",
+    "ItemImageUpdateRequest",
 ]
