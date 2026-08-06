@@ -304,6 +304,108 @@ header input {
     color: #ff6b6b;
 }
 
+/* -----------------------
+   KÖNYVKÉPEK
+----------------------- */
+
+.edit-image-section {
+    margin: 0 0 20px;
+    padding: 15px;
+    border: 1px solid #444;
+    border-radius: 10px;
+    background: #181818;
+}
+
+.edit-image-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.edit-image-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: #6dff6d;
+}
+
+#editImageCount {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.edit-image-gallery {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(130px, 1fr)
+        );
+    gap: 12px;
+    min-height: 135px;
+}
+
+.edit-image-empty {
+    grid-column: 1 / -1;
+    min-height: 135px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border: 2px dashed #444;
+    border-radius: 9px;
+    color: #999;
+    text-align: center;
+}
+
+.edit-image-empty-icon {
+    font-size: 34px;
+}
+
+.edit-image-upload-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.edit-image-button {
+    flex: 1;
+    padding: 11px;
+    border: none;
+    border-radius: 7px;
+    background: #2563a8;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.edit-image-button:hover:not(:disabled) {
+    background: #347dcc;
+}
+
+.edit-image-button:disabled {
+    background: #3b3b3b;
+    color: #777;
+    cursor: default;
+}
+
+.edit-image-help {
+    margin-top: 9px;
+    color: #888;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.edit-image-status {
+    min-height: 20px;
+    margin-top: 8px;
+    color: #ffb84d;
+    font-size: 14px;
+}
+
 @media (max-width: 650px) {
     header {
         align-items: stretch;
@@ -334,6 +436,21 @@ header input {
     .modal-content {
         margin: 8px auto;
         padding: 15px;
+    }
+    .edit-image-gallery {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+    .edit-image-upload-actions {
+        flex-direction: column;
+    }
+
+    .edit-image-button {
+        width: 100%;
     }
     #pagination {
         gap: 7px;
@@ -409,6 +526,71 @@ header input {
             type="hidden"
             id="editItemPublicId"
         >
+
+        <!-- -----------------------
+             KÖNYVKÉPEK
+        ------------------------ -->
+
+        <section
+            id="editImageSection"
+            class="edit-image-section"
+        >
+            <div class="edit-image-header">
+                <h3>Képek</h3>
+
+                <span id="editImageCount">
+                    0 kép
+                </span>
+            </div>
+
+            <div
+                id="editImageGallery"
+                class="edit-image-gallery"
+            >
+                <div
+                    id="editImageEmpty"
+                    class="edit-image-empty"
+                >
+                    <div class="edit-image-empty-icon">
+                        🖼️
+                    </div>
+
+                    <div>
+                        Még nincs kép ehhez a könyvhöz.
+                    </div>
+                </div>
+            </div>
+
+            <div class="edit-image-upload-actions">
+                <button
+                    id="editImageCameraButton"
+                    type="button"
+                    class="edit-image-button"
+                    disabled
+                >
+                    📷 Fotó készítése
+                </button>
+
+                <button
+                    id="editImageFilesButton"
+                    type="button"
+                    class="edit-image-button"
+                    disabled
+                >
+                    🖼️ Képek kiválasztása
+                </button>
+            </div>
+
+            <div class="edit-image-help">
+                Telefonon közvetlenül fotózhatsz,
+                vagy több meglévő képet is kiválaszthatsz.
+            </div>
+
+            <div
+                id="editImageStatus"
+                class="edit-image-status"
+            ></div>
+        </section>
 
         <label for="editIndex">Egyedi index</label>
         <input id="editIndex" type="text" disabled>
