@@ -1449,15 +1449,29 @@ editImageGallery.addEventListener(
         const action =
             button.dataset.action;
 
-        if (
-            action === "primary"
-            && !button.disabled
-        ) {
-            button.disabled = true;
+        if (button.disabled) {
+            return;
+        }
 
+        button.disabled = true;
+
+        if (action === "primary") {
             await setEditorPrimaryImage(
                 imagePublicId
             );
+
+            return;
+        }
+
+        if (action === "delete") {
+            const deleted =
+                await deleteEditorImage(
+                    imagePublicId
+                );
+
+            if (!deleted) {
+                button.disabled = false;
+            }
         }
     }
 );
@@ -1866,6 +1880,77 @@ async function setEditorPrimaryImage(
         statusElement.textContent =
             "❌ Borítókép-beállítási hiba: "
             + error.message;
+    }
+}
+
+async function deleteEditorImage(
+    imagePublicId
+) {
+    if (!imagePublicId) {
+        throw new Error(
+            "Hiányzik a kép azonosítója."
+        );
+    }
+
+    const confirmed = window.confirm(
+        "Biztosan törlöd ezt a képet?"
+    );
+
+    if (!confirmed) {
+        return false;
+    }
+
+    const statusElement =
+        document.getElementById(
+            "editImageStatus"
+        );
+
+    statusElement.textContent =
+        "Kép törlése...";
+
+    try {
+        const response =
+            await fetch(
+                `/item-images/${imagePublicId}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+        if (!response.ok) {
+            let detail = null;
+
+            try {
+                const data =
+                    await response.json();
+
+                detail = data?.detail;
+            } catch {
+                detail = null;
+            }
+
+            throw new Error(
+                detail
+                || `HTTP ${response.status}`
+            );
+        }
+
+        await refreshEditorImages();
+
+        statusElement.textContent =
+            "✅ A kép törölve.";
+        return true;
+
+    } catch (error) {
+        console.error(
+            "Képtörlési hiba:",
+            error
+        );
+
+        statusElement.textContent =
+            "❌ Képtörlési hiba: "
+            + error.message;
+        return false;
     }
 }
 
