@@ -27,6 +27,7 @@ from app.models import (
     ItemFieldValue,
     ItemIdentifier,
     User,
+    ItemImage,
 )
 
 
@@ -611,3 +612,253 @@ def update_collection_item(
     session.flush()
 
     return item
+
+
+@dataclass(slots=True)
+class ItemImageCreateInput:
+    stored_filename: str
+    mime_type: str
+    file_size: int
+    width: int | None = None
+    height: int | None = None
+    original_filename: str | None = None
+    caption: str | None = None
+    sort_order: int = 0
+    is_primary: bool | None = None
+
+
+def create_item_image(
+    session: Session,
+    item: CollectionItem,
+    data: ItemImageCreateInput,
+) -> ItemImage:
+    """
+    Új képrekord létrehozása egy gyűjteményi elemhez.
+
+    A hívó kezeli a commitot vagy rollbacket.
+    """
+    if item.id is None:
+        raise ValueError(
+            "A gyűjteményi elem még nincs elmentve."
+        )
+
+    stored_filename = data.stored_filename.strip()
+
+    if not stored_filename:
+        raise ValueError(
+            "A tárolt képfájlnév nem lehet üres."
+        )
+
+    mime_type = data.mime_type.strip()
+
+    if not mime_type:
+        raise ValueError(
+            "A kép MIME-típusa nem lehet üres."
+        )
+
+    if data.file_size < 0:
+        raise ValueError(
+            "A képfájl mérete nem lehet negatív."
+        )
+
+    if data.width is not None and data.width <= 0:
+        raise ValueError(
+            "A kép szélességének pozitívnak kell lennie."
+        )
+
+    if data.height is not None and data.height <= 0:
+        raise ValueError(
+            "A kép magasságának pozitívnak kell lennie."
+        )
+
+    if data.sort_order < 0:
+        raise ValueError(
+            "A kép rendezési sorrendje nem lehet negatív."
+        )
+
+    caption = (
+        data.caption.strip()
+        if data.caption
+        else None
+    )
+
+    if caption == "":
+        caption = None
+
+    if caption is not None and len(caption) > 200:
+        raise ValueError(
+            "A képaláírás legfeljebb 200 karakter lehet."
+        )
+
+    original_filename = (
+        data.original_filename.strip()
+        if data.original_filename
+        else None
+    )
+
+    if original_filename == "":
+        original_filename = None
+
+    active_image_count = session.scalar(
+        select(ItemImage)
+        .where(
+            ItemImage.item_id == item.id,
+            ItemImage.is_active.is_(True),
+        )
+        .with_only_columns(
+            ItemImage.id
+        )
+        .limit(1)
+    )
+
+    should_be_primary = (
+        data.is_primary
+        if data.is_primary is not None
+        else active_image_count is None
+    )
+
+    if should_be_primary:
+        existing_primary_images = session.scalars(
+            select(ItemImage).where(
+                ItemImage.item_id == item.id,
+                ItemImage.is_primary.is_(True),
+            )
+        ).all()
+
+        for image in existing_primary_images:
+            image.is_primary = False
+
+    image = ItemImage(
+        item=item,
+        original_filename=original_filename,
+        caption=caption,
+        stored_filename=stored_filename,
+        mime_type=mime_type,
+        file_size=data.file_size,
+        width=data.width,
+        height=data.height,
+        sort_order=data.sort_order,
+        is_primary=should_be_primary,
+        is_active=True,
+    )
+
+    session.add(image)
+    session.flush()
+
+    return image
+
+
+def list_item_images(
+    session: Session,
+    item: CollectionItem,
+    *,
+    include_inactive: bool = False,
+) -> list[ItemImage]:
+    """
+    Egy gyűjteményi elem képeinek listázása.
+    """
+    statement = (
+        select(ItemImage)
+        .where(
+            ItemImage.item_id == item.id
+        )
+        .order_by(
+            ItemImage.is_primary.desc(),
+            ItemImage.sort_order,
+            ItemImage.id,
+        )
+    )
+
+    if not include_inactive:
+        statement = statement.where(
+            ItemImage.is_active.is_(True)
+        )
+
+    return list(
+        session.scalars(statement).all()
+    )
+
+
+def get_item_image_by_public_id(
+    session: Session,
+    public_id: str,
+) -> ItemImage | None:
+    """
+    Képrekord lekérése public ID alapján.
+    """
+    normalized_public_id = public_id.strip()
+
+    if not normalized_public_id:
+        return None
+
+    return session.scalar(
+        select(ItemImage).where(
+            ItemImage.public_id
+            == normalized_public_id
+        )
+    )
+
+
+def set_primary_item_image(
+    session: Session,
+    image: ItemImage,
+) -> ItemImage:
+    """
+    A megadott képet elsődlegessé teszi.
+    """
+    if not image.is_active:
+        raise ValueError(
+            "Inaktív kép nem lehet elsődleges."
+        )
+
+    images = session.scalars(
+        select(ItemImage).where(
+            ItemImage.item_id == image.item_id
+        )
+    ).all()
+
+    for current_image in images:
+        current_image.is_primary = (
+            current_image.id == image.id
+        )
+
+    session.flush()
+
+    return image
+
+
+def delete_item_image(
+    session: Session,
+    image: ItemImage,
+) -> None:
+    """
+    Képrekord törlése.
+
+    A fájlrendszerben lévő kép törlését a hívó kezeli.
+    """
+    item_id = image.item_id
+    was_primary = image.is_primary
+
+    session.delete(image)
+    session.flush()
+
+    if not was_primary:
+        return
+
+    replacement = session.scalar(
+        select(ItemImage)
+        .where(
+            ItemImage.item_id == item_id,
+            ItemImage.is_active.is_(True),
+        )
+        .order_by(
+            ItemImage.sort_order,
+            ItemImage.id,
+        )
+        .limit(1)
+    )
+
+    if replacement is not None:
+        replacement.is_primary = True
+
+    session.flush()

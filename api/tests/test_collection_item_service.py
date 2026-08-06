@@ -9,6 +9,7 @@ from app.models import (
     Household,
     ItemFieldValue,
     ItemIdentifier,
+    ItemImage,
     User,
 )
 from app.services import (
@@ -17,6 +18,12 @@ from app.services import (
     update_collection_item,
     IdentifierInput,
     create_collection_item,
+    ItemImageCreateInput,
+    create_item_image,
+    delete_item_image,
+    get_item_image_by_public_id,
+    list_item_images,
+    set_primary_item_image,
 )
 
 
@@ -116,6 +123,27 @@ def create_book_category(
     session.flush()
 
     return category
+
+
+def create_test_collection_item(
+    session: Session,
+) -> CollectionItem:
+    household = create_test_household(
+        session,
+    )
+
+    category = create_book_category(
+        session,
+    )
+
+    return create_collection_item(
+        session=session,
+        data=CollectionItemCreateInput(
+            household_id=household.id,
+            category_id=category.id,
+            title="Képtesztes könyv",
+        ),
+    )
 
 
 def test_create_collection_item_with_identifier_and_fields(
@@ -692,3 +720,483 @@ def test_update_collection_item_rejects_unknown_field(
         assert "Ismeretlen kategóriamezők" in str(error)
     else:
         raise AssertionError("ValueError kivételre számítottunk.")
+
+
+def test_create_first_item_image_is_primary(
+    db_session: Session,
+) -> None:
+    item = create_test_collection_item(
+        db_session,
+    )
+
+    image = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/first.webp"
+            ),
+            original_filename="first.jpg",
+            caption="Borító",
+            mime_type="image/webp",
+            file_size=12345,
+            width=800,
+            height=600,
+            sort_order=10,
+        ),
+    )
+
+    assert image.id is not None
+    assert image.public_id is not None
+    assert image.item_id == item.id
+    assert image.is_active is True
+    assert image.is_primary is True
+    assert image.caption == "Borító"
+    assert image.original_filename == "first.jpg"
+
+
+def test_create_second_item_image_is_not_primary(
+    db_session: Session,
+) -> None:
+    item = create_test_collection_item(
+        db_session,
+    )
+
+    first = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/first.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+        ),
+    )
+
+    second = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/second.webp"
+            ),
+            mime_type="image/webp",
+            file_size=200,
+        ),
+    )
+
+    assert first.is_primary is True
+    assert second.is_primary is False
+
+
+def test_create_explicit_primary_replaces_existing_primary(
+    db_session: Session,
+) -> None:
+    item = create_test_collection_item(
+        db_session,
+    )
+
+    first = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/first.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+        ),
+    )
+
+    second = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/second.webp"
+            ),
+            mime_type="image/webp",
+            file_size=200,
+            is_primary=True,
+        ),
+    )
+
+    db_session.refresh(first)
+    db_session.refresh(second)
+
+    assert first.is_primary is False
+    assert second.is_primary is True
+
+
+def test_create_first_image_can_explicitly_be_non_primary(
+    db_session: Session,
+) -> None:
+    item = create_test_collection_item(
+        db_session,
+    )
+
+    image = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/non-primary.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+            is_primary=False,
+        ),
+    )
+
+    assert image.is_primary is False
+
+
+def test_list_item_images_orders_primary_then_sort_order(
+    db_session: Session,
+) -> None:
+    item = create_test_collection_item(
+        db_session,
+    )
+
+    first = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/first.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+            sort_order=30,
+        ),
+    )
+
+    second = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/second.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+            sort_order=10,
+        ),
+    )
+
+    third = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/third.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+            sort_order=20,
+            is_primary=True,
+        ),
+    )
+
+    images = list_item_images(
+        session=db_session,
+        item=item,
+    )
+
+    assert images == [
+        third,
+        second,
+        first,
+    ]
+
+
+def test_list_item_images_hides_inactive_by_default(
+    db_session: Session,
+) -> None:
+    item = create_test_collection_item(
+        db_session,
+    )
+
+    active = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/active.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+        ),
+    )
+
+    inactive = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/inactive.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+        ),
+    )
+
+    inactive.is_active = False
+    db_session.flush()
+
+    assert list_item_images(
+        session=db_session,
+        item=item,
+    ) == [active]
+
+    assert set(
+        list_item_images(
+            session=db_session,
+            item=item,
+            include_inactive=True,
+        )
+    ) == {
+        active,
+        inactive,
+    }
+
+
+def test_get_item_image_by_public_id(
+    db_session: Session,
+) -> None:
+    item = create_test_collection_item(
+        db_session,
+    )
+
+    image = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/find.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+        ),
+    )
+
+    found = get_item_image_by_public_id(
+        session=db_session,
+        public_id=image.public_id,
+    )
+
+    assert found is image
+
+    assert get_item_image_by_public_id(
+        session=db_session,
+        public_id="",
+    ) is None
+
+
+def test_set_primary_item_image(
+    db_session: Session,
+) -> None:
+    item = create_test_collection_item(
+        db_session,
+    )
+
+    first = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/first.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+        ),
+    )
+
+    second = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/second.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+        ),
+    )
+
+    set_primary_item_image(
+        session=db_session,
+        image=second,
+    )
+
+    db_session.refresh(first)
+    db_session.refresh(second)
+
+    assert first.is_primary is False
+    assert second.is_primary is True
+
+
+def test_set_primary_rejects_inactive_image(
+    db_session: Session,
+) -> None:
+    item = create_test_collection_item(
+        db_session,
+    )
+
+    image = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/inactive.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+        ),
+    )
+
+    image.is_active = False
+    db_session.flush()
+
+    try:
+        set_primary_item_image(
+            session=db_session,
+            image=image,
+        )
+    except ValueError as error:
+        assert (
+            str(error)
+            == "Inaktív kép nem lehet elsődleges."
+        )
+    else:
+        raise AssertionError(
+            "ValueError kivételre számítottunk."
+        )
+
+
+def test_delete_primary_item_image_selects_replacement(
+    db_session: Session,
+) -> None:
+    item = create_test_collection_item(
+        db_session,
+    )
+
+    first = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/first.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+            sort_order=30,
+        ),
+    )
+
+    second = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/second.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+            sort_order=10,
+        ),
+    )
+
+    third = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/third.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+            sort_order=20,
+        ),
+    )
+
+    assert first.is_primary is True
+
+    first_id = first.id
+
+    delete_item_image(
+        session=db_session,
+        image=first,
+    )
+
+    assert db_session.get(
+        ItemImage,
+        first_id,
+    ) is None
+
+    db_session.refresh(second)
+    db_session.refresh(third)
+
+    assert second.is_primary is True
+    assert third.is_primary is False
+
+
+def test_create_item_image_validates_caption_and_dimensions(
+    db_session: Session,
+) -> None:
+    item = create_test_collection_item(
+        db_session,
+    )
+
+    invalid_cases = [
+        (
+            ItemImageCreateInput(
+                stored_filename="2026/08/a.webp",
+                mime_type="image/webp",
+                file_size=-1,
+            ),
+            "nem lehet negatív",
+        ),
+        (
+            ItemImageCreateInput(
+                stored_filename="2026/08/b.webp",
+                mime_type="image/webp",
+                file_size=1,
+                width=0,
+            ),
+            "szélességének pozitívnak",
+        ),
+        (
+            ItemImageCreateInput(
+                stored_filename="2026/08/c.webp",
+                mime_type="image/webp",
+                file_size=1,
+                height=0,
+            ),
+            "magasságának pozitívnak",
+        ),
+        (
+            ItemImageCreateInput(
+                stored_filename="2026/08/d.webp",
+                mime_type="image/webp",
+                file_size=1,
+                caption="x" * 201,
+            ),
+            "legfeljebb 200 karakter",
+        ),
+    ]
+
+    for data, expected_message in invalid_cases:
+        try:
+            create_item_image(
+                session=db_session,
+                item=item,
+                data=data,
+            )
+        except ValueError as error:
+            assert expected_message in str(error)
+        else:
+            raise AssertionError(
+                "ValueError kivételre számítottunk."
+            )
