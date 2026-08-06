@@ -102,6 +102,60 @@ header input {
     border-left: 4px solid #58d658;
 }
 
+.book-card-layout {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+}
+
+.book-card-cover {
+    width: 120px;
+    min-height: 170px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #151515;
+    border: 1px solid #3a3a3a;
+}
+
+.book-card-cover img {
+    width: 100%;
+    height: 100%;
+    min-height: 170px;
+    display: block;
+    object-fit: cover;
+}
+
+.book-card-cover-empty {
+    width: 100%;
+    height: 100%;
+    min-height: 170px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    padding: 10px;
+    color: #777;
+    text-align: center;
+    font-size: 12px;
+}
+
+.book-card-cover-empty-icon {
+    font-size: 30px;
+}
+
+.book-card-content {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.book-card-content .actions {
+    margin-top: auto;
+    padding-top: 12px;
+}
+
 .card.removed {
     border-left-color: #e0a800;
 }
@@ -546,6 +600,27 @@ header input {
 
     #pageInfo {
         min-width: 85px;
+    }
+    .book-card-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .book-card-cover {
+        width: 100%;
+        max-width: 240px;
+        height: 300px;
+        min-height: 0;
+        margin: 0 auto;
+    }
+
+    .book-card-cover img {
+        height: 300px;
+        min-height: 0;
+        object-fit: contain;
+    }
+
+    .book-card-cover-empty {
+        min-height: 300px;
     }
 }
 </style>
@@ -1013,13 +1088,62 @@ if (currentSearch.trim()) {
         const status = getStatus(book);
         const bookId = Number(book.id);
 
+        const primaryImageUrl =
+            String(
+                book.primary_image_url || ""
+            ).trim();
+
+        const coverHtml =
+            primaryImageUrl
+                ? `
+                    <div class="book-card-cover">
+                        <img
+                            src="${escapeHtml(
+                                primaryImageUrl
+                            )}"
+                            alt="${escapeHtml(
+                                (
+                                    book.title
+                                    || book.isbn
+                                    || "Könyv"
+                                )
+                                + " borítóképe"
+                            )}"
+                            loading="lazy"
+                        >
+                    </div>
+                `
+                : `
+                    <div class="book-card-cover">
+                        <div
+                            class="book-card-cover-empty"
+                        >
+                            <div
+                                class="
+                                    book-card-cover-empty-icon
+                                "
+                            >
+                                📕
+                            </div>
+
+                            <div>
+                                Nincs borítókép
+                            </div>
+                        </div>
+                    </div>
+                `;
+
         const card = document.createElement("div");
 
         card.className =
             `card ${status.cardClass}`.trim();
 
         card.innerHTML = `
-            <div class="title-row">
+            <div class="book-card-layout">
+                ${coverHtml}
+
+                <div class="book-card-content">
+                    <div class="title-row">
                 <div class="title">
                     ${escapeHtml(
                         book.title ||
@@ -1086,7 +1210,9 @@ if (currentSearch.trim()) {
                     🗑️ Törlés
                 </button>
             </div>
-        `;
+</div>        
+</div>
+`;
 
         list.appendChild(card);
     });
