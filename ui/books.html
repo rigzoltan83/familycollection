@@ -405,6 +405,11 @@ header input {
 
         <input type="hidden" id="editId">
 
+        <input
+            type="hidden"
+            id="editItemPublicId"
+        >
+
         <label for="editIndex">Egyedi index</label>
         <input id="editIndex" type="text" disabled>
 
@@ -1185,8 +1190,20 @@ filterEditorStorageOptions();
             );
         }
 
+        if (!book.public_id) {
+            throw new Error(
+                "A könyvhöz nem tartozik modern "
+                + "gyűjteményi azonosító."
+            );
+        }
+
         document.getElementById("editId").value =
             book.id;
+
+        document
+            .getElementById("editItemPublicId")
+            .value =
+                book.public_id || "";
 
         document.getElementById("editIndex").value =
             book.id;

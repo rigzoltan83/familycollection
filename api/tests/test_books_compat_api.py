@@ -456,7 +456,7 @@ def test_books_detail_returns_legacy_compatible_json(
         household_id=household.id,
     )
 
-    create_migrated_book(
+    item = create_migrated_book(
         db_session,
         household=household,
         category=category,
@@ -478,6 +478,7 @@ def test_books_detail_returns_legacy_compatible_json(
 
     assert response.json() == {
         "id": 6,
+        "public_id": item.public_id,
         "isbn": "9789633694503",
         "title": "A három testőr Afrikában",
         "author": "Jenő Rejtő",

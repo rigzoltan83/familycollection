@@ -1072,6 +1072,7 @@ def get_book(
 
         return {
             "id": record.id,
+            "public_id": record.public_id,
             "isbn": record.isbn,
             "title": record.title,
             "author": record.author,
