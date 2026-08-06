@@ -48,6 +48,7 @@ class BookReadRecord:
     slot: int | None
     borrower: str | None
     status: str
+    primary_image_url: str | None
 
 
 @dataclass(slots=True)
@@ -123,6 +124,33 @@ def _get_active_storage_assignment(
             if assignment.is_active
         ),
         None,
+    )
+
+
+def _get_primary_image_url(
+    item: CollectionItem,
+) -> str | None:
+    active_images = [
+        image
+        for image in item.images
+        if image.is_active
+    ]
+
+    if not active_images:
+        return None
+
+    primary_image = next(
+        (
+            image
+            for image in active_images
+            if image.is_primary
+        ),
+        active_images[0],
+    )
+
+    return (
+        f"/item-images/"
+        f"{primary_image.public_id}/content"
     )
 
 
@@ -226,8 +254,10 @@ def _build_book_record(
         ),
         borrower=migration.legacy_borrowed_to,
         status=item.status,
+        primary_image_url=(
+            _get_primary_image_url(item)
+        ),
     )
-
 
 def _book_loader_options():
     return (
@@ -253,6 +283,12 @@ def _book_loader_options():
             StorageLocation.parent
         ).selectinload(
             StorageLocation.parent
+        ),
+
+        selectinload(
+            LegacyBookMigration.collection_item
+        ).selectinload(
+            CollectionItem.images
         ),
     )
 

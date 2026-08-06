@@ -843,6 +843,8 @@ def latest(
             "shelf": record.shelf,
             "slot": record.slot,
             "borrower": record.borrower,
+            "primary_image_url":
+                record.primary_image_url,
         }
         for record in records
     ]
@@ -902,6 +904,8 @@ def all_books(
                 "shelf": record.shelf,
                 "slot": record.slot,
                 "borrower": record.borrower,
+                "primary_image_url":
+                    record.primary_image_url,
             }
             for record in result.records
         ],

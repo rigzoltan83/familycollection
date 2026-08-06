@@ -15,7 +15,10 @@ from app.models import (
     LegacyBookMigration,
     StorageLocation,
 )
-
+from app.services import (
+    ItemImageCreateInput,
+    create_item_image,
+)
 
 def create_test_household(
     session: Session,
@@ -308,6 +311,7 @@ def test_books_latest_returns_legacy_compatible_json(
         "shelf": "Újpolc",
         "slot": 5,
         "borrower": None,
+        "primary_image_url": None,
     }
 
 
@@ -382,9 +386,93 @@ def test_books_all_returns_legacy_compatible_page(
     assert data["books"][0]["room"] == "Nappali"
     assert data["books"][0]["shelf"] == "Újpolc"
     assert data["books"][0]["slot"] == 5
+    assert data["books"][0]["primary_image_url"] is None
 
     assert data["books"][1]["borrower"] == "Teszt kölcsönző"
+    assert data["books"][1]["primary_image_url"] is None
 
+def test_books_all_returns_primary_image_url(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    slot = create_test_storage_hierarchy(
+        db_session,
+        household_id=household.id,
+    )
+
+    item = create_migrated_book(
+        db_session,
+        household=household,
+        category=category,
+        storage_location=slot,
+        legacy_book_id=1,
+        title="Képes könyv",
+        author="Teszt szerző",
+        publisher="Teszt kiadó",
+        publish_year=2026,
+        identifier_type="isbn13",
+        identifier_value="9789631111111",
+        borrowed_to=None,
+        created_at=datetime(
+            2026,
+            7,
+            14,
+            10,
+            0,
+            0,
+        ),
+    )
+
+    image = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2026/08/test-cover.webp"
+            ),
+            original_filename=(
+                "test-cover.jpg"
+            ),
+            caption="Borító",
+            mime_type="image/webp",
+            file_size=12345,
+            width=800,
+            height=1200,
+            sort_order=0,
+            is_primary=True,
+        ),
+    )
+
+    db_session.commit()
+
+    response = test_client.get(
+        "/books/all",
+        params={
+            "page": 1,
+            "page_size": 50,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 1
+
+    assert data["books"][0][
+        "primary_image_url"
+    ] == (
+        f"/item-images/"
+        f"{image.public_id}/content"
+    )
 
 def test_books_all_supports_search(
     test_client: TestClient,
