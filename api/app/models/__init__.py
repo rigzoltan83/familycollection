@@ -14,6 +14,7 @@ from app.models.item_identifier import ItemIdentifier
 from app.models.legacy_book_migration import LegacyBookMigration
 from app.models.storage_location import StorageLocation
 from app.models.item_storage_assignment import ItemStorageAssignment
+from app.models.item_image import ItemImage
 
 __all__ = [
     "Category",
@@ -30,4 +31,5 @@ __all__ = [
     "MetadataProvider",
     "StorageLocation",
     "User",
+    "ItemImage",
 ]

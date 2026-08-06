@@ -413,23 +413,31 @@ async function loadStorageTree() {
             ]
         )
     );
-borrowedStoragePublicId = null;
-removedStoragePublicId = null;
 
-for (const location of storageLocations) {
-    if (isBorrowedStorage(location)) {
-        borrowedStoragePublicId =
-            location.public_id;
-    }
+const borrowedStorage =
+    storageLocations.find(
+        location =>
+            location.is_active
+            && isBorrowedStorage(location)
+    );
 
-    if (isRemovedStorage(location)) {
-        removedStoragePublicId =
-            location.public_id;
-    }
-}
+const removedStorage =
+    storageLocations.find(
+        location =>
+            location.is_active
+            && isRemovedStorage(location)
+    );
+
+borrowedStoragePublicId =
+    borrowedStorage?.public_id || null;
+
+removedStoragePublicId =
+    removedStorage?.public_id || null;
+
 fillStorageSelect(place);
 fillStorageSelect(manualLocation);
 fillStorageSelect(missingMetadataLocation);
+syncSpecialControlsFromPlace();
 }
 
 // --------------------------------------------------
@@ -500,6 +508,93 @@ function restoreLastNormalLocation() {
     }
 
     syncSpecialControlsFromPlace();
+}
+
+if (place) {
+    place.addEventListener(
+        "change",
+        syncSpecialControlsFromPlace
+    );
+}
+
+
+if (borrowed) {
+    borrowed.addEventListener(
+        "change",
+        () => {
+            if (borrowed.checked) {
+                if (removed) {
+                    removed.checked = false;
+                }
+
+                if (
+                    borrowedStoragePublicId
+                    && place
+                ) {
+                    place.value =
+                        borrowedStoragePublicId;
+                }
+
+                syncSpecialControlsFromPlace();
+
+                if (borrower) {
+                    borrower.focus();
+                }
+
+                return;
+            }
+
+            if (
+                isBorrowedPlace(
+                    selectedPlace()
+                )
+            ) {
+                restoreLastNormalLocation();
+            } else {
+                syncSpecialControlsFromPlace();
+            }
+        }
+    );
+}
+
+
+if (removed) {
+    removed.addEventListener(
+        "change",
+        () => {
+            if (removed.checked) {
+                if (borrowed) {
+                    borrowed.checked = false;
+                }
+
+                if (borrower) {
+                    borrower.value = "";
+                }
+
+                if (
+                    removedStoragePublicId
+                    && place
+                ) {
+                    place.value =
+                        removedStoragePublicId;
+                }
+
+                syncSpecialControlsFromPlace();
+
+                return;
+            }
+
+            if (
+                isRemovedPlace(
+                    selectedPlace()
+                )
+            ) {
+                restoreLastNormalLocation();
+            } else {
+                syncSpecialControlsFromPlace();
+            }
+        }
+    );
 }
 
 // --------------------------------------------------
@@ -741,9 +836,9 @@ async function loadLatest() {
                     book.slot !== null &&
                     book.slot !== undefined
                 ) {
-                    parts.push(
-                        `Tárhely ${book.slot}`
-                    );
+parts.push(
+    `${book.slot}. hely`
+);
                 }
 
                 if (parts.length) {

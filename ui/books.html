@@ -574,13 +574,13 @@ function getLocation(book) {
         parts.push(book.shelf);
     }
 
-    if (
-        book.slot !== null &&
-        book.slot !== undefined &&
-        book.slot !== ""
-    ) {
-        parts.push(`Tárhely ${book.slot}`);
-    }
+if (
+    book.slot !== null &&
+    book.slot !== undefined &&
+    book.slot !== ""
+) {
+    parts.push(`${book.slot}. hely`);
+}
 
     return parts.length
         ? parts.join(" / ")
