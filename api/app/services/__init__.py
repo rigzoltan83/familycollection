@@ -52,6 +52,14 @@ from app.services.storage import (
     update_storage_location,
 )
 
+from app.services.image_storage import (
+    ImageStorageError,
+    StoredImage,
+    delete_item_image_file,
+    resolve_item_image_path,
+    store_item_image,
+)
+
 __all__ = [
     "authenticate_user",
     "get_user_by_email",
@@ -96,4 +104,9 @@ __all__ = [
     "list_storage_tree",
     "StorageLocationUpdateInput",
     "update_storage_location",
+    "ImageStorageError",
+    "StoredImage",
+    "delete_item_image_file",
+    "resolve_item_image_path",
+    "store_item_image",
 ]

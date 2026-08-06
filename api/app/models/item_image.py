@@ -78,6 +78,11 @@ class ItemImage(
         nullable=True,
     )
 
+    caption: Mapped[str | None] = mapped_column(
+        String(200),
+        nullable=True,
+    )
+
     stored_filename: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
