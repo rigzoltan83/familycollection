@@ -118,3 +118,39 @@ TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
     "",
 ).strip()
+
+ITEM_IMAGE_ROOT = Path(
+    os.getenv(
+        "ITEM_IMAGE_ROOT",
+        str(
+            BASE_DIR.parent
+            / "data"
+            / "images"
+            / "items"
+        ),
+    )
+).expanduser().resolve()
+
+
+ITEM_IMAGE_MAX_UPLOAD_BYTES = int(
+    os.getenv(
+        "ITEM_IMAGE_MAX_UPLOAD_BYTES",
+        str(20 * 1024 * 1024),
+    )
+)
+
+
+ITEM_IMAGE_MAX_DIMENSION = int(
+    os.getenv(
+        "ITEM_IMAGE_MAX_DIMENSION",
+        "1920",
+    )
+)
+
+
+ITEM_IMAGE_WEBP_QUALITY = int(
+    os.getenv(
+        "ITEM_IMAGE_WEBP_QUALITY",
+        "82",
+    )
+)
