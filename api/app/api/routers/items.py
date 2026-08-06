@@ -43,6 +43,7 @@ from app.services import (
     create_item_image,
     delete_item_image_file,
     store_item_image,
+    list_item_images,
 )
 
 
@@ -567,6 +568,38 @@ async def upload_item_image(
     return _build_item_image_response(
         image
     )
+
+
+@router.get(
+    "/{public_id}/images",
+    response_model=list[ItemImageResponse],
+)
+def get_item_images(
+    public_id: str,
+    session: Session = Depends(get_db_session),
+) -> list[ItemImageResponse]:
+    item = session.scalar(
+        select(CollectionItem).where(
+            CollectionItem.public_id == public_id,
+            CollectionItem.is_active.is_(True),
+        )
+    )
+
+    if item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="A gyűjteményi elem nem található.",
+        )
+
+    images = list_item_images(
+        session=session,
+        item=item,
+    )
+
+    return [
+        _build_item_image_response(image)
+        for image in images
+    ]
 
 
 @router.get(

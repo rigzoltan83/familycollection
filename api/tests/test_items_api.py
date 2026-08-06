@@ -1676,3 +1676,172 @@ def test_get_item_image_content_returns_404_for_missing_file(
     assert response.json() == {
         "detail": "A képfájl nem található."
     }
+
+
+def test_list_item_images_api(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Képlista teszt",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    item_public_id = (
+        create_response.json()["public_id"]
+    )
+
+    def make_jpeg(
+        size: tuple[int, int],
+    ) -> bytes:
+        image = Image.new(
+            "RGB",
+            size,
+            "white",
+        )
+
+        buffer = BytesIO()
+
+        image.save(
+            buffer,
+            format="JPEG",
+        )
+
+        image.close()
+
+        return buffer.getvalue()
+
+    first_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "first.jpg",
+                make_jpeg((100, 80)),
+                "image/jpeg",
+            ),
+        },
+        data={
+            "caption": "Első kép",
+            "sort_order": "20",
+        },
+    )
+
+    second_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "second.jpg",
+                make_jpeg((200, 160)),
+                "image/jpeg",
+            ),
+        },
+        data={
+            "caption": "Második kép",
+            "sort_order": "10",
+            "is_primary": "true",
+        },
+    )
+
+    assert first_response.status_code == 201
+    assert second_response.status_code == 201
+
+    response = test_client.get(
+        f"/items/{item_public_id}/images"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert len(data) == 2
+
+    assert data[0]["caption"] == "Második kép"
+    assert data[0]["is_primary"] is True
+    assert data[0]["width"] == 200
+    assert data[0]["height"] == 160
+
+    assert data[1]["caption"] == "Első kép"
+    assert data[1]["is_primary"] is False
+
+    assert data[0]["content_url"].startswith(
+        "/item-images/"
+    )
+
+
+def test_list_item_images_returns_empty_list(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Kép nélküli tárgy",
+        },
+    )
+
+    item_public_id = (
+        create_response.json()["public_id"]
+    )
+
+    response = test_client.get(
+        f"/items/{item_public_id}/images"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_list_item_images_returns_404_for_unknown_item(
+    test_client: TestClient,
+) -> None:
+    response = test_client.get(
+        (
+            "/items/"
+            "01AAAAAAAAAAAAAAAAAAAAAAAA"
+            "/images"
+        )
+    )
+
+    assert response.status_code == 404
+
+    assert response.json() == {
+        "detail": "A gyűjteményi elem nem található."
+    }
