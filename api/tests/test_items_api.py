@@ -2252,3 +2252,300 @@ def test_update_item_image_accepts_empty_caption_as_null(
 
     assert response.status_code == 200
     assert response.json()["caption"] is None
+
+
+def test_delete_item_image_api(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    from app.models import ItemImage
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Képtörlés teszt",
+        },
+    )
+
+    item_public_id = (
+        create_response.json()["public_id"]
+    )
+
+    image = Image.new(
+        "RGB",
+        (120, 90),
+        "white",
+    )
+
+    buffer = BytesIO()
+
+    image.save(
+        buffer,
+        format="JPEG",
+    )
+
+    image.close()
+
+    upload_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "delete.jpg",
+                buffer.getvalue(),
+                "image/jpeg",
+            ),
+        },
+    )
+
+    assert upload_response.status_code == 201
+
+    image_public_id = (
+        upload_response.json()["public_id"]
+    )
+
+    image_record = db_session.query(
+        ItemImage
+    ).filter(
+        ItemImage.public_id
+        == image_public_id
+    ).one()
+
+    image_id = image_record.id
+
+    stored_files = list(
+        tmp_path.rglob("*.webp")
+    )
+
+    assert len(stored_files) == 1
+    assert stored_files[0].is_file()
+
+    response = test_client.delete(
+        f"/item-images/{image_public_id}"
+    )
+
+    assert response.status_code == 204
+    assert response.content == b""
+
+    assert db_session.get(
+        ItemImage,
+        image_id,
+    ) is None
+
+    assert list(
+        tmp_path.rglob("*.webp")
+    ) == []
+
+
+def test_delete_primary_image_selects_replacement_api(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Elsődleges képtörlés teszt",
+        },
+    )
+
+    item_public_id = (
+        create_response.json()["public_id"]
+    )
+
+    def make_jpeg() -> bytes:
+        image = Image.new(
+            "RGB",
+            (100, 80),
+            "white",
+        )
+
+        buffer = BytesIO()
+
+        image.save(
+            buffer,
+            format="JPEG",
+        )
+
+        image.close()
+
+        return buffer.getvalue()
+
+    first_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "first.jpg",
+                make_jpeg(),
+                "image/jpeg",
+            ),
+        },
+        data={
+            "sort_order": "20",
+        },
+    )
+
+    second_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "second.jpg",
+                make_jpeg(),
+                "image/jpeg",
+            ),
+        },
+        data={
+            "sort_order": "10",
+        },
+    )
+
+    assert first_response.status_code == 201
+    assert second_response.status_code == 201
+
+    first_public_id = (
+        first_response.json()["public_id"]
+    )
+
+    second_public_id = (
+        second_response.json()["public_id"]
+    )
+
+    response = test_client.delete(
+        f"/item-images/{first_public_id}"
+    )
+
+    assert response.status_code == 204
+
+    images_response = test_client.get(
+        f"/items/{item_public_id}/images"
+    )
+
+    assert images_response.status_code == 200
+
+    images = images_response.json()
+
+    assert len(images) == 1
+    assert images[0]["public_id"] == second_public_id
+    assert images[0]["is_primary"] is True
+
+
+def test_delete_item_image_returns_404_for_unknown_image(
+    test_client: TestClient,
+) -> None:
+    response = test_client.delete(
+        (
+            "/item-images/"
+            "01AAAAAAAAAAAAAAAAAAAAAAAA"
+        )
+    )
+
+    assert response.status_code == 404
+
+    assert response.json() == {
+        "detail": "A kép nem található."
+    }
+
+
+def test_delete_item_image_succeeds_when_file_is_missing(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    from app.models import ItemImage
+    from app.services import (
+        CollectionItemCreateInput,
+        ItemImageCreateInput,
+        create_collection_item,
+        create_item_image,
+    )
+
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    item = create_collection_item(
+        session=db_session,
+        data=CollectionItemCreateInput(
+            household_id=household.id,
+            category_id=category.id,
+            title="Hiányzó fájlos törlés teszt",
+        ),
+    )
+
+    image = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2099/01/missing-delete.webp"
+            ),
+            mime_type="image/webp",
+            file_size=100,
+            width=100,
+            height=100,
+        ),
+    )
+
+    db_session.commit()
+
+    image_id = image.id
+    image_public_id = image.public_id
+
+    response = test_client.delete(
+        f"/item-images/{image_public_id}"
+    )
+
+    assert response.status_code == 204
+
+    assert db_session.get(
+        ItemImage,
+        image_id,
+    ) is None

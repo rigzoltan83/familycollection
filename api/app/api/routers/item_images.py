@@ -18,6 +18,8 @@ from app.services import (
     resolve_item_image_path,
     ItemImageUpdateInput,
     update_item_image,
+    delete_item_image,
+    delete_item_image_file,
 )
 from app.schemas import (
     ItemImageResponse,
@@ -106,6 +108,51 @@ def update_item_image_endpoint(
     return _build_item_image_response(
         updated_image
     )
+
+
+@router.delete(
+    "/{image_public_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_item_image_endpoint(
+    image_public_id: str,
+    session: Session = Depends(get_db_session),
+) -> None:
+    image = get_item_image_by_public_id(
+        session=session,
+        public_id=image_public_id,
+    )
+
+    if image is None or not image.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="A kép nem található.",
+        )
+
+    stored_filename = image.stored_filename
+
+    try:
+        delete_item_image(
+            session=session,
+            image=image,
+        )
+
+        session.commit()
+
+    except Exception:
+        session.rollback()
+        raise
+
+    try:
+        delete_item_image_file(
+            stored_filename
+        )
+
+    except ImageStorageError:
+        # A DB-rekord törlése már sikerült.
+        # Hibás vagy hiányzó fájlútvonal miatt
+        # nem állítjuk vissza a törlést.
+        pass
 
 
 @router.get(
