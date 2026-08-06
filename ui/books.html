@@ -452,13 +452,17 @@ header input {
 }
 
 .edit-image-actions {
-    display: flex;
+    display: grid;
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
     gap: 8px;
     padding: 0 9px 10px;
 }
 
 .edit-image-action-button {
-    flex: 1;
     padding: 6px;
     border: none;
     border-radius: 6px;
@@ -748,6 +752,8 @@ let allBooks = [];
 
 let editorStorageLocations = [];
 let editorStorageByPublicId = new Map();
+
+let editorImages = [];
 
 let currentPage = 1;
 const pageSize = 50;
@@ -1455,6 +1461,34 @@ editImageGallery.addEventListener(
 
         button.disabled = true;
 
+        if (action === "move-left") {
+            const moved =
+                await moveEditorImage(
+                    imagePublicId,
+                    "left"
+                );
+
+            if (!moved) {
+                button.disabled = false;
+            }
+
+            return;
+        }
+
+        if (action === "move-right") {
+            const moved =
+                await moveEditorImage(
+                    imagePublicId,
+                    "right"
+                );
+
+            if (!moved) {
+                button.disabled = false;
+            }
+
+            return;
+        }
+
         if (action === "primary") {
             await setEditorPrimaryImage(
                 imagePublicId
@@ -1473,6 +1507,7 @@ editImageGallery.addEventListener(
                 button.disabled = false;
             }
         }
+
     }
 );
 
@@ -1883,6 +1918,171 @@ async function setEditorPrimaryImage(
     }
 }
 
+async function moveEditorImage(
+    imagePublicId,
+    direction
+) {
+    if (!imagePublicId) {
+        throw new Error(
+            "Hiányzik a kép azonosítója."
+        );
+    }
+
+    if (
+        direction !== "left"
+        && direction !== "right"
+    ) {
+        throw new Error(
+            "Érvénytelen mozgatási irány."
+        );
+    }
+
+    const currentIndex =
+        editorImages.findIndex(
+            image =>
+                image.public_id
+                === imagePublicId
+        );
+
+    if (currentIndex < 0) {
+        throw new Error(
+            "A mozgatandó kép nem található."
+        );
+    }
+
+    const currentImage =
+        editorImages[currentIndex];
+
+    if (currentImage.is_primary) {
+        throw new Error(
+            "A borítókép helye nem módosítható."
+        );
+    }
+
+    const firstMovableIndex =
+        editorImages[0]?.is_primary
+            ? 1
+            : 0;
+
+    const targetIndex =
+        direction === "left"
+            ? currentIndex - 1
+            : currentIndex + 1;
+
+    if (
+        targetIndex < firstMovableIndex
+        || targetIndex
+            >= editorImages.length
+    ) {
+        return false;
+    }
+
+    const reorderedImages = [
+        ...editorImages
+    ];
+
+    [
+        reorderedImages[currentIndex],
+        reorderedImages[targetIndex]
+    ] = [
+        reorderedImages[targetIndex],
+        reorderedImages[currentIndex]
+    ];
+
+    const statusElement =
+        document.getElementById(
+            "editImageStatus"
+        );
+
+    statusElement.textContent =
+        "Képsorrend mentése...";
+
+    try {
+        for (
+            let index = 0;
+            index < reorderedImages.length;
+            index += 1
+        ) {
+            const image =
+                reorderedImages[index];
+
+            const newSortOrder =
+                index * 10;
+
+            if (
+                image.sort_order
+                === newSortOrder
+            ) {
+                continue;
+            }
+
+            const response =
+                await fetch(
+                    `/item-images/${image.public_id}`,
+                    {
+                        method: "PATCH",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body: JSON.stringify({
+                            sort_order:
+                                newSortOrder
+                        })
+                    }
+                );
+
+            let data = null;
+
+            try {
+                data =
+                    await response.json();
+            } catch {
+                data = null;
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.detail
+                    || `HTTP ${response.status}`
+                );
+            }
+        }
+
+        await refreshEditorImages();
+
+        statusElement.textContent =
+            "✅ Képsorrend elmentve.";
+
+        return true;
+
+    } catch (error) {
+        console.error(
+            "Képsorrend-mentési hiba:",
+            error
+        );
+
+        statusElement.textContent =
+            "❌ Képsorrend-mentési hiba: "
+            + error.message;
+
+        /*
+         * Hiba esetén visszatöltjük a szerveren
+         * ténylegesen tárolt sorrendet.
+         */
+        try {
+            await refreshEditorImages();
+        } catch (refreshError) {
+            console.error(
+                "Galériafrissítési hiba:",
+                refreshError
+            );
+        }
+
+        return false;
+    }
+}
+
 async function deleteEditorImage(
     imagePublicId
 ) {
@@ -1997,13 +2197,31 @@ function renderEditorImages(
         );
     }
 
+    editorImages = [
+        ...images
+    ];
+
     if (images.length === 0) {
         showEditorImageEmptyState();
         return;
     }
 
     gallery.innerHTML = images
-        .map(image => {
+        .map((image, imageIndex) => {
+            const firstMovableIndex =
+                images[0]?.is_primary
+                    ? 1
+                    : 0;
+
+            const canMoveLeft =
+                !image.is_primary
+                && imageIndex
+                    > firstMovableIndex;
+
+            const canMoveRight =
+                !image.is_primary
+                && imageIndex
+                    < images.length - 1;
             const caption =
                 image.caption?.trim()
                 || "Kép";
@@ -2046,6 +2264,31 @@ function renderEditorImages(
                         px
                     </div>
 <div class="edit-image-actions">
+    <button
+        type="button"
+        class="edit-image-action-button"
+        data-image-id="${escapeHtml(
+            image.public_id
+        )}"
+        data-action="move-left"
+        ${canMoveLeft ? "" : "disabled"}
+        title="Mozgatás balra"
+    >
+        ← Balra
+    </button>
+
+    <button
+        type="button"
+        class="edit-image-action-button"
+        data-image-id="${escapeHtml(
+            image.public_id
+        )}"
+        data-action="move-right"
+        ${canMoveRight ? "" : "disabled"}
+        title="Mozgatás jobbra"
+    >
+        Jobbra →
+    </button>
 <button
     type="button"
     class="edit-image-action-button"
