@@ -1609,7 +1609,8 @@ def test_create_manual_book_creates_complete_structure(
         household_id=household.id,
     )
 
-    legacy_id = create_manual_book(
+    legacy_id, item_public_id = (
+        create_manual_book(
         session=db_session,
         household_id=household.id,
         category_id=category.id,
@@ -1620,9 +1621,11 @@ def test_create_manual_book_creates_complete_structure(
         publish_year=2007,
         legacy_location_id=5,
         storage_location_id=slot.id,
+        )
     )
 
     assert legacy_id > 0
+    assert item_public_id
 
     migration = (
         db_session.query(LegacyBookMigration)
@@ -1688,7 +1691,8 @@ def test_create_manual_book_accepts_custom_identifier(
         household_id=household.id,
     )
 
-    legacy_id = create_manual_book(
+    legacy_id, item_public_id = (
+        create_manual_book(
         session=db_session,
         household_id=household.id,
         category_id=category.id,
@@ -1699,8 +1703,10 @@ def test_create_manual_book_accepts_custom_identifier(
         publish_year=None,
         legacy_location_id=5,
         storage_location_id=slot.id,
+        )
     )
 
+    assert item_public_id
     migration = (
         db_session.query(LegacyBookMigration)
         .filter_by(

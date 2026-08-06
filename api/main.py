@@ -312,7 +312,10 @@ def scan(
                     metadata_year_text
                 )
 
-        legacy_book_id = create_manual_book(
+        (
+            legacy_book_id,
+            item_public_id,
+        ) = create_manual_book(
             session=session,
             household_id=household.id,
             category_id=category.id,
@@ -355,6 +358,7 @@ def scan(
         return {
             "status": "created",
             "id": legacy_book_id,
+            "public_id": item_public_id,
             "data": metadata,
         }
 
@@ -522,7 +526,10 @@ def add_manual_book(
                 ),
             }
 
-        legacy_book_id = create_manual_book(
+        (
+            legacy_book_id,
+            item_public_id,
+        ) = create_manual_book(
             session=session,
             household_id=household.id,
             category_id=category.id,
@@ -544,6 +551,7 @@ def add_manual_book(
         return {
             "status": "created",
             "id": legacy_book_id,
+            "public_id": item_public_id,
         }
 
     except ValueError as error:
@@ -753,7 +761,10 @@ def add_manual_isbn_book(
         if not is_borrowed_location:
             borrower = None
 
-        legacy_book_id = create_manual_book(
+        (
+            legacy_book_id,
+            item_public_id,
+        ) = create_manual_book(
             session=session,
             household_id=household.id,
             category_id=category.id,
@@ -793,6 +804,7 @@ def add_manual_isbn_book(
         return {
             "status": "created",
             "id": legacy_book_id,
+            "public_id": item_public_id,
         }
 
     except ValueError as error:

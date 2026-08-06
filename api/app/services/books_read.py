@@ -1290,7 +1290,7 @@ def create_manual_book(
     publish_year: int | None,
     legacy_location_id: int,
     storage_location_id: int,
-) -> int:
+) -> tuple[int, str]:
     """
     Manuálisan rögzített könyv létrehozása az új adatmodellben.
 
@@ -1302,7 +1302,9 @@ def create_manual_book(
     - az aktív tárhely-hozzárendelést;
     - a kompatibilitási LegacyBookMigration rekordot.
 
-    Visszatérési értéke az új kompatibilis numerikus könyv-ID.
+    Visszatérési értéke:
+    - az új kompatibilis numerikus könyv-ID;
+    - a létrehozott CollectionItem public ID-ja.
     """
     cleaned_title = title.strip()
 
@@ -1470,8 +1472,10 @@ def create_manual_book(
     session.add(migration)
     session.flush()
 
-    return new_legacy_book_id
-
+    return (
+        new_legacy_book_id,
+        item.public_id,
+    )
 
 def list_all_books_for_export(
     session: Session,
