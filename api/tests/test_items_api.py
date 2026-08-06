@@ -1,3 +1,7 @@
+from io import BytesIO
+
+from PIL import Image
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -1263,3 +1267,232 @@ def test_restore_collection_item_returns_404_for_unknown_item(
     assert response.json() == {
         "detail": "A törölt gyűjteményi elem nem található."
     }
+
+
+def test_upload_item_image_api(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Képes könyv",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    public_id = create_response.json()["public_id"]
+
+    image = Image.new(
+        "RGB",
+        (320, 240),
+        "white",
+    )
+
+    buffer = BytesIO()
+
+    image.save(
+        buffer,
+        format="JPEG",
+    )
+
+    image.close()
+
+    jpeg = buffer.getvalue()
+
+    response = test_client.post(
+        f"/items/{public_id}/images",
+        files={
+            "file": (
+                "borito.jpg",
+                jpeg,
+                "image/jpeg",
+            ),
+        },
+        data={
+            "caption": "Borító",
+            "is_primary": "true",
+            "sort_order": "0",
+        },
+    )
+
+    assert response.status_code == 201
+
+    data = response.json()
+
+    assert data["caption"] == "Borító"
+    assert data["is_primary"] is True
+    assert data["sort_order"] == 0
+    assert data["mime_type"] == "image/webp"
+    assert data["content_url"].startswith(
+        "/item-images/"
+    )
+
+    stored_files = list(
+        tmp_path.rglob("*.webp")
+    )
+
+    assert len(stored_files) == 1
+
+    with Image.open(stored_files[0]) as stored_image:
+        assert stored_image.format == "WEBP"
+        assert stored_image.size == (320, 240)
+
+
+def test_upload_item_image_rejects_invalid_file(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Hibás képes könyv",
+        },
+    )
+
+    public_id = create_response.json()["public_id"]
+
+    response = test_client.post(
+        f"/items/{public_id}/images",
+        files={
+            "file": (
+                "nem-kep.jpg",
+                b"this is not an image",
+                "image/jpeg",
+            ),
+        },
+    )
+
+    assert response.status_code == 400
+    assert (
+        response.json()["detail"]
+        == "A feltöltött fájl nem érvényes kép."
+    )
+
+    assert list(
+        tmp_path.rglob("*")
+    ) == []
+
+
+def test_upload_item_image_returns_404_for_unknown_item(
+    test_client: TestClient,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    response = test_client.post(
+        (
+            "/items/"
+            "01AAAAAAAAAAAAAAAAAAAAAAAA"
+            "/images"
+        ),
+        files={
+            "file": (
+                "borito.jpg",
+                b"irrelevant",
+                "image/jpeg",
+            ),
+        },
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": "A gyűjteményi elem nem található."
+    }
+
+    assert list(
+        tmp_path.rglob("*")
+    ) == []
+
+
+def test_upload_item_image_rejects_negative_sort_order(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(db_session)
+    category = create_test_book_category(db_session)
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Rendezési teszt",
+        },
+    )
+
+    public_id = create_response.json()["public_id"]
+
+    response = test_client.post(
+        f"/items/{public_id}/images",
+        files={
+            "file": (
+                "borito.jpg",
+                b"irrelevant",
+                "image/jpeg",
+            ),
+        },
+        data={
+            "sort_order": "-1",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": (
+            "A kép rendezési sorrendje "
+            "nem lehet negatív."
+        )
+    }
+
+    assert list(
+        tmp_path.rglob("*")
+    ) == []

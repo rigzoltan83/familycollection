@@ -89,6 +89,33 @@ class ItemFieldValueResponse(BaseModel):
     value_json: Any | None = None
 
 
+class ItemImageResponse(BaseModel):
+    model_config = ConfigDict(
+        from_attributes=True,
+    )
+
+    public_id: str
+    item_id: int
+
+    original_filename: str | None
+    caption: str | None
+
+    mime_type: str
+    file_size: int
+
+    width: int | None
+    height: int | None
+
+    sort_order: int
+    is_primary: bool
+    is_active: bool
+
+    created_at: datetime
+    updated_at: datetime
+
+    content_url: str
+
+
 class CollectionItemResponse(BaseModel):
     public_id: str
     household_id: int

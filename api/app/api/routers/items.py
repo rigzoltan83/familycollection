@@ -2,7 +2,15 @@
 CollectionItem HTTP-végpontok.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    UploadFile,
+    status,
+)
 from sqlalchemy import exists, func, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -12,6 +20,7 @@ from app.models import (
     CollectionItem,
     ItemFieldValue,
     ItemIdentifier,
+    ItemImage,
 )
 from app.schemas import (
     CollectionItemCreateRequest,
@@ -21,6 +30,7 @@ from app.schemas import (
     CollectionItemUpdateRequest,
     ItemFieldValueResponse,
     ItemIdentifierResponse,
+    ItemImageResponse,
 )
 from app.services import (
     CollectionItemCreateInput,
@@ -28,6 +38,11 @@ from app.services import (
     update_collection_item,
     IdentifierInput,
     create_collection_item,
+    ImageStorageError,
+    ItemImageCreateInput,
+    create_item_image,
+    delete_item_image_file,
+    store_item_image,
 )
 
 
@@ -94,6 +109,29 @@ def _build_item_response(
             for field_value in item.field_values
         ],
     )
+
+def _build_item_image_response(
+    image: ItemImage,
+) -> ItemImageResponse:
+    return ItemImageResponse(
+        public_id=image.public_id,
+        item_id=image.item_id,
+        original_filename=image.original_filename,
+        caption=image.caption,
+        mime_type=image.mime_type,
+        file_size=image.file_size,
+        width=image.width,
+        height=image.height,
+        sort_order=image.sort_order,
+        is_primary=image.is_primary,
+        is_active=image.is_active,
+        created_at=image.created_at,
+        updated_at=image.updated_at,
+        content_url=(
+            f"/item-images/{image.public_id}/content"
+        ),
+    )
+
 
 @router.get(
     "",
@@ -426,6 +464,109 @@ def update_item(
     )
 
     return _build_item_response(loaded_item)
+
+
+@router.post(
+    "/{public_id}/images",
+    response_model=ItemImageResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_item_image(
+    public_id: str,
+    file: UploadFile = File(...),
+    caption: str | None = Form(default=None),
+    is_primary: bool | None = Form(default=None),
+    sort_order: int = Form(default=0),
+    session: Session = Depends(get_db_session),
+) -> ItemImageResponse:
+    item = session.scalar(
+        select(CollectionItem).where(
+            CollectionItem.public_id == public_id,
+            CollectionItem.is_active.is_(True),
+        )
+    )
+
+    if item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="A gyűjteményi elem nem található.",
+        )
+
+    if sort_order < 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "A kép rendezési sorrendje "
+                "nem lehet negatív."
+            ),
+        )
+
+    stored_image = None
+
+    try:
+        content = await file.read()
+
+        stored_image = store_item_image(
+            content
+        )
+
+        image = create_item_image(
+            session=session,
+            item=item,
+            data=ItemImageCreateInput(
+                stored_filename=(
+                    stored_image.stored_filename
+                ),
+                original_filename=(
+                    file.filename
+                    if file.filename
+                    else None
+                ),
+                caption=caption,
+                mime_type=stored_image.mime_type,
+                file_size=stored_image.file_size,
+                width=stored_image.width,
+                height=stored_image.height,
+                sort_order=sort_order,
+                is_primary=is_primary,
+            ),
+        )
+
+        session.commit()
+        session.refresh(image)
+
+    except (
+        ImageStorageError,
+        ValueError,
+    ) as error:
+        session.rollback()
+
+        if stored_image is not None:
+            delete_item_image_file(
+                stored_image.stored_filename
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+
+    except Exception:
+        session.rollback()
+
+        if stored_image is not None:
+            delete_item_image_file(
+                stored_image.stored_filename
+            )
+
+        raise
+
+    finally:
+        await file.close()
+
+    return _build_item_image_response(
+        image
+    )
 
 
 @router.get(
