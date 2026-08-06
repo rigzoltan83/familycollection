@@ -16,6 +16,9 @@ import db
 from metadata import fetch_book
 
 from app.api.routers.auth import router as auth_router
+from app.api.routers.item_images import (
+    router as item_images_router,
+)
 from app.api.routers.items import router as items_router
 from app.api.routers.storage import router as storage_router
 
@@ -42,6 +45,7 @@ app = FastAPI(title="Family Collection API")
 
 app.include_router(auth_router)
 app.include_router(items_router)
+app.include_router(item_images_router)
 app.include_router(storage_router)
 
 app.mount(

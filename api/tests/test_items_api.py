@@ -1496,3 +1496,183 @@ def test_upload_item_image_rejects_negative_sort_order(
     assert list(
         tmp_path.rglob("*")
     ) == []
+
+
+def test_get_item_image_content_api(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Kép lekérési teszt",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    item_public_id = (
+        create_response.json()["public_id"]
+    )
+
+    image = Image.new(
+        "RGB",
+        (160, 120),
+        "white",
+    )
+
+    buffer = BytesIO()
+
+    image.save(
+        buffer,
+        format="JPEG",
+    )
+
+    image.close()
+
+    upload_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "borito.jpg",
+                buffer.getvalue(),
+                "image/jpeg",
+            ),
+        },
+    )
+
+    assert upload_response.status_code == 201
+
+    image_public_id = (
+        upload_response.json()["public_id"]
+    )
+
+    response = test_client.get(
+        (
+            f"/item-images/"
+            f"{image_public_id}/content"
+        )
+    )
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == (
+        "image/webp"
+    )
+
+    assert response.headers["cache-control"] == (
+        "public, max-age=86400"
+    )
+
+    assert len(response.content) > 0
+
+    with Image.open(
+        BytesIO(response.content)
+    ) as returned_image:
+        assert returned_image.format == "WEBP"
+        assert returned_image.size == (160, 120)
+
+
+def test_get_item_image_content_returns_404_for_unknown_image(
+    test_client: TestClient,
+) -> None:
+    response = test_client.get(
+        (
+            "/item-images/"
+            "01AAAAAAAAAAAAAAAAAAAAAAAA"
+            "/content"
+        )
+    )
+
+    assert response.status_code == 404
+
+    assert response.json() == {
+        "detail": "A kép nem található."
+    }
+
+
+def test_get_item_image_content_returns_404_for_missing_file(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    from app.models import ItemImage
+    from app.services import (
+        CollectionItemCreateInput,
+        ItemImageCreateInput,
+        create_collection_item,
+        create_item_image,
+    )
+
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    item = create_collection_item(
+        session=db_session,
+        data=CollectionItemCreateInput(
+            household_id=household.id,
+            category_id=category.id,
+            title="Hiányzó képfájl teszt",
+        ),
+    )
+
+    image = create_item_image(
+        session=db_session,
+        item=item,
+        data=ItemImageCreateInput(
+            stored_filename=(
+                "2099/01/not-existing.webp"
+            ),
+            mime_type="image/webp",
+            file_size=123,
+            width=100,
+            height=100,
+        ),
+    )
+
+    db_session.commit()
+
+    assert db_session.get(
+        ItemImage,
+        image.id,
+    ) is not None
+
+    response = test_client.get(
+        (
+            f"/item-images/"
+            f"{image.public_id}/content"
+        )
+    )
+
+    assert response.status_code == 404
+
+    assert response.json() == {
+        "detail": "A képfájl nem található."
+    }
