@@ -134,7 +134,10 @@ def test_client(db_session: Session):
     )
 
     try:
-        with TestClient(app) as client:
+        with TestClient(
+            app,
+            base_url="https://testserver",
+        ) as client:
             yield client
     finally:
         app.dependency_overrides.clear()

@@ -4,6 +4,13 @@ from app.schemas.auth import (
     LoginResponse,
 )
 
+from app.schemas.admin_users import (
+    AssignableHouseholdRole,
+    HouseholdUserCreateRequest,
+    HouseholdUserResponse,
+    HouseholdUserUpdateRequest,
+)
+
 from app.schemas.collection_items import (
     CollectionItemCreateRequest,
     CollectionItemResponse,
@@ -29,6 +36,10 @@ __all__ = [
     "AuthenticatedUserResponse",
     "LoginRequest",
     "LoginResponse",
+    "AssignableHouseholdRole",
+    "HouseholdUserCreateRequest",
+    "HouseholdUserResponse",
+    "HouseholdUserUpdateRequest",
     "CollectionItemCreateRequest",
     "CollectionItemResponse",
     "CollectionItemListEntry",

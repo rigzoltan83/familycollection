@@ -3,6 +3,12 @@ from app.services.auth import (
     get_user_by_email,
     normalize_email,
 )
+from app.services.admin_users import (
+    HouseholdUserRecord,
+    create_household_user,
+    list_household_users,
+    update_household_user,
+)
 from app.services.collection_items import (
     CollectionItemCreateInput,
     CollectionItemUpdateInput,
@@ -76,6 +82,10 @@ __all__ = [
     "normalize_email",
     "CollectionItemCreateInput",
     "CollectionItemUpdateInput",
+    "HouseholdUserRecord",
+    "create_household_user",
+    "list_household_users",
+    "update_household_user",
     "update_collection_item",
     "IdentifierInput",
     "create_collection_item",
