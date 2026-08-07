@@ -379,6 +379,88 @@ def resolve_item_image_thumbnail_path(
     )
 
 
+def ensure_item_image_thumbnail(
+    stored_filename: str,
+) -> Path:
+    thumbnail_path = (
+        resolve_item_image_thumbnail_path(
+            stored_filename
+        )
+    )
+
+    if (
+        thumbnail_path.exists()
+        and thumbnail_path.is_file()
+    ):
+        return thumbnail_path
+
+    original_path = resolve_item_image_path(
+        stored_filename
+    )
+
+    if (
+        not original_path.exists()
+        or not original_path.is_file()
+    ):
+        raise ImageStorageError(
+            "Az eredeti képfájl nem található."
+        )
+
+    try:
+        with Image.open(
+            original_path
+        ) as source_image:
+            source_image.load()
+
+            if source_image.mode in {
+                "RGBA",
+                "LA",
+            }:
+                prepared = (
+                    source_image.convert(
+                        "RGBA"
+                    )
+                )
+
+            else:
+                prepared = (
+                    source_image.convert(
+                        "RGB"
+                    )
+                )
+
+        try:
+            _store_thumbnail(
+                prepared,
+                stored_filename=stored_filename,
+            )
+
+        finally:
+            prepared.close()
+
+    except ImageStorageError:
+        raise
+
+    except (
+        UnidentifiedImageError,
+        OSError,
+        ValueError,
+    ) as error:
+        raise ImageStorageError(
+            "A bélyegkép nem hozható létre."
+        ) from error
+
+    if (
+        not thumbnail_path.exists()
+        or not thumbnail_path.is_file()
+    ):
+        raise ImageStorageError(
+            "A bélyegkép nem jött létre."
+        )
+
+    return thumbnail_path
+
+
 def delete_item_image_file(
     stored_filename: str,
 ) -> bool:

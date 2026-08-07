@@ -17,6 +17,7 @@ from app.services import (
     get_item_image_by_public_id,
     resolve_item_image_path,
     resolve_item_image_thumbnail_path,
+    ensure_item_image_thumbnail,
     ItemImageUpdateInput,
     update_item_image,
     delete_item_image,
@@ -227,7 +228,7 @@ def get_item_image_thumbnail(
 
     try:
         thumbnail_path = (
-            resolve_item_image_thumbnail_path(
+            ensure_item_image_thumbnail(
                 image.stored_filename
             )
         )

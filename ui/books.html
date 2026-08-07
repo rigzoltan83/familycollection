@@ -1093,13 +1093,19 @@ if (currentSearch.trim()) {
                 book.primary_image_url || ""
             ).trim();
 
+        const primaryThumbnailUrl =
+            primaryImageUrl.replace(
+                /\/content$/,
+                "/thumbnail"
+            );
+
         const coverHtml =
-            primaryImageUrl
+            primaryThumbnailUrl
                 ? `
                     <div class="book-card-cover">
                         <img
                             src="${escapeHtml(
-                                primaryImageUrl
+                                primaryThumbnailUrl
                             )}"
                             alt="${escapeHtml(
                                 (

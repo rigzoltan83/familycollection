@@ -66,6 +66,7 @@ from app.services.image_storage import (
     delete_item_image_file,
     resolve_item_image_path,
     resolve_item_image_thumbnail_path,
+    ensure_item_image_thumbnail,
     store_item_image,
 )
 
@@ -118,6 +119,7 @@ __all__ = [
     "delete_item_image_file",
     "resolve_item_image_path",
     "resolve_item_image_thumbnail_path",
+    "ensure_item_image_thumbnail",
     "store_item_image",
     "ItemImageCreateInput",
     "create_item_image",
