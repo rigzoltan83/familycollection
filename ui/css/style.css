@@ -672,6 +672,59 @@ button:hover{
     object-fit: cover;
 }
 
+.pending-book-image-order-actions {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    display: flex;
+    gap: 4px;
+}
+
+.pending-book-image-order-button {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 5px;
+    background: rgba(35, 99, 168, 0.92);
+    color: #fff;
+    font-size: 17px;
+    line-height: 28px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.pending-book-image-order-button:hover:not(:disabled) {
+    background: #347dcc;
+}
+
+.pending-book-image-order-button:disabled {
+    background: rgba(60, 60, 60, 0.85);
+    color: #777;
+    cursor: default;
+}
+
+.pending-book-image-remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(145, 34, 34, 0.92);
+    color: #fff;
+    font-size: 21px;
+    line-height: 28px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.pending-book-image-remove:hover {
+    background: #c43d3d;
+}
+
 .pending-book-image-thumbnail-number {
     position: absolute;
     left: 5px;

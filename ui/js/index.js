@@ -264,6 +264,7 @@ function renderPendingBookImages() {
                     URL.createObjectURL(file);
 
                 return `
+
                     <div
                         class="pending-book-image-thumbnail"
                         data-preview-url="${escapeHtml(
@@ -277,6 +278,48 @@ function renderPendingBookImages() {
                             }"
                         >
 
+<div class="pending-book-image-order-actions">
+    <button
+        type="button"
+        class="pending-book-image-order-button"
+        data-pending-image-index="${index}"
+        data-pending-image-action="left"
+        ${index === 0 ? "disabled" : ""}
+        title="Mozgatás balra"
+    >
+        ←
+    </button>
+
+    <button
+        type="button"
+        class="pending-book-image-order-button"
+        data-pending-image-index="${index}"
+        data-pending-image-action="right"
+        ${
+            index === pendingBookImages.length - 1
+                ? "disabled"
+                : ""
+        }
+        title="Mozgatás jobbra"
+    >
+        →
+    </button>
+</div>
+
+                        <button
+                            type="button"
+                            class="
+                                pending-book-image-remove
+                            "
+                            data-pending-image-index="${index}"
+                            aria-label="${
+                                index + 1
+                            }. kép eltávolítása"
+                            title="Kép eltávolítása"
+                        >
+                            ×
+                        </button>
+
                         <div
                             class="
                                 pending-book-image-thumbnail-number
@@ -285,6 +328,7 @@ function renderPendingBookImages() {
                             ${index + 1}.
                         </div>
                     </div>
+
                 `;
             })
             .join("");
@@ -327,6 +371,75 @@ function clearPendingBookImages() {
     }
 
     renderPendingBookImages();
+}
+
+function removePendingBookImage(
+    imageIndex
+) {
+    if (
+        !Number.isInteger(imageIndex)
+        || imageIndex < 0
+        || imageIndex >= pendingBookImages.length
+    ) {
+        return false;
+    }
+
+    revokePendingBookImagePreviewUrls();
+
+    pendingBookImages.splice(
+        imageIndex,
+        1
+    );
+
+    renderPendingBookImages();
+
+    return true;
+}
+
+function movePendingBookImage(
+    imageIndex,
+    direction
+) {
+    if (
+        !Number.isInteger(imageIndex)
+        || imageIndex < 0
+        || imageIndex >= pendingBookImages.length
+    ) {
+        return false;
+    }
+
+    if (
+        direction !== "left"
+        && direction !== "right"
+    ) {
+        return false;
+    }
+
+    const targetIndex =
+        direction === "left"
+            ? imageIndex - 1
+            : imageIndex + 1;
+
+    if (
+        targetIndex < 0
+        || targetIndex >= pendingBookImages.length
+    ) {
+        return false;
+    }
+
+    revokePendingBookImagePreviewUrls();
+
+    [
+        pendingBookImages[imageIndex],
+        pendingBookImages[targetIndex]
+    ] = [
+        pendingBookImages[targetIndex],
+        pendingBookImages[imageIndex]
+    ];
+
+    renderPendingBookImages();
+
+    return true;
 }
 
 function addPendingBookImages(
@@ -990,6 +1103,61 @@ if (pendingBookImagesClearButton) {
         "click",
         () => {
             clearPendingBookImages();
+        }
+    );
+}
+
+if (pendingBookImagePreview) {
+    pendingBookImagePreview.addEventListener(
+        "click",
+        event => {
+            const orderButton =
+                event.target.closest(
+                    "[data-pending-image-action]"
+                );
+
+            if (orderButton) {
+                const imageIndex =
+                    Number(
+                        orderButton.dataset
+                            .pendingImageIndex
+                    );
+
+                const direction =
+                    orderButton.dataset
+                        .pendingImageAction;
+
+                movePendingBookImage(
+                    imageIndex,
+                    direction
+                );
+
+                return;
+            }
+
+            const removeButton =
+                event.target.closest(
+                    "[data-pending-image-index]"
+                );
+
+            if (!removeButton) {
+                return;
+            }
+
+            /*
+             * A mozgatógombok is rendelkeznek
+             * data-pending-image-index attribútummal,
+             * de azokat fent már kezeltük.
+             */
+            const imageIndex =
+                Number(
+                    removeButton.dataset
+                        .pendingImageIndex
+                );
+
+            removePendingBookImage(
+                imageIndex
+            );
         }
     );
 }
