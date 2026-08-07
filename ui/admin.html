@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FamilyCollection – Adminisztráció</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #111;
+            color: #eee;
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+        }
+
+        .container {
+            width: min(1200px, 94vw);
+            margin: 0 auto;
+            padding: 24px 0 40px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        h1,
+        h2 {
+            margin-top: 0;
+            color: #6dff6d;
+        }
+
+        .top-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button,
+        .button-link {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            background: #555;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        button:hover,
+        .button-link:hover {
+            background: #666;
+        }
+
+        button.primary {
+            background: #2e8b57;
+        }
+
+        button.primary:hover {
+            background: #349d63;
+        }
+
+        button.danger {
+            background: #8b2e2e;
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: default;
+        }
+
+        .panel {
+            margin-bottom: 22px;
+            padding: 18px;
+            border-radius: 12px;
+            background: #202020;
+        }
+
+        .context-line {
+            color: #bbb;
+        }
+
+        .status {
+            min-height: 24px;
+            margin-top: 10px;
+        }
+
+        .status.error {
+            color: #ff7b7b;
+        }
+
+        .status.success {
+            color: #6dff6d;
+        }
+
+        .users-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .user-card {
+            padding: 16px;
+            border-radius: 10px;
+            background: #292929;
+        }
+
+        .user-card.inactive {
+            opacity: 0.65;
+        }
+
+        .user-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .user-name {
+            font-size: 19px;
+            font-weight: bold;
+            color: #6dff6d;
+        }
+
+        .user-email {
+            margin-top: 4px;
+            color: #aaa;
+            word-break: break-word;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #444;
+            color: #ddd;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .user-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(180px, 1fr)
+                );
+            gap: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #bbb;
+            font-size: 13px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 7px;
+            background: #111;
+            color: #fff;
+            font-size: 15px;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
+        }
+
+        .checkbox-row input {
+            width: auto;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .new-user-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(220px, 1fr)
+                );
+            gap: 12px;
+        }
+
+        .muted {
+            color: #888;
+            font-size: 13px;
+        }
+
+        @media (max-width: 650px) {
+            .topbar {
+                flex-direction: column;
+            }
+
+            .user-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+
+        <div class="topbar">
+            <div>
+                <h1>Adminisztráció</h1>
+
+                <div
+                    id="contextLine"
+                    class="context-line"
+                >
+                    Betöltés...
+                </div>
+            </div>
+
+            <div class="top-actions">
+                <a
+                    href="/ui/dashboard.html"
+                    class="button-link"
+                >
+                    ← Vissza
+                </a>
+
+                <button
+                    id="logoutButton"
+                    type="button"
+                >
+                    Kilépés
+                </button>
+            </div>
+        </div>
+
+        <section class="panel">
+            <h2>Új felhasználó</h2>
+
+            <div class="new-user-grid">
+                <div>
+                    <label for="newEmail">
+                        E-mail cím
+                    </label>
+
+                    <input
+                        id="newEmail"
+                        type="email"
+                    >
+                </div>
+
+                <div>
+                    <label for="newDisplayName">
+                        Megjelenített név
+                    </label>
+
+                    <input
+                        id="newDisplayName"
+                        type="text"
+                    >
+                </div>
+
+                <div>
+                    <label for="newPassword">
+                        Kezdeti jelszó
+                    </label>
+
+                    <input
+                        id="newPassword"
+                        type="password"
+                    >
+                </div>
+
+                <div>
+                    <label for="newRole">
+                        Szerepkör
+                    </label>
+
+                    <select id="newRole">
+                        <option value="viewer">
+                            Megtekintő
+                        </option>
+
+                        <option value="editor">
+                            Szerkesztő
+                        </option>
+
+                        <option value="admin">
+                            Adminisztrátor
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button
+                    id="createUserButton"
+                    class="primary"
+                    type="button"
+                >
+                    Felhasználó létrehozása
+                </button>
+            </div>
+
+            <div
+                id="createStatus"
+                class="status"
+            ></div>
+        </section>
+
+        <section class="panel">
+            <h2>Felhasználók</h2>
+
+            <div
+                id="usersStatus"
+                class="status"
+            >
+                Betöltés...
+            </div>
+
+            <div
+                id="usersList"
+                class="users-list"
+            ></div>
+        </section>
+
+    </main>
+
+    <script>
+        let currentUserId = null;
+        let activeHousehold = null;
+
+
+        const contextLine =
+            document.getElementById(
+                "contextLine"
+            );
+
+        const usersStatus =
+            document.getElementById(
+                "usersStatus"
+            );
+
+        const usersList =
+            document.getElementById(
+                "usersList"
+            );
+
+        const createStatus =
+            document.getElementById(
+                "createStatus"
+            );
+
+        const createUserButton =
+            document.getElementById(
+                "createUserButton"
+            );
+
+        const newEmail =
+            document.getElementById(
+                "newEmail"
+            );
+
+        const newDisplayName =
+            document.getElementById(
+                "newDisplayName"
+            );
+
+        const newPassword =
+            document.getElementById(
+                "newPassword"
+            );
+
+        const newRole =
+            document.getElementById(
+                "newRole"
+            );
+
+        const logoutButton =
+            document.getElementById(
+                "logoutButton"
+            );
+
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+
+        function roleLabel(role) {
+            const labels = {
+                owner: "Tulajdonos",
+                admin: "Adminisztrátor",
+                editor: "Szerkesztő",
+                viewer: "Megtekintő"
+            };
+
+            return labels[role] || role;
+        }
+
+
+        function setStatus(
+            element,
+            message,
+            type = ""
+        ) {
+            element.textContent = message;
+            element.className = "status";
+
+            if (type) {
+                element.classList.add(type);
+            }
+        }
+
+
+        async function apiFetch(
+            url,
+            options = {}
+        ) {
+            const response =
+                await fetch(
+                    url,
+                    options
+                );
+
+            if (response.status === 401) {
+                window.location.href =
+                    "/ui/login.html";
+
+                throw new Error(
+                    "Nincs bejelentkezve."
+                );
+            }
+
+            let data = null;
+
+            try {
+                data = await response.json();
+            } catch {
+                data = null;
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.detail
+                    || `HTTP ${response.status}`
+                );
+            }
+
+            return data;
+        }
+
+
+        async function loadContext() {
+            const context =
+                await apiFetch(
+                    "/auth/context"
+                );
+
+            currentUserId =
+                context.user.id;
+
+            const storedHouseholdId =
+                Number(
+                    localStorage.getItem(
+                        "activeHouseholdId"
+                    )
+                );
+
+            activeHousehold =
+                context.households.find(
+                    household =>
+                        household.id
+                        === storedHouseholdId
+                )
+                || context.households[0]
+                || null;
+
+            if (!activeHousehold) {
+                throw new Error(
+                    "Nincs aktív háztartási tagság."
+                );
+            }
+
+            if (
+                activeHousehold.role !== "admin"
+                && activeHousehold.role !== "owner"
+            ) {
+                window.location.href =
+                    "/ui/dashboard.html";
+
+                throw new Error(
+                    "Nincs admin jogosultság."
+                );
+            }
+
+            localStorage.setItem(
+                "activeHouseholdId",
+                String(
+                    activeHousehold.id
+                )
+            );
+
+            contextLine.textContent =
+                `${activeHousehold.name} – `
+                + roleLabel(
+                    activeHousehold.role
+                );
+        }
+
+
+        function renderUsers(users) {
+            usersList.innerHTML = "";
+
+            if (!users.length) {
+                usersList.innerHTML =
+                    '<div class="muted">'
+                    + 'Nincs felhasználó.'
+                    + '</div>';
+
+                return;
+            }
+
+            for (const user of users) {
+                const isOwner =
+                    user.role === "owner";
+
+                const isSelf =
+                    user.user_id
+                    === currentUserId;
+
+                const card =
+                    document.createElement(
+                        "div"
+                    );
+
+                card.className =
+                    "user-card";
+
+                if (
+                    !user.membership_is_active
+                ) {
+                    card.classList.add(
+                        "inactive"
+                    );
+                }
+
+                const roleSelectDisabled =
+                    isOwner || isSelf;
+
+                const activeDisabled =
+                    isOwner || isSelf;
+
+                card.innerHTML = `
+                    <div class="user-header">
+                        <div>
+                            <div class="user-name">
+                                ${escapeHtml(
+                                    user.display_name
+                                )}
+                            </div>
+
+                            <div class="user-email">
+                                ${escapeHtml(
+                                    user.email
+                                )}
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="badge">
+                                ${escapeHtml(
+                                    roleLabel(
+                                        user.role
+                                    )
+                                )}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="user-grid">
+
+                        <div>
+                            <label>
+                                Megjelenített név
+                            </label>
+
+                            <input
+                                class="edit-name"
+                                type="text"
+                                value="${escapeHtml(
+                                    user.display_name
+                                )}"
+                                ${isOwner ? "disabled" : ""}
+                            >
+                        </div>
+
+                        <div>
+                            <label>
+                                Szerepkör
+                            </label>
+
+                            <select
+                                class="edit-role"
+                                ${
+                                    roleSelectDisabled
+                                        ? "disabled"
+                                        : ""
+                                }
+                            >
+                                <option
+                                    value="viewer"
+                                    ${
+                                        user.role === "viewer"
+                                            ? "selected"
+                                            : ""
+                                    }
+                                >
+                                    Megtekintő
+                                </option>
+
+                                <option
+                                    value="editor"
+                                    ${
+                                        user.role === "editor"
+                                            ? "selected"
+                                            : ""
+                                    }
+                                >
+                                    Szerkesztő
+                                </option>
+
+                                <option
+                                    value="admin"
+                                    ${
+                                        user.role === "admin"
+                                            ? "selected"
+                                            : ""
+                                    }
+                                >
+                                    Adminisztrátor
+                                </option>
+
+                                ${
+                                    isOwner
+                                        ? `
+                                            <option
+                                                value="owner"
+                                                selected
+                                            >
+                                                Tulajdonos
+                                            </option>
+                                        `
+                                        : ""
+                                }
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>
+                                Tagság
+                            </label>
+
+                            <div class="checkbox-row">
+                                <input
+                                    class="edit-active"
+                                    type="checkbox"
+                                    ${
+                                        user.membership_is_active
+                                            ? "checked"
+                                            : ""
+                                    }
+                                    ${
+                                        activeDisabled
+                                            ? "disabled"
+                                            : ""
+                                    }
+                                >
+
+                                <span>
+                                    Aktív
+                                </span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="actions">
+                        <button
+                            type="button"
+                            class="primary save-user"
+                            ${isOwner ? "disabled" : ""}
+                        >
+                            Mentés
+                        </button>
+                    </div>
+
+                    <div
+                        class="status row-status"
+                    ></div>
+                `;
+
+                const saveButton =
+                    card.querySelector(
+                        ".save-user"
+                    );
+
+                if (!isOwner) {
+                    saveButton.addEventListener(
+                        "click",
+                        () => saveUser(
+                            user,
+                            card
+                        )
+                    );
+                }
+
+                usersList.appendChild(
+                    card
+                );
+            }
+        }
+
+
+        async function loadUsers() {
+            setStatus(
+                usersStatus,
+                "Betöltés..."
+            );
+
+            try {
+                const users =
+                    await apiFetch(
+                        `/admin/households/${
+                            activeHousehold.id
+                        }/users`
+                    );
+
+                renderUsers(users);
+
+                usersStatus.style.display =
+                    "none";
+
+            } catch (error) {
+                setStatus(
+                    usersStatus,
+                    `❌ ${error.message}`,
+                    "error"
+                );
+            }
+        }
+
+
+        async function saveUser(
+            originalUser,
+            card
+        ) {
+            const nameInput =
+                card.querySelector(
+                    ".edit-name"
+                );
+
+            const roleInput =
+                card.querySelector(
+                    ".edit-role"
+                );
+
+            const activeInput =
+                card.querySelector(
+                    ".edit-active"
+                );
+
+            const status =
+                card.querySelector(
+                    ".row-status"
+                );
+
+            const saveButton =
+                card.querySelector(
+                    ".save-user"
+                );
+
+            const payload = {};
+
+            const newName =
+                nameInput.value.trim();
+
+            if (
+                newName
+                !== originalUser.display_name
+            ) {
+                payload.display_name =
+                    newName;
+            }
+
+            if (
+                !roleInput.disabled
+                && roleInput.value
+                !== originalUser.role
+            ) {
+                payload.role =
+                    roleInput.value;
+            }
+
+            if (
+                !activeInput.disabled
+                && activeInput.checked
+                !== originalUser
+                    .membership_is_active
+            ) {
+                payload.membership_is_active =
+                    activeInput.checked;
+            }
+
+            if (
+                Object.keys(payload).length
+                === 0
+            ) {
+                setStatus(
+                    status,
+                    "Nincs módosítás."
+                );
+
+                return;
+            }
+
+            saveButton.disabled = true;
+
+            setStatus(
+                status,
+                "Mentés..."
+            );
+
+            try {
+                await apiFetch(
+                    `/admin/households/${
+                        activeHousehold.id
+                    }/users/${
+                        originalUser.user_id
+                    }`,
+                    {
+                        method: "PATCH",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify(
+                                payload
+                            )
+                    }
+                );
+
+                setStatus(
+                    status,
+                    "✅ Mentve.",
+                    "success"
+                );
+
+                await loadUsers();
+
+            } catch (error) {
+                setStatus(
+                    status,
+                    `❌ ${error.message}`,
+                    "error"
+                );
+
+            } finally {
+                saveButton.disabled = false;
+            }
+        }
+
+
+        async function createUser() {
+            const email =
+                newEmail.value.trim();
+
+            const displayName =
+                newDisplayName.value.trim();
+
+            const password =
+                newPassword.value;
+
+            if (
+                !email
+                || !displayName
+                || !password
+            ) {
+                setStatus(
+                    createStatus,
+                    "❌ Tölts ki minden mezőt.",
+                    "error"
+                );
+
+                return;
+            }
+
+            if (password.length < 12) {
+                setStatus(
+                    createStatus,
+                    (
+                        "❌ A jelszó legalább "
+                        + "12 karakter legyen."
+                    ),
+                    "error"
+                );
+
+                return;
+            }
+
+            createUserButton.disabled =
+                true;
+
+            setStatus(
+                createStatus,
+                "Létrehozás..."
+            );
+
+            try {
+                await apiFetch(
+                    `/admin/households/${
+                        activeHousehold.id
+                    }/users`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            email,
+                            display_name:
+                                displayName,
+                            password,
+                            role:
+                                newRole.value
+                        })
+                    }
+                );
+
+                newEmail.value = "";
+                newDisplayName.value = "";
+                newPassword.value = "";
+                newRole.value = "viewer";
+
+                setStatus(
+                    createStatus,
+                    "✅ Felhasználó létrehozva.",
+                    "success"
+                );
+
+                await loadUsers();
+
+            } catch (error) {
+                setStatus(
+                    createStatus,
+                    `❌ ${error.message}`,
+                    "error"
+                );
+
+            } finally {
+                createUserButton.disabled =
+                    false;
+            }
+        }
+
+
+        createUserButton.addEventListener(
+            "click",
+            createUser
+        );
+
+
+        logoutButton.addEventListener(
+            "click",
+            async () => {
+                try {
+                    await fetch(
+                        "/auth/logout",
+                        {
+                            method: "POST"
+                        }
+                    );
+                } finally {
+                    window.location.href =
+                        "/ui/login.html";
+                }
+            }
+        );
+
+
+        async function initialize() {
+            try {
+                await loadContext();
+                await loadUsers();
+
+            } catch (error) {
+                console.error(
+                    "Admin inicializálási hiba:",
+                    error
+                );
+            }
+        }
+
+
+        initialize();
+    </script>
+</body>
+</html>

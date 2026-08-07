@@ -1,7 +1,6 @@
 from io import BytesIO
 
 import pytest
-from PIL import Image
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -11,12 +10,10 @@ from main import app
 
 from PIL import Image
 
-from app.core.security import hash_password
 from app.models import (
     Category,
     CategoryField,
     Household,
-    HouseholdMember,
     User,
 )
 
@@ -33,9 +30,6 @@ def create_test_household(
     session.flush()
 
     return household
-
-
-TEST_PASSWORD = "Items-api-test-123"
 
 
 def create_test_user(
@@ -94,8 +88,21 @@ def bypass_items_authorization(
         lambda **kwargs: None,
     )
 
+    monkeypatch.setattr(
+        "app.api.routers.item_images."
+        "require_household_viewer_by_id",
+        lambda **kwargs: None,
+    )
+
+    monkeypatch.setattr(
+        "app.api.routers.item_images."
+        "require_household_editor_by_id",
+        lambda **kwargs: None,
+    )
+
     try:
         yield
+
     finally:
         app.dependency_overrides.pop(
             get_current_user,

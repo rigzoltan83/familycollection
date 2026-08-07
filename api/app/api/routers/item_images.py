@@ -11,7 +11,13 @@ from fastapi import (
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import (
+    get_current_user,
+    require_household_editor_by_id,
+    require_household_viewer_by_id,
+)
 from app.core.database import get_db_session
+from app.models import User
 from app.services import (
     ImageStorageError,
     get_item_image_by_public_id,
@@ -65,6 +71,9 @@ def _build_item_image_response(
 def update_item_image_endpoint(
     image_public_id: str,
     request: ItemImageUpdateRequest,
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> ItemImageResponse:
     image = get_item_image_by_public_id(
@@ -77,6 +86,13 @@ def update_item_image_endpoint(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="A kép nem található.",
         )
+
+    require_household_editor_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=image.item.household_id,
+    )
+
 
     try:
         updated_image = update_item_image(
@@ -118,6 +134,9 @@ def update_item_image_endpoint(
 )
 def delete_item_image_endpoint(
     image_public_id: str,
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> None:
     image = get_item_image_by_public_id(
@@ -130,6 +149,12 @@ def delete_item_image_endpoint(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="A kép nem található.",
         )
+
+    require_household_editor_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=image.item.household_id,
+    )
 
     stored_filename = image.stored_filename
 
@@ -163,6 +188,9 @@ def delete_item_image_endpoint(
 )
 def get_item_image_content(
     image_public_id: str,
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> FileResponse:
     image = get_item_image_by_public_id(
@@ -175,6 +203,12 @@ def get_item_image_content(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="A kép nem található.",
         )
+
+    require_household_viewer_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=image.item.household_id,
+    )
 
     try:
         image_path = resolve_item_image_path(
@@ -213,6 +247,9 @@ def get_item_image_content(
 )
 def get_item_image_thumbnail(
     image_public_id: str,
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> FileResponse:
     image = get_item_image_by_public_id(
@@ -225,6 +262,12 @@ def get_item_image_thumbnail(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="A kép nem található.",
         )
+
+    require_household_viewer_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=image.item.household_id,
+    )
 
     try:
         thumbnail_path = (
