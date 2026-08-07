@@ -37,6 +37,10 @@ from app.models import (
     LegacyBookMigration,
     StorageLocation,
 )
+from app.api.dependencies import (
+    require_current_household_editor,
+    require_current_household_viewer,
+)
 from app.core.database import get_db_session
 from app.services import (
     get_book_by_legacy_id,
@@ -132,6 +136,9 @@ def places():
 @app.post("/scan")
 def scan(
     req: ScanRequest,
+    _membership=Depends(
+        require_current_household_editor
+    ),
     session: Session = Depends(get_db_session),
 ):
     clean_isbn = (
@@ -403,6 +410,9 @@ def scan(
 @app.post("/books/manual")
 def add_manual_book(
     req: ManualBookRequest,
+    _membership=Depends(
+        require_current_household_editor
+    ),
     session: Session = Depends(get_db_session),
 ):
     identifier = req.identifier.strip()
@@ -595,6 +605,9 @@ def add_manual_book(
 @app.post("/books/manual-isbn")
 def add_manual_isbn_book(
     req: ManualIsbnBookRequest,
+    _membership=Depends(
+        require_current_household_editor
+    ),
     session: Session = Depends(get_db_session),
 ):
     clean_isbn = (
@@ -850,6 +863,9 @@ def add_manual_isbn_book(
 
 @app.get("/books/latest")
 def latest(
+    _membership=Depends(
+        require_current_household_viewer
+    ),
     session: Session = Depends(get_db_session),
 ):
     records = list_latest_books(
@@ -886,6 +902,9 @@ def all_books(
     page: int = 1,
     page_size: int = 50,
     search: str = "",
+    _membership=Depends(
+        require_current_household_viewer
+    ),
     session: Session = Depends(get_db_session),
 ):
     normalized_page = max(1, page)
@@ -946,6 +965,9 @@ def all_books(
 @app.delete("/books/{book_id}")
 def delete_book(
     book_id: int,
+    _membership=Depends(
+        require_current_household_editor
+    ),
     session: Session = Depends(get_db_session),
 ):
     try:
@@ -980,6 +1002,9 @@ def delete_book(
 
 @app.get("/books/export.csv")
 def export_books_csv(
+    _membership=Depends(
+        require_current_household_viewer
+    ),
     session: Session = Depends(get_db_session),
 ):
     records = list_all_books_for_export(
@@ -1091,6 +1116,9 @@ def export_books_csv(
 @app.get("/books/{book_id}")
 def get_book(
     book_id: int,
+    _membership=Depends(
+        require_current_household_viewer
+    ),
     session: Session = Depends(get_db_session),
 ):
     try:
@@ -1139,6 +1167,9 @@ def get_book(
 def update_book(
     book_id: int,
     req: EditBookRequest,
+    _membership=Depends(
+        require_current_household_editor
+    ),
     session: Session = Depends(get_db_session),
 ):
     clean_isbn = (

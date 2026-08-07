@@ -11,6 +11,11 @@ from fastapi import (
     UploadFile,
     status,
 )
+from app.api.dependencies import (
+    get_current_user,
+    require_household_viewer_by_id,
+    require_household_editor_by_id,
+)
 from sqlalchemy import exists, func, select
 from sqlalchemy.orm import Session, selectinload
 
@@ -21,6 +26,7 @@ from app.models import (
     ItemFieldValue,
     ItemIdentifier,
     ItemImage,
+    User,
 )
 from app.schemas import (
     CollectionItemCreateRequest,
@@ -148,8 +154,17 @@ def list_items(
     sort_direction: str = "asc",
     limit: int = 50,
     offset: int = 0,
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> CollectionItemListResponse:
+    require_household_viewer_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=household_id,
+    )
+
     if household_id <= 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -342,8 +357,16 @@ def list_items(
 )
 def create_item(
     request: CollectionItemCreateRequest,
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> CollectionItemResponse:
+    require_household_editor_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=request.household_id,
+    )
     try:
         item = create_collection_item(
             session=session,
@@ -397,6 +420,9 @@ def create_item(
 def update_item(
     public_id: str,
     request: CollectionItemUpdateRequest,
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> CollectionItemResponse:
     item = session.scalar(
@@ -415,6 +441,12 @@ def update_item(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="A gyűjteményi elem nem található.",
         )
+
+    require_household_editor_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=item.household_id,
+    )
 
     try:
         updated_item = update_collection_item(
@@ -478,6 +510,9 @@ async def upload_item_image(
     caption: str | None = Form(default=None),
     is_primary: bool | None = Form(default=None),
     sort_order: int = Form(default=0),
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> ItemImageResponse:
     item = session.scalar(
@@ -492,6 +527,12 @@ async def upload_item_image(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="A gyűjteményi elem nem található.",
         )
+
+    require_household_editor_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=item.household_id,
+    )
 
     if sort_order < 0:
         raise HTTPException(
@@ -576,6 +617,9 @@ async def upload_item_image(
 )
 def get_item_images(
     public_id: str,
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> list[ItemImageResponse]:
     item = session.scalar(
@@ -590,6 +634,12 @@ def get_item_images(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="A gyűjteményi elem nem található.",
         )
+
+    require_household_viewer_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=item.household_id,
+    )
 
     images = list_item_images(
         session=session,
@@ -608,6 +658,9 @@ def get_item_images(
 )
 def get_item(
     public_id: str,
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> CollectionItemResponse:
     item = session.scalar(
@@ -630,6 +683,12 @@ def get_item(
             detail="A gyűjteményi elem nem található.",
         )
 
+    require_household_viewer_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=item.household_id,
+    )
+
     return _build_item_response(item)
 
 @router.delete(
@@ -638,6 +697,9 @@ def get_item(
 )
 def delete_item(
     public_id: str,
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> None:
     item = session.scalar(
@@ -653,6 +715,12 @@ def delete_item(
             detail="A gyűjteményi elem nem található.",
         )
 
+    require_household_editor_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=item.household_id,
+    )
+
     item.is_active = False
 
     session.commit()
@@ -663,6 +731,9 @@ def delete_item(
 )
 def restore_item(
     public_id: str,
+    current_user: User = Depends(
+        get_current_user
+    ),
     session: Session = Depends(get_db_session),
 ) -> CollectionItemResponse:
     item = session.scalar(
@@ -677,6 +748,12 @@ def restore_item(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="A törölt gyűjteményi elem nem található.",
         )
+
+    require_household_editor_by_id(
+        session=session,
+        current_user=current_user,
+        household_id=item.household_id,
+    )
 
     item.is_active = True
 

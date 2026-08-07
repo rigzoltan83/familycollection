@@ -1,17 +1,24 @@
 from io import BytesIO
 
+import pytest
 from PIL import Image
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user
+from main import app
+
+from PIL import Image
+
+from app.core.security import hash_password
 from app.models import (
     Category,
     CategoryField,
     Household,
+    HouseholdMember,
     User,
 )
-
 
 def create_test_household(
     session: Session,
@@ -26,6 +33,9 @@ def create_test_household(
     session.flush()
 
     return household
+
+
+TEST_PASSWORD = "Items-api-test-123"
 
 
 def create_test_user(
@@ -44,6 +54,53 @@ def create_test_user(
     session.flush()
 
     return user
+
+@pytest.fixture(autouse=True)
+def bypass_items_authorization(
+    test_client: TestClient,
+    monkeypatch,
+):
+    """
+    Az items API funkcionális tesztjeiben
+    az autentikációt és jogosultságot nem
+    teszteljük újra.
+
+    A valódi jogosultsági viselkedést külön
+    authorization tesztek ellenőrzik.
+    """
+    test_user = User(
+        id=999999,
+        email="items-auth-bypass@example.com",
+        password_hash="unused",
+        display_name="Items auth bypass",
+        is_active=True,
+        is_platform_admin=False,
+        email_verified=True,
+    )
+
+    app.dependency_overrides[
+        get_current_user
+    ] = lambda: test_user
+
+    monkeypatch.setattr(
+        "app.api.routers.items."
+        "require_household_viewer_by_id",
+        lambda **kwargs: None,
+    )
+
+    monkeypatch.setattr(
+        "app.api.routers.items."
+        "require_household_editor_by_id",
+        lambda **kwargs: None,
+    )
+
+    try:
+        yield
+    finally:
+        app.dependency_overrides.pop(
+            get_current_user,
+            None,
+        )
 
 
 def create_test_book_category(

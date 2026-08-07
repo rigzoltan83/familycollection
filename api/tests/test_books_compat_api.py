@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -15,10 +16,51 @@ from app.models import (
     LegacyBookMigration,
     StorageLocation,
 )
+from app.api.dependencies import (
+    require_current_household_editor,
+    require_current_household_viewer,
+)
+from main import app
 from app.services import (
     ItemImageCreateInput,
     create_item_image,
 )
+
+@pytest.fixture(autouse=True)
+def bypass_books_authorization(
+    test_client: TestClient,
+):
+    """
+    A legacy books kompatibilitási tesztekben
+    az autentikációt nem teszteljük újra.
+
+    A jogosultsági viselkedést külön
+    test_books_authorization.py ellenőrzi.
+    """
+
+    def allow_access():
+        return object()
+
+    app.dependency_overrides[
+        require_current_household_viewer
+    ] = allow_access
+
+    app.dependency_overrides[
+        require_current_household_editor
+    ] = allow_access
+
+    try:
+        yield
+    finally:
+        app.dependency_overrides.pop(
+            require_current_household_viewer,
+            None,
+        )
+
+        app.dependency_overrides.pop(
+            require_current_household_editor,
+            None,
+        )
 
 def create_test_household(
     session: Session,
