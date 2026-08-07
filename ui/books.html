@@ -151,6 +151,12 @@ header input {
     flex-direction: column;
 }
 
+
+.book-card-mobile-bottom {
+    margin-top: auto;
+}
+
+
 .book-card-content .actions {
     margin-top: auto;
     padding-top: 12px;
@@ -602,25 +608,72 @@ header input {
         min-width: 85px;
     }
     .book-card-layout {
+        grid-template-columns: 90px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+    }
+
+    .book-card-content {
+        display: contents;
+    }
+
+    .title-row {
+        grid-column: 2;
+        grid-row: 1;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .grid {
+        grid-column: 2;
+        grid-row: 2;
         grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .book-card-mobile-bottom {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        margin-top: 0;
     }
 
     .book-card-cover {
-        width: 100%;
-        max-width: 240px;
-        height: 300px;
-        min-height: 0;
-        margin: 0 auto;
+        grid-column: 1;
+        grid-row: 1 / 3;
+        width: 90px;
+        height: 135px;
+        min-height: 135px;
+        margin: 0;
     }
 
     .book-card-cover img {
-        height: 300px;
-        min-height: 0;
-        object-fit: contain;
+        width: 100%;
+        height: 135px;
+        min-height: 135px;
+        object-fit: cover;
     }
 
     .book-card-cover-empty {
-        min-height: 300px;
+        min-height: 135px;
+        padding: 6px;
+        font-size: 10px;
+    }
+
+    .book-card-cover-empty-icon {
+        font-size: 24px;
+    }
+    .title-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .author {
+        text-align: left;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 5px;
     }
 }
 </style>
@@ -1144,81 +1197,120 @@ if (currentSearch.trim()) {
         card.className =
             `card ${status.cardClass}`.trim();
 
+
         card.innerHTML = `
             <div class="book-card-layout">
                 ${coverHtml}
 
                 <div class="book-card-content">
+
                     <div class="title-row">
-                <div class="title">
-                    ${escapeHtml(
-                        book.title ||
-                        book.isbn ||
-                        "Névtelen könyv"
-                    )}
-                </div>
+                        <div class="title">
+                            ${escapeHtml(
+                                book.title ||
+                                book.isbn ||
+                                "Névtelen könyv"
+                            )}
+                        </div>
 
-                <div class="author">
-                    ${escapeHtml(book.author || "-")}
+                        <div class="author">
+                            ${escapeHtml(
+                                book.author || "-"
+                            )}
+                        </div>
+                    </div>
+
+                    <div class="grid">
+                        <div>
+                            <span class="label">
+                                Egyedi index:
+                            </span>
+                            ${escapeHtml(
+                                book.id ?? "-"
+                            )}
+                        </div>
+
+                        <div>
+                            <span class="label">
+                                ISBN:
+                            </span>
+                            ${escapeHtml(
+                                book.isbn || "-"
+                            )}
+                        </div>
+
+                        <div>
+                            <span class="label">
+                                Kiadó:
+                            </span>
+                            ${escapeHtml(
+                                book.publisher || "-"
+                            )}
+                        </div>
+
+                        <div>
+                            <span class="label">
+                                Kiadás éve:
+                            </span>
+                            ${escapeHtml(
+                                book.year || "-"
+                            )}
+                        </div>
+
+                        <div>
+                            <span class="label">
+                                Felvéve:
+                            </span>
+                            ${escapeHtml(
+                                formatDate(
+                                    book.added
+                                )
+                            )}
+                        </div>
+                    </div>
+
+                    <div class="book-card-mobile-bottom">
+                        <div class="location">
+                            <div>
+                                <span class="label">
+                                    Hely:
+                                </span>
+                                ${escapeHtml(
+                                    getLocation(book)
+                                )}
+                            </div>
+
+                            <div
+                                class="${status.textClass}"
+                            >
+                                ${escapeHtml(
+                                    status.text
+                                )}
+                            </div>
+                        </div>
+
+                        <div class="actions">
+                            <button
+                                type="button"
+                                class="edit"
+                                onclick="editBook(${bookId})"
+                            >
+                                ✏️ Szerkesztés
+                            </button>
+
+                            <button
+                                type="button"
+                                class="del"
+                                onclick="deleteBook(${bookId})"
+                            >
+                                🗑️ Törlés
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-
-            <div class="grid">
-                <div>
-                    <span class="label">Egyedi index:</span>
-                    ${escapeHtml(book.id ?? "-")}
-                </div>
-
-                <div>
-                    <span class="label">ISBN:</span>
-                    ${escapeHtml(book.isbn || "-")}
-                </div>
-
-                <div>
-                    <span class="label">Kiadó:</span>
-                    ${escapeHtml(book.publisher || "-")}
-                </div>
-
-                <div>
-                    <span class="label">Kiadás éve:</span>
-                    ${escapeHtml(book.year || "-")}
-                </div>
-
-                <div>
-                    <span class="label">Felvéve:</span>
-                    ${escapeHtml(formatDate(book.added))}
-                </div>
-            </div>
-
-            <div class="location">
-                <div>
-                    <span class="label">Hely:</span>
-                    ${escapeHtml(getLocation(book))}
-                </div>
-
-                <div class="${status.textClass}">
-                    ${escapeHtml(status.text)}
-                </div>
-            </div>
-
-            <div class="actions">
-                <button
-                    type="button"
-                    class="edit"
-                    onclick="editBook(${bookId})">
-                    ✏️ Szerkesztés
-                </button>
-
-                <button
-                    type="button"
-                    class="del"
-                    onclick="deleteBook(${bookId})">
-                    🗑️ Törlés
-                </button>
-            </div>
-</div>        
-</div>
-`;
+        `;
 
         list.appendChild(card);
     });
