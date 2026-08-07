@@ -13,6 +13,7 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user
 from app.core.database import get_db_session
 from app.models import User
 from app.schemas import (
@@ -75,38 +76,18 @@ def login(
     "/me",
     response_model=AuthenticatedUserResponse,
 )
-def get_current_user(
-    request: Request,
-    session: Session = Depends(get_db_session),
+def get_me(
+    current_user: User = Depends(
+        get_current_user
+    ),
 ) -> AuthenticatedUserResponse:
     """
     Az aktuálisan bejelentkezett felhasználó.
     """
-    user_id = request.session.get(
-        "user_id"
-    )
-
-    if not isinstance(user_id, int):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Nincs bejelentkezve.",
+    return (
+        AuthenticatedUserResponse.model_validate(
+            current_user
         )
-
-    user = session.get(
-        User,
-        user_id,
-    )
-
-    if user is None or not user.is_active:
-        request.session.clear()
-
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Nincs bejelentkezve.",
-        )
-
-    return AuthenticatedUserResponse.model_validate(
-        user
     )
 
 
