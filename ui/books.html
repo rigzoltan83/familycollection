@@ -878,7 +878,10 @@ header input {
 
 let allBooks = [];
 
+let canEditBooks = false;
+
 let editorStorageLocations = [];
+
 let editorStorageByPublicId = new Map();
 
 let editorImages = [];
@@ -903,6 +906,60 @@ function escapeHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+}
+
+async function loadBookPagePermissions() {
+    const response =
+        await fetch("/auth/context");
+
+    if (response.status === 401) {
+        window.location.href =
+            "/ui/login.html";
+
+        return false;
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            `HTTP ${response.status}`
+        );
+    }
+
+    const context =
+        await response.json();
+
+    const storedHouseholdId =
+        Number(
+            localStorage.getItem(
+                "activeHouseholdId"
+            )
+        );
+
+    const household =
+        context.households.find(
+            item =>
+                item.id === storedHouseholdId
+        )
+        || context.households[0]
+        || null;
+
+    if (!household) {
+        throw new Error(
+            "Nincs aktív háztartási tagság."
+        );
+    }
+
+    localStorage.setItem(
+        "activeHouseholdId",
+        String(household.id)
+    );
+
+    canEditBooks =
+        household.role === "editor"
+        || household.role === "admin"
+        || household.role === "owner";
+
+    return true;
 }
 
 function normalizeText(value) {
@@ -1198,6 +1255,27 @@ if (currentSearch.trim()) {
             `card ${status.cardClass}`.trim();
 
 
+        const actionButtonsHtml =
+            canEditBooks
+                ? `
+                    <button
+                        type="button"
+                        class="edit"
+                        onclick="editBook(${bookId})"
+                    >
+                        ✏️ Szerkesztés
+                    </button>
+
+                    <button
+                        type="button"
+                        class="del"
+                        onclick="deleteBook(${bookId})"
+                    >
+                        🗑️ Törlés
+                    </button>
+                `
+                : "";
+
         card.innerHTML = `
             <div class="book-card-layout">
                 ${coverHtml}
@@ -1348,6 +1426,14 @@ function renderPagination() {
 ----------------------- */
 
 async function deleteBook(id) {
+    if (!canEditBooks) {
+        alert(
+            "Ehhez a művelethez szerkesztői jogosultság szükséges."
+        );
+
+        return;
+    }
+
     if (!Number.isInteger(id) || id <= 0) {
         alert("Hibás könyvindex.");
         return;
@@ -1796,6 +1882,14 @@ editImageFilesInput.addEventListener(
 );
 
 async function editBook(id) {
+    if (!canEditBooks) {
+        alert(
+            "Ehhez a művelethez szerkesztői jogosultság szükséges."
+        );
+
+        return;
+    }
+
     if (!Number.isInteger(id) || id <= 0) {
         alert("Hibás könyvindex.");
         return;
@@ -2785,7 +2879,41 @@ document
         }, 350);
     });
 
-loadBooks();
+async function initializeBooksPage() {
+    try {
+        const permissionLoaded =
+            await loadBookPagePermissions();
+
+        if (!permissionLoaded) {
+            return;
+        }
+
+        await loadBooks();
+
+    } catch (error) {
+        console.error(
+            "Könyvlista inicializálási hiba:",
+            error
+        );
+
+        const list =
+            document.getElementById(
+                "list"
+            );
+
+        if (list) {
+            list.innerHTML = `
+                <div class="empty">
+                    ❌ Nem sikerült betölteni
+                    a jogosultsági adatokat.
+                </div>
+            `;
+        }
+    }
+}
+
+initializeBooksPage();
+
 </script>
 
 </body>

@@ -2656,13 +2656,72 @@ missingMetadataTitle.addEventListener(
 // --------------------------------------------------
 
 async function initialize() {
-    await loadStorageTree();
-    await loadLatest();
+    try {
+        const response =
+            await fetch("/auth/context");
 
-    if (place?.value) {
-        isbn?.focus();
-    } else {
-        place?.focus();
+        if (response.status === 401) {
+            window.location.href =
+                "/ui/login.html";
+
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+        }
+
+        const context =
+            await response.json();
+
+        const storedHouseholdId =
+            Number(
+                localStorage.getItem(
+                    "activeHouseholdId"
+                )
+            );
+
+        const household =
+            context.households.find(
+                item =>
+                    item.id === storedHouseholdId
+            )
+            || context.households[0]
+            || null;
+
+        if (!household) {
+            window.location.href =
+                "/ui/dashboard.html";
+
+            return;
+        }
+
+        if (household.role === "viewer") {
+            window.location.href =
+                "/ui/books.html";
+
+            return;
+        }
+
+        await loadStorageTree();
+        await loadLatest();
+
+        if (place?.value) {
+            isbn?.focus();
+        } else {
+            place?.focus();
+        }
+
+    } catch (error) {
+        console.error(
+            "Indítási jogosultsági hiba:",
+            error
+        );
+
+        window.location.href =
+            "/ui/dashboard.html";
     }
 }
 

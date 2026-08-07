@@ -196,10 +196,12 @@
             class="menu-grid"
             style="display:none"
         >
-            <a
-                class="menu-card"
-                href="/ui/index.html"
-            >
+<a
+    id="booksAddCard"
+    class="menu-card"
+    href="/ui/index.html"
+    style="display:none"
+>
                 <div class="menu-icon">
                     📚
                 </div>
@@ -284,6 +286,11 @@
                 "menuGrid"
             );
 
+const booksAddCard =
+    document.getElementById(
+        "booksAddCard"
+    );
+
         const adminCard =
             document.getElementById(
                 "adminCard"
@@ -366,6 +373,15 @@
 
                 householdBox.style.display =
                     "";
+
+if (
+    household.role === "editor"
+    || household.role === "admin"
+    || household.role === "owner"
+) {
+    booksAddCard.style.display =
+        "block";
+}
 
                 if (
                     household.role === "admin"
