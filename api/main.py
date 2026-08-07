@@ -24,6 +24,9 @@ from metadata import fetch_book
 from app.api.routers.admin_users import (
     router as admin_users_router,
 )
+from app.api.routers.admin_categories import (
+    router as admin_categories_router,
+)
 from app.api.routers.auth import router as auth_router
 from app.api.routers.item_images import (
     router as item_images_router,
@@ -67,6 +70,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(admin_users_router)
+app.include_router(admin_categories_router)
 app.include_router(items_router)
 app.include_router(item_images_router)
 app.include_router(storage_router)

@@ -9,6 +9,13 @@ from app.services.admin_users import (
     list_household_users,
     update_household_user,
 )
+from app.services.admin_categories import (
+    create_household_category,
+    list_household_categories,
+    normalize_category_name,
+    slugify_category_name,
+    update_household_category,
+)
 from app.services.collection_items import (
     CollectionItemCreateInput,
     CollectionItemUpdateInput,
@@ -82,6 +89,11 @@ __all__ = [
     "normalize_email",
     "CollectionItemCreateInput",
     "CollectionItemUpdateInput",
+    "create_household_category",
+    "list_household_categories",
+    "normalize_category_name",
+    "slugify_category_name",
+    "update_household_category",
     "HouseholdUserRecord",
     "create_household_user",
     "list_household_users",
