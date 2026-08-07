@@ -16,6 +16,7 @@ from app.services import (
     ImageStorageError,
     get_item_image_by_public_id,
     resolve_item_image_path,
+    resolve_item_image_thumbnail_path,
     ItemImageUpdateInput,
     update_item_image,
     delete_item_image,
@@ -197,6 +198,62 @@ def get_item_image_content(
     return FileResponse(
         path=image_path,
         media_type=image.mime_type,
+        filename=None,
+        headers={
+            "Cache-Control":
+                "public, max-age=86400",
+        },
+    )
+
+
+@router.get(
+    "/{image_public_id}/thumbnail",
+    response_class=FileResponse,
+)
+def get_item_image_thumbnail(
+    image_public_id: str,
+    session: Session = Depends(get_db_session),
+) -> FileResponse:
+    image = get_item_image_by_public_id(
+        session=session,
+        public_id=image_public_id,
+    )
+
+    if image is None or not image.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="A kép nem található.",
+        )
+
+    try:
+        thumbnail_path = (
+            resolve_item_image_thumbnail_path(
+                image.stored_filename
+            )
+        )
+
+    except ImageStorageError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=(
+                "A kép bélyegképe nem található."
+            ),
+        ) from error
+
+    if (
+        not thumbnail_path.exists()
+        or not thumbnail_path.is_file()
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=(
+                "A kép bélyegképe nem található."
+            ),
+        )
+
+    return FileResponse(
+        path=thumbnail_path,
+        media_type="image/webp",
         filename=None,
         headers={
             "Cache-Control":

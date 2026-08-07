@@ -1348,12 +1348,38 @@ def test_upload_item_image_api(
         tmp_path.rglob("*.webp")
     )
 
-    assert len(stored_files) == 1
+    assert len(stored_files) == 2
 
-    with Image.open(stored_files[0]) as stored_image:
+    original_files = [
+        path
+        for path in stored_files
+        if not path.name.endswith(
+            ".thumb.webp"
+        )
+    ]
+
+    thumbnail_files = [
+        path
+        for path in stored_files
+        if path.name.endswith(
+            ".thumb.webp"
+        )
+    ]
+
+    assert len(original_files) == 1
+    assert len(thumbnail_files) == 1
+
+    with Image.open(
+        original_files[0]
+    ) as stored_image:
         assert stored_image.format == "WEBP"
         assert stored_image.size == (320, 240)
 
+    with Image.open(
+        thumbnail_files[0]
+    ) as thumbnail_image:
+        assert thumbnail_image.format == "WEBP"
+        assert thumbnail_image.size == (320, 240)
 
 def test_upload_item_image_rejects_invalid_file(
     test_client: TestClient,
@@ -1594,6 +1620,102 @@ def test_get_item_image_content_api(
     ) as returned_image:
         assert returned_image.format == "WEBP"
         assert returned_image.size == (160, 120)
+
+
+def test_get_item_image_thumbnail_api(
+    test_client: TestClient,
+    db_session: Session,
+    tmp_path,
+    monkeypatch,
+) -> None:
+    from io import BytesIO
+
+    from PIL import Image
+
+    from app.services import image_storage
+
+    monkeypatch.setattr(
+        image_storage,
+        "ITEM_IMAGE_ROOT",
+        tmp_path,
+    )
+
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    create_response = test_client.post(
+        "/items",
+        json={
+            "household_id": household.id,
+            "category_id": category.id,
+            "title": "Thumbnail API teszt",
+        },
+    )
+
+    assert create_response.status_code == 201
+
+    item_public_id = (
+        create_response.json()["public_id"]
+    )
+
+    image = Image.new(
+        "RGB",
+        (1200, 800),
+        "white",
+    )
+
+    buffer = BytesIO()
+
+    image.save(
+        buffer,
+        format="JPEG",
+    )
+
+    image.close()
+
+    upload_response = test_client.post(
+        f"/items/{item_public_id}/images",
+        files={
+            "file": (
+                "large-cover.jpg",
+                buffer.getvalue(),
+                "image/jpeg",
+            ),
+        },
+    )
+
+    assert upload_response.status_code == 201
+
+    image_public_id = (
+        upload_response.json()["public_id"]
+    )
+
+    response = test_client.get(
+        (
+            f"/item-images/"
+            f"{image_public_id}"
+            f"/thumbnail"
+        )
+    )
+
+    assert response.status_code == 200
+    assert response.headers[
+        "content-type"
+    ].startswith("image/webp")
+
+    with Image.open(
+        BytesIO(response.content)
+    ) as thumbnail:
+        assert thumbnail.format == "WEBP"
+        assert thumbnail.size == (
+            400,
+            267,
+        )
 
 
 def test_get_item_image_content_returns_404_for_unknown_image(
@@ -2339,7 +2461,22 @@ def test_delete_item_image_api(
         tmp_path.rglob("*.webp")
     )
 
-    assert len(stored_files) == 1
+    assert len(stored_files) == 2
+
+    assert any(
+        path.name.endswith(
+            ".thumb.webp"
+        )
+        for path in stored_files
+    )
+
+    assert any(
+        not path.name.endswith(
+            ".thumb.webp"
+        )
+        for path in stored_files
+    )
+
     assert stored_files[0].is_file()
 
     response = test_client.delete(
