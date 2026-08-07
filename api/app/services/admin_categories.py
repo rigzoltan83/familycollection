@@ -180,6 +180,48 @@ def list_household_categories(
     )
 
 
+def list_available_household_categories(
+    session: Session,
+    household_id: int,
+) -> list[Category]:
+    """
+    Visszaadja az adott háztartás számára
+    használható aktív kategóriákat.
+
+    Tartalmazza:
+    - az aktív globális rendszerkategóriákat;
+    - az adott háztartás aktív saját kategóriáit.
+
+    Felhasználói felületekhez használjuk,
+    ezért az inaktív kategóriák nem jelennek meg.
+    """
+    _ensure_household_exists(
+        session=session,
+        household_id=household_id,
+    )
+
+    return list(
+        session.scalars(
+            select(Category)
+            .where(
+                Category.is_active.is_(True),
+                or_(
+                    Category.is_system.is_(
+                        True
+                    ),
+                    Category.household_id
+                    == household_id,
+                ),
+            )
+            .order_by(
+                Category.sort_order.asc(),
+                Category.name.asc(),
+                Category.id.asc(),
+            )
+        )
+    )
+
+
 def create_household_category(
     session: Session,
     *,

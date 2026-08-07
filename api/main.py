@@ -5,6 +5,9 @@ from datetime import datetime
 from fastapi.responses import StreamingResponse
 from pathlib import Path
 
+from app.api.routers.categories import (
+    router as categories_router,
+)
 from fastapi import Depends, FastAPI
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -71,6 +74,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(admin_users_router)
 app.include_router(admin_categories_router)
+app.include_router(categories_router)
 app.include_router(items_router)
 app.include_router(item_images_router)
 app.include_router(storage_router)

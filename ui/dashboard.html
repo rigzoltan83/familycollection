@@ -142,6 +142,25 @@
                 text-align: left;
             }
         }
+.collection-cards {
+    display: contents;
+}
+
+.menu-card.disabled {
+    cursor: default;
+    opacity: 0.65;
+}
+
+.menu-card.disabled:hover {
+    transform: none;
+}
+
+.menu-card-badge {
+    margin-top: 10px;
+    font-size: 13px;
+    opacity: 0.75;
+}
+
     </style>
 </head>
 
@@ -196,43 +215,11 @@
             class="menu-grid"
             style="display:none"
         >
-<a
-    id="booksAddCard"
-    class="menu-card"
-    href="/ui/index.html"
-    style="display:none"
->
-                <div class="menu-icon">
-                    📚
-                </div>
 
-                <div class="menu-title">
-                    Könyvek
-                </div>
-
-                <div class="menu-description">
-                    Könyvek felvitele és
-                    a legutóbb rögzített példányok.
-                </div>
-            </a>
-
-            <a
-                class="menu-card"
-                href="/ui/books.html"
-            >
-                <div class="menu-icon">
-                    🔎
-                </div>
-
-                <div class="menu-title">
-                    Könyvlista
-                </div>
-
-                <div class="menu-description">
-                    A teljes könyvgyűjtemény
-                    keresése és kezelése.
-                </div>
-            </a>
+<div
+    id="collectionCards"
+    class="collection-cards"
+></div>
 
             <a
                 id="adminCard"
@@ -286,9 +273,9 @@
                 "menuGrid"
             );
 
-const booksAddCard =
+const collectionCards =
     document.getElementById(
-        "booksAddCard"
+        "collectionCards"
     );
 
         const adminCard =
@@ -301,17 +288,138 @@ const booksAddCard =
                 "logoutButton"
             );
 
+function roleLabel(role) {
+    const labels = {
+        owner: "Tulajdonos",
+        admin: "Adminisztrátor",
+        editor: "Szerkesztő",
+        viewer: "Megtekintő"
+    };
 
-        function roleLabel(role) {
-            const labels = {
-                owner: "Tulajdonos",
-                admin: "Adminisztrátor",
-                editor: "Szerkesztő",
-                viewer: "Megtekintő"
-            };
+    return labels[role] || role;
+}
 
-            return labels[role] || role;
+
+function categoryIcon(category) {
+
+    if (category.slug === "book") {
+        return "📚";
+    }
+
+    if (
+        category.icon
+        && category.icon.trim()
+    ) {
+        return "🗃️";
+    }
+
+    return "📦";
+}
+
+
+function createMenuCard({
+    title,
+    description,
+    icon,
+    href = null,
+    badge = null,
+}) {
+    const element =
+        href
+            ? document.createElement("a")
+            : document.createElement("div");
+
+    element.className =
+        href
+            ? "menu-card"
+            : "menu-card disabled";
+
+    if (href) {
+        element.href = href;
+    }
+
+    element.innerHTML = `
+        <div class="menu-icon">
+            ${icon}
+        </div>
+
+        <div class="menu-title">
+            ${title}
+        </div>
+
+        <div class="menu-description">
+            ${description}
+        </div>
+
+        ${
+            badge
+                ? `
+                    <div class="menu-card-badge">
+                        ${badge}
+                    </div>
+                `
+                : ""
         }
+    `;
+
+    return element;
+}
+
+
+function renderCategories(
+    categories,
+    householdRole
+) {
+    collectionCards.innerHTML = "";
+
+    const canEdit =
+        householdRole === "editor"
+        || householdRole === "admin"
+        || householdRole === "owner";
+
+    for (const category of categories) {
+        if (category.slug === "book") {
+            if (canEdit) {
+                collectionCards.appendChild(
+                    createMenuCard({
+                        title: "Könyvek",
+                        description:
+                            "Könyvek felvitele és "
+                            + "a legutóbb rögzített példányok.",
+                        icon: "📚",
+                        href: "/ui/index.html",
+                    })
+                );
+            }
+
+            collectionCards.appendChild(
+                createMenuCard({
+                    title: "Könyvlista",
+                    description:
+                        "A teljes könyvgyűjtemény "
+                        + "keresése és megtekintése.",
+                    icon: "🔎",
+                    href: "/ui/books.html",
+                })
+            );
+
+            continue;
+        }
+
+        collectionCards.appendChild(
+            createMenuCard({
+                title: category.name,
+                description:
+                    category.description
+                    || "Saját gyűjtemény.",
+                icon: categoryIcon(category),
+                badge:
+                    "A kezelőfelület következő lépésben készül",
+            })
+        );
+    }
+}
+
 
 
         async function loadContext() {
@@ -361,6 +469,28 @@ const booksAddCard =
                     String(household.id)
                 );
 
+const categoriesResponse =
+    await fetch(
+        `/households/${
+            household.id
+        }/categories`
+    );
+
+if (!categoriesResponse.ok) {
+    throw new Error(
+        "A gyűjtemények betöltése sikertelen: "
+        + `HTTP ${categoriesResponse.status}`
+    );
+}
+
+const categories =
+    await categoriesResponse.json();
+
+renderCategories(
+    categories,
+    household.role
+);
+
                 householdName.textContent =
                     household.name;
 
@@ -374,14 +504,6 @@ const booksAddCard =
                 householdBox.style.display =
                     "";
 
-if (
-    household.role === "editor"
-    || household.role === "admin"
-    || household.role === "owner"
-) {
-    booksAddCard.style.display =
-        "block";
-}
 
                 if (
                     household.role === "admin"
