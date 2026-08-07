@@ -1604,6 +1604,48 @@ async function loadLatest() {
         }
 
         books.forEach(book => {
+            const primaryImageUrl =
+                String(
+                    book.primary_image_url || ""
+                ).trim();
+
+            const primaryThumbnailUrl =
+                primaryImageUrl.replace(
+                    /\/content$/,
+                    "/thumbnail"
+                );
+
+            const coverHtml =
+                primaryThumbnailUrl
+                    ? `
+                        <div class="latest-book-cover">
+                            <img
+                                src="${escapeHtml(
+                                    primaryThumbnailUrl
+                                )}"
+                                alt="${escapeHtml(
+                                    (
+                                        book.title
+                                        || book.isbn
+                                        || "Könyv"
+                                    )
+                                    + " borítóképe"
+                                )}"
+                                loading="lazy"
+                            >
+                        </div>
+                    `
+                    : `
+                        <div
+                            class="
+                                latest-book-cover
+                                latest-book-cover-empty
+                            "
+                        >
+                            📚
+                        </div>
+                    `;
+
             let locationText =
                 "Nincs megadva";
 
@@ -1647,41 +1689,48 @@ parts.push(
             }
 
             latest.innerHTML += `
-                <div class="book">
+                <div class="book latest-book">
 
-                    <div class="book-title">
-                        ${escapeHtml(
-                            book.title ||
-                            book.isbn ||
-                            "Névtelen könyv"
-                        )}
-                    </div>
+                    ${coverHtml}
 
-                    <div class="book-author">
-                        ${escapeHtml(
-                            book.author || "-"
-                        )}
-                    </div>
+                    <div class="latest-book-content">
 
-                    <div class="book-isbn">
-                        ISBN:
-                        ${escapeHtml(
-                            book.isbn || "-"
-                        )}
-                    </div>
+                        <div class="book-title">
+                            ${escapeHtml(
+                                book.title ||
+                                book.isbn ||
+                                "Névtelen könyv"
+                            )}
+                        </div>
 
-                    <div>
-                        📍
-                        ${escapeHtml(locationText)}
-                    </div>
+                        <div class="book-author">
+                            ${escapeHtml(
+                                book.author || "-"
+                            )}
+                        </div>
 
-                    <div class="book-date">
-                        Egyedi index:
-                        ${escapeHtml(book.id)}
+                        <div class="book-isbn">
+                            ISBN:
+                            ${escapeHtml(
+                                book.isbn || "-"
+                            )}
+                        </div>
+
+                        <div class="latest-book-location">
+                            📍
+                            ${escapeHtml(locationText)}
+                        </div>
+
+                        <div class="book-date">
+                            Egyedi index:
+                            ${escapeHtml(book.id)}
+                        </div>
+
                     </div>
 
                 </div>
             `;
+
         });
 
     } catch (error) {
