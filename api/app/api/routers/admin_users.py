@@ -41,6 +41,7 @@ def _build_response(
     return HouseholdUserResponse(
         user_id=record.user_id,
         email=record.email,
+        username=record.username,
         display_name=record.display_name,
         user_is_active=record.user_is_active,
         membership_id=record.membership_id,
@@ -99,6 +100,7 @@ def create_household_user_endpoint(
             session=session,
             household_id=household_id,
             email=str(request.email),
+            username=request.username,
             display_name=request.display_name,
             password=request.password,
             role=request.role,

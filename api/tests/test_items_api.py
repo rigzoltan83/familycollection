@@ -37,6 +37,7 @@ def create_test_user(
 ) -> User:
     user = User(
         email="items-api@example.com",
+        username="items-api",
         password_hash="test-hash",
         display_name="Items API teszt",
         is_active=True,
@@ -65,6 +66,7 @@ def bypass_items_authorization(
     test_user = User(
         id=999999,
         email="items-auth-bypass@example.com",
+        username="items-auth-bypass",
         password_hash="unused",
         display_name="Items auth bypass",
         is_active=True,

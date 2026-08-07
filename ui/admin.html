@@ -224,7 +224,121 @@
                 flex-direction: column;
             }
         }
-    </style>
+
+        .panel-description {
+            margin-top: -4px;
+            margin-bottom: 24px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .category-form-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(180px, 1fr)
+                );
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .category-form-grid input,
+        .category-form-grid select,
+        textarea {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .checkbox-field {
+            display: flex;
+            align-items: end;
+            padding-bottom: 10px;
+        }
+
+        .checkbox-field label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-field input {
+            width: auto;
+        }
+
+        .categories-list {
+            display: grid;
+            gap: 14px;
+            margin-bottom: 30px;
+        }
+
+        .category-card {
+            border: 1px solid #dbe2ea;
+            border-radius: 10px;
+            padding: 16px;
+            background: #fff;
+        }
+
+        .category-card.system-category {
+            background: #f8fafc;
+        }
+
+        .category-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .category-card-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .category-edit-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(160px, 1fr)
+                );
+            gap: 12px;
+        }
+
+        .category-description {
+            margin: 8px 0;
+            color: #475569;
+        }
+
+        .category-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .category-card .actions {
+            margin-top: 14px;
+        }    
+
+</style>
 </head>
 
 <body>
@@ -271,6 +385,20 @@
                     <input
                         id="newEmail"
                         type="email"
+                    >
+                </div>
+
+                <div>
+                    <label for="newUsername">
+                        Felhasználónév
+                    </label>
+
+                    <input
+                        id="newUsername"
+                        type="text"
+                        minlength="3"
+                        maxlength="100"
+                        autocomplete="off"
                     >
                 </div>
 
@@ -348,7 +476,122 @@
                 class="users-list"
             ></div>
         </section>
+        <section class="panel">
+            <h2>Gyűjtemények</h2>
 
+            <p class="panel-description">
+                A rendszerkategóriák minden háztartásban
+                használhatók. Saját kategóriákat itt
+                hozhatsz létre és kezelhetsz.
+            </p>
+
+            <h3>Új saját gyűjtemény</h3>
+
+            <div class="category-form-grid">
+                <div>
+                    <label for="newCategoryName">
+                        Név
+                    </label>
+
+                    <input
+                        id="newCategoryName"
+                        type="text"
+                        maxlength="150"
+                    >
+                </div>
+
+                <div>
+                    <label for="newCategoryIcon">
+                        Ikon
+                    </label>
+
+                    <input
+                        id="newCategoryIcon"
+                        type="text"
+                        maxlength="100"
+                        placeholder="pl. game"
+                    >
+                </div>
+
+                <div>
+                    <label for="newCategorySortOrder">
+                        Sorrend
+                    </label>
+
+                    <input
+                        id="newCategorySortOrder"
+                        type="number"
+                        min="0"
+                        value="100"
+                    >
+                </div>
+
+                <div class="checkbox-field">
+                    <label>
+                        <input
+                            id="newCategorySupportsBarcode"
+                            type="checkbox"
+                        >
+                        Vonalkód támogatása
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label for="newCategoryDescription">
+                    Leírás
+                </label>
+
+                <textarea
+                    id="newCategoryDescription"
+                    rows="3"
+                    maxlength="500"
+                ></textarea>
+            </div>
+
+            <div class="actions">
+                <button
+                    id="createCategoryButton"
+                    class="primary"
+                    type="button"
+                >
+                    Gyűjtemény létrehozása
+                </button>
+            </div>
+
+            <div
+                id="createCategoryStatus"
+                class="status"
+            ></div>
+
+            <h3>Rendszerkategóriák</h3>
+
+            <div
+                id="systemCategoriesStatus"
+                class="status"
+            >
+                Betöltés...
+            </div>
+
+            <div
+                id="systemCategoriesList"
+                class="categories-list"
+            ></div>
+
+            <h3>Saját gyűjtemények</h3>
+
+            <div
+                id="householdCategoriesStatus"
+                class="status"
+            >
+                Betöltés...
+            </div>
+
+            <div
+                id="householdCategoriesList"
+                class="categories-list"
+            ></div>
+        </section>
     </main>
 
     <script>
@@ -371,6 +614,61 @@
                 "usersList"
             );
 
+const newCategoryName =
+    document.getElementById(
+        "newCategoryName"
+    );
+
+const newCategoryIcon =
+    document.getElementById(
+        "newCategoryIcon"
+    );
+
+const newCategorySortOrder =
+    document.getElementById(
+        "newCategorySortOrder"
+    );
+
+const newCategorySupportsBarcode =
+    document.getElementById(
+        "newCategorySupportsBarcode"
+    );
+
+const newCategoryDescription =
+    document.getElementById(
+        "newCategoryDescription"
+    );
+
+const createCategoryButton =
+    document.getElementById(
+        "createCategoryButton"
+    );
+
+const createCategoryStatus =
+    document.getElementById(
+        "createCategoryStatus"
+    );
+
+const systemCategoriesStatus =
+    document.getElementById(
+        "systemCategoriesStatus"
+    );
+
+const systemCategoriesList =
+    document.getElementById(
+        "systemCategoriesList"
+    );
+
+const householdCategoriesStatus =
+    document.getElementById(
+        "householdCategoriesStatus"
+    );
+
+const householdCategoriesList =
+    document.getElementById(
+        "householdCategoriesList"
+    );
+
         const createStatus =
             document.getElementById(
                 "createStatus"
@@ -385,6 +683,11 @@
             document.getElementById(
                 "newEmail"
             );
+
+const newUsername =
+    document.getElementById(
+        "newUsername"
+    );
 
         const newDisplayName =
             document.getElementById(
@@ -442,6 +745,621 @@
             }
         }
 
+function renderSystemCategories(categories) {
+    systemCategoriesList.innerHTML = "";
+
+    if (!categories.length) {
+        systemCategoriesList.innerHTML =
+            '<div class="muted">'
+            + 'Nincs rendszerkategória.'
+            + '</div>';
+
+        return;
+    }
+
+    for (const category of categories) {
+        const card =
+            document.createElement(
+                "div"
+            );
+
+        card.className =
+            "category-card system-category";
+
+        card.innerHTML = `
+            <div class="category-card-header">
+                <div class="category-card-title">
+                    ${escapeHtml(category.name)}
+                </div>
+
+                <span class="category-badge">
+                    Rendszer
+                </span>
+            </div>
+
+            <div class="category-description">
+                ${escapeHtml(
+                    category.description
+                    || "Nincs leírás."
+                )}
+            </div>
+
+            <div class="category-meta">
+                <span>
+                    Slug:
+                    ${escapeHtml(category.slug)}
+                </span>
+
+                <span>
+                    Ikon:
+                    ${escapeHtml(
+                        category.icon || "-"
+                    )}
+                </span>
+
+                <span>
+                    Vonalkód:
+                    ${
+                        category.supports_barcode
+                            ? "igen"
+                            : "nem"
+                    }
+                </span>
+
+                <span>
+                    Metaadat:
+                    ${escapeHtml(
+                        category.metadata_lookup_type
+                    )}
+                </span>
+
+                <span>
+                    Állapot:
+                    ${
+                        category.is_active
+                            ? "aktív"
+                            : "inaktív"
+                    }
+                </span>
+            </div>
+        `;
+
+        systemCategoriesList.appendChild(
+            card
+        );
+    }
+}
+
+function renderHouseholdCategories(categories) {
+    householdCategoriesList.innerHTML = "";
+
+    if (!categories.length) {
+        householdCategoriesList.innerHTML =
+            '<div class="muted">'
+            + 'Még nincs saját gyűjtemény.'
+            + '</div>';
+
+        return;
+    }
+
+    for (const category of categories) {
+        const card =
+            document.createElement(
+                "div"
+            );
+
+        card.className =
+            "category-card";
+
+        if (!category.is_active) {
+            card.style.opacity = "0.65";
+        }
+
+        card.innerHTML = `
+            <div class="category-card-header">
+                <div class="category-card-title">
+                    ${escapeHtml(category.name)}
+                </div>
+
+                <span class="category-badge">
+                    Saját
+                </span>
+            </div>
+
+            <div class="category-edit-grid">
+                <div>
+                    <label>
+                        Név
+                    </label>
+
+                    <input
+                        class="category-name"
+                        type="text"
+                        value="${escapeHtml(
+                            category.name
+                        )}"
+                    >
+                </div>
+
+                <div>
+                    <label>
+                        Ikon
+                    </label>
+
+                    <input
+                        class="category-icon"
+                        type="text"
+                        value="${escapeHtml(
+                            category.icon || ""
+                        )}"
+                    >
+                </div>
+
+                <div>
+                    <label>
+                        Sorrend
+                    </label>
+
+                    <input
+                        class="category-sort-order"
+                        type="number"
+                        min="0"
+                        value="${escapeHtml(
+                            category.sort_order
+                        )}"
+                    >
+                </div>
+
+                <div class="checkbox-field">
+                    <label>
+                        <input
+                            class="category-barcode"
+                            type="checkbox"
+                            ${
+                                category.supports_barcode
+                                    ? "checked"
+                                    : ""
+                            }
+                        >
+                        Vonalkód
+                    </label>
+                </div>
+
+                <div class="checkbox-field">
+                    <label>
+                        <input
+                            class="category-active"
+                            type="checkbox"
+                            ${
+                                category.is_active
+                                    ? "checked"
+                                    : ""
+                            }
+                        >
+                        Aktív
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label>
+                    Leírás
+                </label>
+
+                <textarea
+                    class="category-description-input"
+                    rows="3"
+                >${escapeHtml(
+                    category.description || ""
+                )}</textarea>
+            </div>
+
+            <div class="category-meta">
+                <span>
+                    Slug:
+                    ${escapeHtml(category.slug)}
+                </span>
+
+                <span>
+                    Metaadat:
+                    ${escapeHtml(
+                        category.metadata_lookup_type
+                    )}
+                </span>
+            </div>
+
+            <div class="actions">
+                <button
+                    type="button"
+                    class="primary save-category"
+                >
+                    Mentés
+                </button>
+            </div>
+
+            <div
+                class="status category-row-status"
+            ></div>
+        `;
+
+        card
+            .querySelector(
+                ".save-category"
+            )
+            .addEventListener(
+                "click",
+                () =>
+                    saveCategory(
+                        category,
+                        card
+                    )
+            );
+
+        householdCategoriesList.appendChild(
+            card
+        );
+    }
+}
+
+async function loadCategories() {
+    setStatus(
+        systemCategoriesStatus,
+        "Betöltés..."
+    );
+
+    setStatus(
+        householdCategoriesStatus,
+        "Betöltés..."
+    );
+
+    try {
+        const categories =
+            await apiFetch(
+                `/admin/households/${
+                    activeHousehold.id
+                }/categories`
+            );
+
+        const systemCategories =
+            categories.filter(
+                category =>
+                    category.is_system
+            );
+
+        const householdCategories =
+            categories.filter(
+                category =>
+                    !category.is_system
+            );
+
+        renderSystemCategories(
+            systemCategories
+        );
+
+        renderHouseholdCategories(
+            householdCategories
+        );
+
+        systemCategoriesStatus.style.display =
+            "none";
+
+        householdCategoriesStatus.style.display =
+            "none";
+
+    } catch (error) {
+        setStatus(
+            systemCategoriesStatus,
+            `❌ ${error.message}`,
+            "error"
+        );
+
+        setStatus(
+            householdCategoriesStatus,
+            `❌ ${error.message}`,
+            "error"
+        );
+    }
+}
+
+async function createCategory() {
+    const name =
+        newCategoryName.value.trim();
+
+    if (!name) {
+        setStatus(
+            createCategoryStatus,
+            "❌ A név megadása kötelező.",
+            "error"
+        );
+
+        return;
+    }
+
+    const sortOrder =
+        Number(
+            newCategorySortOrder.value
+        );
+
+    if (
+        !Number.isInteger(sortOrder)
+        || sortOrder < 0
+    ) {
+        setStatus(
+            createCategoryStatus,
+            (
+                "❌ A sorrend nem lehet "
+                + "negatív egész szám."
+            ),
+            "error"
+        );
+
+        return;
+    }
+
+    createCategoryButton.disabled =
+        true;
+
+    setStatus(
+        createCategoryStatus,
+        "Létrehozás..."
+    );
+
+    try {
+        await apiFetch(
+            `/admin/households/${
+                activeHousehold.id
+            }/categories`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    name,
+                    description:
+                        newCategoryDescription
+                            .value
+                            .trim()
+                        || null,
+                    icon:
+                        newCategoryIcon
+                            .value
+                            .trim()
+                        || null,
+                    supports_barcode:
+                        newCategorySupportsBarcode
+                            .checked,
+                    sort_order:
+                        sortOrder
+                })
+            }
+        );
+
+        newCategoryName.value = "";
+        newCategoryIcon.value = "";
+        newCategoryDescription.value = "";
+        newCategorySortOrder.value = "100";
+        newCategorySupportsBarcode.checked =
+            false;
+
+        setStatus(
+            createCategoryStatus,
+            "✅ Gyűjtemény létrehozva.",
+            "success"
+        );
+
+        await loadCategories();
+
+    } catch (error) {
+        setStatus(
+            createCategoryStatus,
+            `❌ ${error.message}`,
+            "error"
+        );
+
+    } finally {
+        createCategoryButton.disabled =
+            false;
+    }
+}
+
+async function saveCategory(
+    originalCategory,
+    card
+) {
+    const name =
+        card
+            .querySelector(
+                ".category-name"
+            )
+            .value
+            .trim();
+
+    const icon =
+        card
+            .querySelector(
+                ".category-icon"
+            )
+            .value
+            .trim();
+
+    const description =
+        card
+            .querySelector(
+                ".category-description-input"
+            )
+            .value
+            .trim();
+
+    const sortOrder =
+        Number(
+            card
+                .querySelector(
+                    ".category-sort-order"
+                )
+                .value
+        );
+
+    const supportsBarcode =
+        card
+            .querySelector(
+                ".category-barcode"
+            )
+            .checked;
+
+    const isActive =
+        card
+            .querySelector(
+                ".category-active"
+            )
+            .checked;
+
+    const rowStatus =
+        card.querySelector(
+            ".category-row-status"
+        );
+
+    const saveButton =
+        card.querySelector(
+            ".save-category"
+        );
+
+    if (!name) {
+        setStatus(
+            rowStatus,
+            "❌ A név nem lehet üres.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        !Number.isInteger(sortOrder)
+        || sortOrder < 0
+    ) {
+        setStatus(
+            rowStatus,
+            (
+                "❌ A sorrend nem lehet "
+                + "negatív egész szám."
+            ),
+            "error"
+        );
+
+        return;
+    }
+
+    const payload = {};
+
+    if (name !== originalCategory.name) {
+        payload.name = name;
+    }
+
+    if (
+        (icon || null)
+        !== originalCategory.icon
+    ) {
+        payload.icon =
+            icon || null;
+    }
+
+    if (
+        (description || null)
+        !== originalCategory.description
+    ) {
+        payload.description =
+            description || null;
+    }
+
+    if (
+        sortOrder
+        !== originalCategory.sort_order
+    ) {
+        payload.sort_order =
+            sortOrder;
+    }
+
+    if (
+        supportsBarcode
+        !== originalCategory
+            .supports_barcode
+    ) {
+        payload.supports_barcode =
+            supportsBarcode;
+    }
+
+    if (
+        isActive
+        !== originalCategory.is_active
+    ) {
+        payload.is_active =
+            isActive;
+    }
+
+    if (
+        Object.keys(payload).length
+        === 0
+    ) {
+        setStatus(
+            rowStatus,
+            "Nincs módosítás."
+        );
+
+        return;
+    }
+
+    saveButton.disabled = true;
+
+    setStatus(
+        rowStatus,
+        "Mentés..."
+    );
+
+    try {
+        await apiFetch(
+            `/admin/households/${
+                activeHousehold.id
+            }/categories/${
+                originalCategory.id
+            }`,
+            {
+                method: "PATCH",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body:
+                    JSON.stringify(
+                        payload
+                    )
+            }
+        );
+
+        setStatus(
+            rowStatus,
+            "✅ Mentve.",
+            "success"
+        );
+
+        await loadCategories();
+
+    } catch (error) {
+        setStatus(
+            rowStatus,
+            `❌ ${error.message}`,
+            "error"
+        );
+
+    } finally {
+        saveButton.disabled = false;
+    }
+}
 
         async function apiFetch(
             url,
@@ -590,11 +1508,16 @@
                                 )}
                             </div>
 
-                            <div class="user-email">
-                                ${escapeHtml(
-                                    user.email
-                                )}
-                            </div>
+<div class="user-email">
+    @${escapeHtml(
+        user.username
+    )}
+    ·
+    ${escapeHtml(
+        user.email
+    )}
+</div>
+
                         </div>
 
                         <div>
@@ -905,20 +1828,26 @@
 
 
         async function createUser() {
-            const email =
-                newEmail.value.trim();
 
-            const displayName =
-                newDisplayName.value.trim();
+const email =
+    newEmail.value.trim();
+
+const username =
+    newUsername.value.trim();
+
+const displayName =
+    newDisplayName.value.trim();
 
             const password =
                 newPassword.value;
 
-            if (
-                !email
-                || !displayName
-                || !password
-            ) {
+if (
+    !email
+    || !username
+    || !displayName
+    || !password
+) {
+
                 setStatus(
                     createStatus,
                     "❌ Tölts ki minden mezőt.",
@@ -927,6 +1856,41 @@
 
                 return;
             }
+
+if (
+    username.length < 3
+    || username.length > 100
+) {
+    setStatus(
+        createStatus,
+        (
+            "❌ A felhasználónév "
+            + "3–100 karakter hosszú legyen."
+        ),
+        "error"
+    );
+
+    return;
+}
+
+if (
+    !/^[\p{L}\p{N}._-]+$/u.test(
+        username
+    )
+) {
+    setStatus(
+        createStatus,
+        (
+            "❌ A felhasználónév csak "
+            + "betűt, számot, pontot, "
+            + "kötőjelet és aláhúzást "
+            + "tartalmazhat."
+        ),
+        "error"
+    );
+
+    return;
+}
 
             if (password.length < 12) {
                 setStatus(
@@ -962,20 +1926,24 @@
                                 "application/json"
                         },
 
-                        body: JSON.stringify({
-                            email,
-                            display_name:
-                                displayName,
-                            password,
-                            role:
-                                newRole.value
-                        })
+body: JSON.stringify({
+    email,
+    username,
+    display_name:
+        displayName,
+    password,
+    role:
+        newRole.value
+})
+
                     }
                 );
 
-                newEmail.value = "";
-                newDisplayName.value = "";
-                newPassword.value = "";
+newEmail.value = "";
+newUsername.value = "";
+newDisplayName.value = "";
+newPassword.value = "";
+
                 newRole.value = "viewer";
 
                 setStatus(
@@ -1005,6 +1973,10 @@
             createUser
         );
 
+createCategoryButton.addEventListener(
+    "click",
+    createCategory
+);
 
         logoutButton.addEventListener(
             "click",
@@ -1024,12 +1996,14 @@
         );
 
 
-        async function initialize() {
-            try {
-                await loadContext();
-                await loadUsers();
+async function initialize() {
+    try {
+        await loadContext();
+        await loadUsers();
+        await loadCategories();
 
-            } catch (error) {
+    } catch (error) {
+
                 console.error(
                     "Admin inicializálási hiba:",
                     error

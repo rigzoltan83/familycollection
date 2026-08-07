@@ -74,6 +74,10 @@ def bootstrap_admin() -> None:
         "E-mail cím: "
     ).lower()
 
+    username = read_required_value(
+        "Felhasználónév: "
+    ).lower()
+
     display_name = read_required_value(
         "Megjelenített név: "
     )
@@ -94,6 +98,42 @@ def bootstrap_admin() -> None:
                     "Ezzel az e-mail címmel már létezik felhasználó."
                 )
 
+            if len(username) < 3:
+                raise ValueError(
+                    "A felhasználónév legalább "
+                    "3 karakter hosszú legyen."
+                )
+
+            if len(username) > 100:
+                raise ValueError(
+                    "A felhasználónév legfeljebb "
+                    "100 karakter hosszú lehet."
+                )
+
+            if not all(
+                character.isalnum()
+                or character in "._-"
+                for character in username
+            ):
+                raise ValueError(
+                    "A felhasználónév csak betűt, számot, "
+                    "pontot, kötőjelet és aláhúzást "
+                    "tartalmazhat."
+                )
+
+            existing_username = session.scalar(
+                select(User).where(
+                    func.lower(User.username)
+                    == username
+                )
+            )
+
+            if existing_username is not None:
+                raise ValueError(
+                    "Ezzel a felhasználónévvel már "
+                    "létezik felhasználó."
+                )
+
             household = session.scalar(
                 select(Household).where(
                     Household.slug == DEFAULT_HOUSEHOLD_SLUG
@@ -107,6 +147,7 @@ def bootstrap_admin() -> None:
 
             user = User(
                 email=email,
+                username=username,
                 password_hash=password_hash,
                 display_name=display_name,
                 is_active=True,
@@ -133,7 +174,12 @@ def bootstrap_admin() -> None:
 
     print()
     print("A platformadmin sikeresen létrejött.")
-    print(f"Felhasználó: {email}")
+    print(
+        f"Felhasználónév: {username}"
+    )
+    print(
+        f"E-mail: {email}"
+    )
     print(f"Háztartás: {household.name}")
     print("Szerepkör: owner")
 

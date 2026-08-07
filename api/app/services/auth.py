@@ -19,40 +19,89 @@ def normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
+def normalize_username(username: str) -> str:
+    """
+    Felhasználónév normalizálása kereséshez
+    és összehasonlításhoz.
+    """
+    return username.strip().lower()
+
+
 def get_user_by_email(
     session: Session,
     email: str,
 ) -> User | None:
     """
-    Felhasználó keresése kis- és nagybetűtől függetlenül.
+    Felhasználó keresése e-mail cím alapján,
+    kis- és nagybetűtől függetlenül.
     """
-    normalized_email = normalize_email(email)
+    normalized_email = normalize_email(
+        email
+    )
 
     if not normalized_email:
         return None
 
     return session.scalar(
         select(User).where(
-            func.lower(User.email) == normalized_email
+            func.lower(User.email)
+            == normalized_email
+        )
+    )
+
+
+def get_user_by_username(
+    session: Session,
+    username: str,
+) -> User | None:
+    """
+    Felhasználó keresése felhasználónév alapján,
+    kis- és nagybetűtől függetlenül.
+    """
+    normalized_username = normalize_username(
+        username
+    )
+
+    if not normalized_username:
+        return None
+
+    return session.scalar(
+        select(User).where(
+            func.lower(User.username)
+            == normalized_username
         )
     )
 
 
 def authenticate_user(
     session: Session,
-    email: str,
+    identifier: str,
     password: str,
 ) -> User | None:
     """
-    Aktív felhasználó hitelesítése.
+    Aktív felhasználó hitelesítése
+    e-mail címmel vagy felhasználónévvel.
 
     Sikertelen hitelesítés esetén nem különbözteti meg,
-    hogy az e-mail vagy a jelszó volt hibás.
+    hogy az azonosító vagy a jelszó volt hibás.
     """
-    user = get_user_by_email(
-        session=session,
-        email=email,
+    normalized_identifier = (
+        identifier.strip()
     )
+
+    if not normalized_identifier:
+        return None
+
+    if "@" in normalized_identifier:
+        user = get_user_by_email(
+            session=session,
+            email=normalized_identifier,
+        )
+    else:
+        user = get_user_by_username(
+            session=session,
+            username=normalized_identifier,
+        )
 
     if user is None or not user.is_active:
         return None

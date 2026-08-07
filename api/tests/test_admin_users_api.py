@@ -36,6 +36,7 @@ def create_user_with_membership(
 ) -> tuple[User, HouseholdMember]:
     user = User(
         email=email,
+        username=email.split("@", 1)[0].lower(),
         password_hash=hash_password(
             TEST_PASSWORD
         ),
@@ -68,7 +69,7 @@ def login(
     response = client.post(
         "/auth/login",
         json={
-            "email": email,
+            "identifier": email,
             "password": TEST_PASSWORD,
         },
     )
@@ -173,6 +174,7 @@ def test_admin_can_create_list_and_update_user(
         f"{household.id}/users",
         json={
             "email": "NEW.USER@EXAMPLE.COM",
+            "username": "newuser",
             "display_name": "Új API user",
             "password": "Uj-api-user-12345",
             "role": "viewer",
@@ -187,6 +189,8 @@ def test_admin_can_create_list_and_update_user(
         created["email"]
         == "new.user@example.com"
     )
+
+    assert created["username"] == "newuser"
 
     assert (
         created["display_name"]

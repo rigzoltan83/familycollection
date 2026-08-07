@@ -13,7 +13,10 @@ from app.models import (
     HouseholdMember,
     User,
 )
-from app.services.auth import normalize_email
+from app.services.auth import (
+    normalize_email,
+    normalize_username,
+)
 
 
 ASSIGNABLE_ROLES = {
@@ -27,6 +30,7 @@ ASSIGNABLE_ROLES = {
 class HouseholdUserRecord:
     user_id: int
     email: str
+    username: str
     display_name: str
     user_is_active: bool
 
@@ -35,6 +39,42 @@ class HouseholdUserRecord:
     membership_is_active: bool
 
     joined_at: object
+
+
+def _validate_username(
+    username: str,
+) -> str:
+    """
+    Felhasználónév normalizálása és ellenőrzése.
+    """
+    normalized_username = normalize_username(
+        username
+    )
+
+    if len(normalized_username) < 3:
+        raise ValueError(
+            "A felhasználónév legalább "
+            "3 karakter hosszú legyen."
+        )
+
+    if len(normalized_username) > 100:
+        raise ValueError(
+            "A felhasználónév legfeljebb "
+            "100 karakter hosszú lehet."
+        )
+
+    if not all(
+        character.isalnum()
+        or character in "._-"
+        for character in normalized_username
+    ):
+        raise ValueError(
+            "A felhasználónév csak betűt, számot, "
+            "pontot, kötőjelet és aláhúzást "
+            "tartalmazhat."
+        )
+
+    return normalized_username
 
 
 def _validate_assignable_role(
@@ -75,9 +115,11 @@ def _build_household_user_record(
 ) -> HouseholdUserRecord:
     user = membership.user
 
+
     return HouseholdUserRecord(
         user_id=user.id,
         email=user.email,
+        username=user.username,
         display_name=user.display_name,
         user_is_active=user.is_active,
         membership_id=membership.id,
@@ -123,6 +165,7 @@ def create_household_user(
     *,
     household_id: int,
     email: str,
+    username: str,
     display_name: str,
     password: str,
     role: str,
@@ -138,6 +181,10 @@ def create_household_user(
 
     normalized_email = normalize_email(
         email
+    )
+
+    normalized_username = _validate_username(
+        username
     )
 
     normalized_display_name = (
@@ -177,8 +224,22 @@ def create_household_user(
             "létezik felhasználó."
         )
 
+    existing_username = session.scalar(
+        select(User).where(
+            func.lower(User.username)
+            == normalized_username
+        )
+    )
+
+    if existing_username is not None:
+        raise ValueError(
+            "Ezzel a felhasználónévvel már "
+            "létezik felhasználó."
+        )
+
     user = User(
         email=normalized_email,
+        username=normalized_username,
         password_hash=hash_password(
             password
         ),

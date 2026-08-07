@@ -33,9 +33,15 @@ def create_test_user(
     household: Household,
     email: str,
     role: str,
+    username: str | None = None,
 ) -> User:
     user = User(
         email=email,
+        username=(
+            username
+            or email.split("@", 1)[0].lower()
+        ),
+
         password_hash=hash_password(
             TEST_PASSWORD
         ),
@@ -69,7 +75,7 @@ def login(
     response = client.post(
         "/auth/login",
         json={
-            "email": email,
+            "identifier": email,
             "password": TEST_PASSWORD,
         },
     )
@@ -89,6 +95,7 @@ def test_viewer_cannot_delete_book(
         db_session,
         household=household,
         email="books-viewer@example.com",
+        username="books-viewer",
         role="viewer",
     )
 
@@ -123,6 +130,7 @@ def test_editor_can_reach_delete_book(
         db_session,
         household=household,
         email="books-editor@example.com",
+        username="books-editor",
         role="editor",
     )
 
@@ -169,6 +177,7 @@ def test_viewer_can_list_books(
         db_session,
         household=household,
         email="books-list-viewer@example.com",
+        username="books-list-viewer",
         role="viewer",
     )
 
@@ -210,6 +219,7 @@ def test_viewer_cannot_create_manual_book(
         db_session,
         household=household,
         email="books-create-viewer@example.com",
+        username="books-create-viewer",
         role="viewer",
     )
 
@@ -253,6 +263,7 @@ def test_viewer_cannot_update_book(
         db_session,
         household=household,
         email="books-update-viewer@example.com",
+        username="books-update-viewer",
         role="viewer",
     )
 
@@ -290,6 +301,7 @@ def test_viewer_can_export_books(
         db_session,
         household=household,
         email="books-export-viewer@example.com",
+        username="books-export-viewer",
         role="viewer",
     )
 

@@ -49,14 +49,14 @@ def login(
     """
     user = authenticate_user(
         session=session,
-        email=str(payload.email),
+        identifier=payload.identifier,
         password=payload.password,
     )
 
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Hibás e-mail cím vagy jelszó.",
+            detail="Hibás e-mail cím, felhasználónév vagy jelszó.",
         )
 
     request.session.clear()

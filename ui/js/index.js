@@ -2698,12 +2698,12 @@ async function initialize() {
             return;
         }
 
-        if (household.role === "viewer") {
-            window.location.href =
-                "/ui/books.html";
+if (household.role === "viewer") {
+    window.location.href =
+        "/ui/dashboard.html";
 
-            return;
-        }
+    return;
+}
 
         await loadStorageTree();
         await loadLatest();

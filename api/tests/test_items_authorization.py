@@ -59,9 +59,15 @@ def create_user(
     household: Household,
     email: str,
     role: str,
+    username: str | None = None,
 ) -> User:
     user = User(
         email=email,
+        username=(
+            username
+            or email.split("@", 1)[0].lower()
+        ),
+
         password_hash=hash_password(
             TEST_PASSWORD
         ),
@@ -95,7 +101,7 @@ def login(
     response = client.post(
         "/auth/login",
         json={
-            "email": user.email,
+            "identifier": user.email,
             "password": TEST_PASSWORD,
         },
     )
@@ -161,6 +167,7 @@ def test_viewer_can_list_own_household_items(
         db_session,
         household=household,
         email="items-viewer@example.com",
+        username="items-viewer",
         role="viewer",
     )
 
@@ -197,6 +204,7 @@ def test_viewer_cannot_create_item(
         db_session,
         household=household,
         email="items-viewer-create@example.com",
+        username="items-viewer-create",
         role="viewer",
     )
 
@@ -242,6 +250,7 @@ def test_editor_can_create_item(
         db_session,
         household=household,
         email="items-editor@example.com",
+        username="items-editor",
         role="editor",
     )
 
@@ -282,6 +291,7 @@ def test_user_cannot_list_other_household_items(
         db_session,
         household=own_household,
         email="items-cross-viewer@example.com",
+        username="items-cross-viewer",
         role="viewer",
     )
 
@@ -325,6 +335,7 @@ def test_viewer_can_get_item_from_own_household(
         db_session,
         household=household,
         email="items-get-editor@example.com",
+        username="items-get-editor",
         role="editor",
     )
 
@@ -347,6 +358,7 @@ def test_viewer_can_get_item_from_own_household(
         db_session,
         household=household,
         email="items-get-viewer@example.com",
+        username="items-get-viewer",
         role="viewer",
     )
 
@@ -386,6 +398,7 @@ def test_user_cannot_get_other_household_item(
         db_session,
         household=first_household,
         email="items-first-editor@example.com",
+        username="items-first-editor",
         role="editor",
     )
 
@@ -408,6 +421,7 @@ def test_user_cannot_get_other_household_item(
         db_session,
         household=second_household,
         email="items-second-viewer@example.com",
+        username="items-second-viewer",
         role="viewer",
     )
 
@@ -441,6 +455,7 @@ def test_viewer_cannot_delete_item(
         db_session,
         household=household,
         email="items-delete-editor@example.com",
+        username="items-delete-editor",
         role="editor",
     )
 
@@ -463,6 +478,7 @@ def test_viewer_cannot_delete_item(
         db_session,
         household=household,
         email="items-delete-viewer@example.com",
+        username="items-delete-viewer",
         role="viewer",
     )
 

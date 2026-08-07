@@ -682,7 +682,18 @@ header input {
 <body>
 
 <header>
-    <a href="/ui/index.html">⬅ Felvitel</a>
+
+<a href="/ui/dashboard.html">
+    ⬅ Dashboard
+</a>
+
+<a
+    id="addBookLink"
+    href="/ui/index.html"
+    style="display:none"
+>
+    ➕ Felvitel
+</a>
 
     <input
         id="search"
@@ -959,6 +970,18 @@ async function loadBookPagePermissions() {
         || household.role === "admin"
         || household.role === "owner";
 
+    const addBookLink =
+        document.getElementById(
+            "addBookLink"
+        );
+
+    if (addBookLink) {
+        addBookLink.style.display =
+            canEditBooks
+                ? ""
+                : "none";
+    }
+
     return true;
 }
 
@@ -1054,6 +1077,64 @@ if (
     return parts.length
         ? parts.join(" / ")
         : "Nincs megadva";
+}
+
+async function loadAuthorizationContext() {
+    const response = await fetch(
+        "/auth/context"
+    );
+
+    if (!response.ok) {
+        window.location.href =
+            "/ui/login.html";
+
+        return false;
+    }
+
+    const context =
+        await response.json();
+
+    const activeHouseholdId =
+        Number(
+            localStorage.getItem(
+                "activeHouseholdId"
+            )
+        );
+
+    const household =
+        context.households.find(
+            item =>
+                item.id
+                === activeHouseholdId
+        )
+        || context.households[0];
+
+    if (!household) {
+        window.location.href =
+            "/ui/dashboard.html";
+
+        return false;
+    }
+
+    canEditBooks =
+        household.role === "editor"
+        || household.role === "admin"
+        || household.role === "owner";
+
+    const addBookLink =
+        document.getElementById(
+            "addBookLink"
+        );
+
+    if (
+        addBookLink
+        && canEditBooks
+    ) {
+        addBookLink.style.display =
+            "";
+    }
+
+    return true;
 }
 
 /* -----------------------

@@ -52,6 +52,7 @@ def create_test_user(
 ) -> User:
     user = User(
         email=email,
+        username=email.split("@", 1)[0].lower(),
         password_hash="test-hash",
         display_name="Teszt felhasználó",
         is_active=True,

@@ -10,6 +10,7 @@ from app.models import (
 
 
 TEST_EMAIL = "api-teszt@example.com"
+TEST_USERNAME = "apitest"
 TEST_PASSWORD = "FamilyCollection-api-teszt-123"
 
 
@@ -18,7 +19,10 @@ def create_api_test_user(
 ) -> User:
     user = User(
         email=TEST_EMAIL,
-        password_hash=hash_password(TEST_PASSWORD),
+        username=TEST_USERNAME,
+        password_hash=hash_password(
+            TEST_PASSWORD
+        ),
         display_name="API teszt felhasználó",
         is_active=True,
         is_platform_admin=True,
@@ -31,16 +35,18 @@ def create_api_test_user(
     return user
 
 
-def test_login_returns_authenticated_user(
+def test_login_with_email_returns_authenticated_user(
     test_client: TestClient,
     db_session: Session,
 ) -> None:
-    user = create_api_test_user(db_session)
+    user = create_api_test_user(
+        db_session
+    )
 
     response = test_client.post(
         "/auth/login",
         json={
-            "email": TEST_EMAIL,
+            "identifier": TEST_EMAIL,
             "password": TEST_PASSWORD,
         },
     )
@@ -52,28 +58,112 @@ def test_login_returns_authenticated_user(
     assert data["status"] == "authenticated"
     assert data["user"]["id"] == user.id
     assert data["user"]["email"] == TEST_EMAIL
-    assert data["user"]["display_name"] == "API teszt felhasználó"
-    assert data["user"]["is_platform_admin"] is True
+    assert (
+        data["user"]["display_name"]
+        == "API teszt felhasználó"
+    )
+    assert (
+        data["user"]["is_platform_admin"]
+        is True
+    )
+
     assert "password_hash" not in data["user"]
+
+
+def test_login_with_username_returns_authenticated_user(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    user = create_api_test_user(
+        db_session
+    )
+
+    response = test_client.post(
+        "/auth/login",
+        json={
+            "identifier": TEST_USERNAME,
+            "password": TEST_PASSWORD,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["status"] == "authenticated"
+    assert data["user"]["id"] == user.id
+    assert data["user"]["email"] == TEST_EMAIL
+
+
+def test_login_with_username_is_case_insensitive(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    create_api_test_user(
+        db_session
+    )
+
+    response = test_client.post(
+        "/auth/login",
+        json={
+            "identifier":
+                TEST_USERNAME.upper(),
+            "password": TEST_PASSWORD,
+        },
+    )
+
+    assert response.status_code == 200
 
 
 def test_login_rejects_wrong_password(
     test_client: TestClient,
     db_session: Session,
 ) -> None:
-    create_api_test_user(db_session)
+    create_api_test_user(
+        db_session
+    )
 
     response = test_client.post(
         "/auth/login",
         json={
-            "email": TEST_EMAIL,
+            "identifier": TEST_USERNAME,
             "password": "rossz-jelszo",
         },
     )
 
     assert response.status_code == 401
+
     assert response.json() == {
-        "detail": "Hibás e-mail cím vagy jelszó."
+        "detail": (
+            "Hibás e-mail cím, "
+            "felhasználónév vagy jelszó."
+        )
+    }
+
+
+def test_login_rejects_unknown_username(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    create_api_test_user(
+        db_session
+    )
+
+    response = test_client.post(
+        "/auth/login",
+        json={
+            "identifier": "nemletezouser",
+            "password": TEST_PASSWORD,
+        },
+    )
+
+    assert response.status_code == 401
+
+    assert response.json() == {
+        "detail": (
+            "Hibás e-mail cím, "
+            "felhasználónév vagy jelszó."
+        )
     }
 
 
@@ -109,13 +199,15 @@ def test_auth_context_returns_active_households(
     db_session.add_all(
         [
             HouseholdMember(
-                household_id=active_household.id,
+                household_id=
+                    active_household.id,
                 user_id=user.id,
                 role="admin",
                 is_active=True,
             ),
             HouseholdMember(
-                household_id=inactive_household.id,
+                household_id=
+                    inactive_household.id,
                 user_id=user.id,
                 role="owner",
                 is_active=True,
@@ -128,7 +220,7 @@ def test_auth_context_returns_active_households(
     login_response = test_client.post(
         "/auth/login",
         json={
-            "email": TEST_EMAIL,
+            "identifier": TEST_USERNAME,
             "password": TEST_PASSWORD,
         },
     )

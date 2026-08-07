@@ -26,10 +26,20 @@ class User(Base):
         nullable=False,
     )
 
+    username: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+    )
+
     __table_args__ = (
         Index(
             "ix_users_email",
             func.lower(email),
+            unique=True,
+        ),
+        Index(
+            "ix_users_username",
+            func.lower(username),
             unique=True,
         ),
     )

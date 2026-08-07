@@ -32,6 +32,7 @@ def create_test_user(
 ) -> User:
     user = User(
         email=TEST_EMAIL,
+        username=TEST_EMAIL.split("@", 1)[0].lower(),
         password_hash=hash_password(
             TEST_PASSWORD
         ),

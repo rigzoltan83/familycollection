@@ -37,9 +37,15 @@ def create_test_user(
     household: Household,
     email: str,
     role: str,
+    username: str | None = None,
 ) -> User:
     user = User(
         email=email,
+        username=(
+            username
+            or email.split("@", 1)[0].lower()
+        ),
+
         password_hash=hash_password(
             TEST_PASSWORD
         ),
@@ -95,7 +101,7 @@ def login(
     response = client.post(
         "/auth/login",
         json={
-            "email": user.email,
+            "identifier": user.email,
             "password": TEST_PASSWORD,
         },
     )
@@ -121,6 +127,7 @@ def test_admin_can_list_categories(
         db_session,
         household=household,
         email="category-admin-list@example.com",
+        username="category-admin-list",
         role="admin",
     )
 
@@ -157,6 +164,7 @@ def test_admin_can_create_category(
         db_session,
         household=household,
         email="category-admin-create@example.com",
+        username="category-admin-create",
         role="admin",
     )
 
@@ -211,6 +219,7 @@ def test_admin_can_update_category(
         db_session,
         household=household,
         email="category-admin-update@example.com",
+        username="category-admin-update",
         role="admin",
     )
 
@@ -276,6 +285,7 @@ def test_system_category_cannot_be_updated(
         db_session,
         household=household,
         email="category-admin-system@example.com",
+        username="category-admin-system",
         role="admin",
     )
 
@@ -316,6 +326,7 @@ def test_viewer_cannot_list_categories(
         db_session,
         household=household,
         email="category-viewer@example.com",
+        username="category-viewer",
         role="viewer",
     )
 
@@ -346,6 +357,7 @@ def test_editor_cannot_create_category(
         db_session,
         household=household,
         email="category-editor@example.com",
+        username="category-editor",
         role="editor",
     )
 
@@ -385,6 +397,7 @@ def test_admin_cannot_access_other_household_categories(
         db_session,
         household=own_household,
         email="category-cross-admin@example.com",
+        username="category-cross-admin",
         role="admin",
     )
 
@@ -415,6 +428,7 @@ def test_owner_can_create_category(
         db_session,
         household=household,
         email="category-owner@example.com",
+        username="category-owner",
         role="owner",
     )
 
@@ -451,6 +465,7 @@ def test_empty_patch_is_rejected(
         db_session,
         household=household,
         email="category-empty-patch@example.com",
+        username="category-empty-patch",
         role="admin",
     )
 

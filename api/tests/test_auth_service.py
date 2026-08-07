@@ -18,6 +18,7 @@ def create_test_user(
 ) -> User:
     user = User(
         email=email,
+        username=email.split("@", 1)[0].lower(),
         password_hash=hash_password(password),
         display_name="Teszt felhasználó",
         is_active=is_active,
@@ -53,7 +54,24 @@ def test_authenticate_user_accepts_correct_password(
 
     authenticated_user = authenticate_user(
         session=db_session,
-        email=TEST_EMAIL,
+        identifier=TEST_EMAIL,
+        password=TEST_PASSWORD,
+    )
+
+    assert authenticated_user is not None
+    assert authenticated_user.id == user.id
+
+
+def test_authenticate_user_accepts_username(
+    db_session: Session,
+) -> None:
+    user = create_test_user(
+        db_session
+    )
+
+    authenticated_user = authenticate_user(
+        session=db_session,
+        identifier=user.username,
         password=TEST_PASSWORD,
     )
 
@@ -68,7 +86,7 @@ def test_authenticate_user_rejects_wrong_password(
 
     authenticated_user = authenticate_user(
         session=db_session,
-        email=TEST_EMAIL,
+        identifier=TEST_EMAIL,
         password="rossz-jelszo",
     )
 
@@ -78,12 +96,12 @@ def test_authenticate_user_rejects_wrong_password(
 def test_authenticate_user_rejects_unknown_email(
     db_session: Session,
 ) -> None:
+
     authenticated_user = authenticate_user(
         session=db_session,
-        email="nincsilyen@example.com",
+        identifier=TEST_EMAIL,
         password=TEST_PASSWORD,
     )
-
     assert authenticated_user is None
 
 
@@ -97,7 +115,7 @@ def test_authenticate_user_rejects_inactive_user(
 
     authenticated_user = authenticate_user(
         session=db_session,
-        email=TEST_EMAIL,
+        identifier=TEST_EMAIL,
         password=TEST_PASSWORD,
     )
 

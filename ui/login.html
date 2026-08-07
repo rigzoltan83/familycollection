@@ -105,17 +105,19 @@
         </div>
 
         <form id="loginForm">
-            <label for="email">
-                E-mail cím
-            </label>
 
-            <input
-                id="email"
-                name="email"
-                type="email"
-                autocomplete="username"
-                required
-            >
+<label for="identifier">
+    E-mail cím vagy felhasználónév
+</label>
+
+<input
+    id="identifier"
+    name="identifier"
+    type="text"
+    autocomplete="username"
+    placeholder="pl. admin vagy nev@example.com"
+    required
+>
 
             <label for="password">
                 Jelszó
@@ -149,10 +151,10 @@
                 "loginForm"
             );
 
-        const email =
-            document.getElementById(
-                "email"
-            );
+const identifier =
+    document.getElementById(
+        "identifier"
+    );
 
         const password =
             document.getElementById(
@@ -209,13 +211,14 @@
                                         "application/json"
                                 },
 
-                                body: JSON.stringify({
-                                    email:
-                                        email.value.trim(),
+body: JSON.stringify({
+    identifier:
+        identifier.value.trim(),
 
-                                    password:
-                                        password.value
-                                })
+    password:
+        password.value
+})
+
                             }
                         );
 
@@ -251,7 +254,7 @@
 
         redirectIfAuthenticated();
 
-        email.focus();
+identifier.focus();
     </script>
 </body>
 </html>

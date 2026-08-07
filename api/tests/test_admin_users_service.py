@@ -45,6 +45,7 @@ def test_create_household_user_creates_user_and_membership(
         db_session,
         household_id=household.id,
         email="  UJ.USER@EXAMPLE.COM  ",
+        username="uj.user",
         display_name="  Új felhasználó  ",
         password=TEST_PASSWORD,
         role="editor",
@@ -96,6 +97,7 @@ def test_create_household_user_rejects_duplicate_email(
         db_session,
         household_id=household.id,
         email="duplicate@example.com",
+        username="duplicate",
         display_name="Első user",
         password=TEST_PASSWORD,
         role="viewer",
@@ -106,6 +108,7 @@ def test_create_household_user_rejects_duplicate_email(
             db_session,
             household_id=household.id,
             email="DUPLICATE@example.com",
+            username="duplicate",
             display_name="Második user",
             password=TEST_PASSWORD,
             role="viewer",
@@ -123,6 +126,47 @@ def test_create_household_user_rejects_duplicate_email(
         )
 
 
+def test_create_household_user_rejects_duplicate_username(
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session
+    )
+
+    create_household_user(
+        db_session,
+        household_id=household.id,
+        email="first-username@example.com",
+        username="TesztUser",
+        display_name="Első user",
+        password=TEST_PASSWORD,
+        role="viewer",
+    )
+
+    try:
+        create_household_user(
+            db_session,
+            household_id=household.id,
+            email="second-username@example.com",
+            username="tesztuser",
+            display_name="Második user",
+            password=TEST_PASSWORD,
+            role="viewer",
+        )
+
+    except ValueError as error:
+        assert str(error) == (
+            "Ezzel a felhasználónévvel már "
+            "létezik felhasználó."
+        )
+
+    else:
+        raise AssertionError(
+            "Duplikált username esetén "
+            "ValueError várt."
+        )
+
+
 def test_create_household_user_rejects_owner_role(
     db_session: Session,
 ) -> None:
@@ -135,6 +179,7 @@ def test_create_household_user_rejects_owner_role(
             db_session,
             household_id=household.id,
             email="owner@example.com",
+            username="owner",
             display_name="Owner próba",
             password=TEST_PASSWORD,
             role="owner",
@@ -164,6 +209,7 @@ def test_create_household_user_rejects_short_password(
             db_session,
             household_id=household.id,
             email="short@example.com",
+            username="short",
             display_name="Rövid jelszó",
             password="12345678901",
             role="viewer",
@@ -192,6 +238,7 @@ def test_list_household_users_returns_all_memberships(
         db_session,
         household_id=household.id,
         email="first@example.com",
+        username="first",
         display_name="Első",
         password=TEST_PASSWORD,
         role="viewer",
@@ -201,6 +248,7 @@ def test_list_household_users_returns_all_memberships(
         db_session,
         household_id=household.id,
         email="second@example.com",
+        username="second",
         display_name="Második",
         password=TEST_PASSWORD,
         role="admin",
@@ -242,6 +290,7 @@ def test_list_household_users_does_not_include_other_household(
         db_session,
         household_id=first_household.id,
         email="first-household@example.com",
+        username="first-household",
         display_name="Első household user",
         password=TEST_PASSWORD,
         role="viewer",
@@ -251,6 +300,7 @@ def test_list_household_users_does_not_include_other_household(
         db_session,
         household_id=second_household.id,
         email="second-household@example.com",
+        username="second-household",
         display_name="Második household user",
         password=TEST_PASSWORD,
         role="admin",
@@ -276,6 +326,7 @@ def test_update_household_user_changes_fields(
         db_session,
         household_id=household.id,
         email="acting-admin@example.com",
+        username="acting-admin",
         display_name="Aktív admin",
         password=TEST_PASSWORD,
         role="admin",
@@ -285,6 +336,7 @@ def test_update_household_user_changes_fields(
         db_session,
         household_id=household.id,
         email="target@example.com",
+        username="target",
         display_name="Régi név",
         password=TEST_PASSWORD,
         role="viewer",
@@ -341,6 +393,7 @@ def test_update_household_user_rejects_owner(
         db_session,
         household_id=household.id,
         email="admin-owner-test@example.com",
+        username="admin-owner-test",
         display_name="Admin",
         password=TEST_PASSWORD,
         role="admin",
@@ -348,6 +401,7 @@ def test_update_household_user_rejects_owner(
 
     owner_user = User(
         email="owner-test@example.com",
+        username="owner-test",
         password_hash="unused",
         display_name="Owner",
         is_active=True,
@@ -401,6 +455,7 @@ def test_update_household_user_rejects_own_role_change(
         db_session,
         household_id=household.id,
         email="self-role@example.com",
+        username="self-role",
         display_name="Saját admin",
         password=TEST_PASSWORD,
         role="admin",
@@ -440,6 +495,7 @@ def test_update_household_user_rejects_own_deactivation(
         db_session,
         household_id=household.id,
         email="self-disable@example.com",
+        username="self-disable",
         display_name="Saját admin",
         password=TEST_PASSWORD,
         role="admin",
@@ -481,6 +537,7 @@ def test_update_household_user_allows_own_display_name(
         db_session,
         household_id=household.id,
         email="self-name@example.com",
+        username="self-name",
         display_name="Régi admin név",
         password=TEST_PASSWORD,
         role="admin",

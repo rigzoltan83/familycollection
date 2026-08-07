@@ -62,9 +62,15 @@ def create_user(
     household: Household,
     email: str,
     role: str,
+    username: str | None = None,
 ) -> User:
     user = User(
         email=email,
+        username=(
+            username
+            or email.split("@", 1)[0].lower()
+        ),
+
         password_hash=hash_password(
             TEST_PASSWORD
         ),
@@ -98,7 +104,7 @@ def login(
     response = client.post(
         "/auth/login",
         json={
-            "email": user.email,
+            "identifier": user.email,
             "password": TEST_PASSWORD,
         },
     )
@@ -277,6 +283,7 @@ def test_viewer_can_get_own_household_image_content(
         db_session,
         household=household,
         email="image-viewer-content@example.com",
+        username="image-viewer-content",
         role="viewer",
     )
 
@@ -321,6 +328,7 @@ def test_viewer_can_get_own_household_thumbnail(
         db_session,
         household=household,
         email="image-viewer-thumb@example.com",
+        username="image-viewer-thumb",
         role="viewer",
     )
 
@@ -367,6 +375,7 @@ def test_viewer_cannot_update_image(
         db_session,
         household=household,
         email="image-viewer-update@example.com",
+        username="image-viewer-update",
         role="viewer",
     )
 
@@ -419,6 +428,7 @@ def test_viewer_cannot_delete_image(
         db_session,
         household=household,
         email="image-viewer-delete@example.com",
+        username="image-viewer-delete",
         role="viewer",
     )
 
@@ -467,6 +477,7 @@ def test_other_household_cannot_get_image(
         db_session,
         household=other_household,
         email="image-other-viewer@example.com",
+        username="image-other-viewer",
         role="viewer",
     )
 

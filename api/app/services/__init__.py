@@ -1,7 +1,9 @@
 from app.services.auth import (
     authenticate_user,
     get_user_by_email,
+    get_user_by_username,
     normalize_email,
+    normalize_username,
 )
 from app.services.admin_users import (
     HouseholdUserRecord,
@@ -11,6 +13,7 @@ from app.services.admin_users import (
 )
 from app.services.admin_categories import (
     create_household_category,
+    list_available_household_categories,
     list_household_categories,
     normalize_category_name,
     slugify_category_name,
@@ -86,11 +89,14 @@ from app.services.image_storage import (
 __all__ = [
     "authenticate_user",
     "get_user_by_email",
+    "get_user_by_username",
     "normalize_email",
+    "normalize_username",
     "CollectionItemCreateInput",
     "CollectionItemUpdateInput",
     "create_household_category",
     "list_household_categories",
+    "list_available_household_categories",
     "normalize_category_name",
     "slugify_category_name",
     "update_household_category",
