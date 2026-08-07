@@ -467,6 +467,137 @@ function addPendingBookImages(
     return pendingBookImages.length;
 }
 
+async function prepareBookImageForUpload(
+    file
+) {
+    const maxDimension = 2000;
+
+    if (
+        !file
+        || !file.type
+            .toLowerCase()
+            .startsWith("image/")
+    ) {
+        return file;
+    }
+
+    const imageBitmap =
+        await createImageBitmap(file);
+
+    const originalWidth =
+        imageBitmap.width;
+
+    const originalHeight =
+        imageBitmap.height;
+
+    if (
+        originalWidth <= maxDimension
+        && originalHeight <= maxDimension
+    ) {
+        imageBitmap.close();
+
+        return file;
+    }
+
+    const scale =
+        Math.min(
+            maxDimension / originalWidth,
+            maxDimension / originalHeight
+        );
+
+    const targetWidth =
+        Math.max(
+            1,
+            Math.round(
+                originalWidth * scale
+            )
+        );
+
+    const targetHeight =
+        Math.max(
+            1,
+            Math.round(
+                originalHeight * scale
+            )
+        );
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+    canvas.width =
+        targetWidth;
+
+    canvas.height =
+        targetHeight;
+
+    const context =
+        canvas.getContext(
+            "2d"
+        );
+
+    if (!context) {
+        imageBitmap.close();
+
+        throw new Error(
+            "A kép átméretezése nem sikerült."
+        );
+    }
+
+    context.drawImage(
+        imageBitmap,
+        0,
+        0,
+        targetWidth,
+        targetHeight
+    );
+
+    imageBitmap.close();
+
+    const blob =
+        await new Promise(
+            (resolve, reject) => {
+                canvas.toBlob(
+                    result => {
+                        if (!result) {
+                            reject(
+                                new Error(
+                                    "A kép tömörítése nem sikerült."
+                                )
+                            );
+
+                            return;
+                        }
+
+                        resolve(result);
+                    },
+                    "image/jpeg",
+                    0.85
+                );
+            }
+        );
+
+    const originalName =
+        file.name || "photo.jpg";
+
+    const baseName =
+        originalName.replace(
+            /\.[^.]+$/,
+            ""
+        );
+
+    return new File(
+        [blob],
+        `${baseName}.jpg`,
+        {
+            type: "image/jpeg",
+            lastModified:
+                Date.now()
+        }
+    );
+}
+
 async function uploadPendingBookImages(
     itemPublicId,
     onProgress = null
@@ -483,22 +614,47 @@ async function uploadPendingBookImages(
     if (pendingBookImages.length === 0) {
         return {
             uploadedCount: 0,
-            totalCount: 0
+            totalCount: 0,
+            originalBytes: 0,
+            uploadedBytes: 0
         };
     }
 
-    let uploadedCount = 0;
+    /*
+     * Pillanatfelvételt készítünk a feltöltendő képekről.
+     *
+     * Így a pendingBookImages később módosítható anélkül,
+     * hogy az aktuális feltöltési ciklus összekeveredne.
+     */
+    const filesToUpload = [
+        ...pendingBookImages
+    ];
 
     const totalCount =
-        pendingBookImages.length;
+        filesToUpload.length;
+
+    let uploadedCount = 0;
+    let originalBytes = 0;
+    let uploadedBytes = 0;
 
     for (
         let index = 0;
-        index < pendingBookImages.length;
+        index < filesToUpload.length;
         index += 1
     ) {
         const file =
-            pendingBookImages[index];
+            filesToUpload[index];
+
+        const uploadFile =
+            await prepareBookImageForUpload(
+                file
+            );
+
+        originalBytes +=
+            file.size || 0;
+
+        uploadedBytes +=
+            uploadFile.size || 0;
 
         if (typeof onProgress === "function") {
             onProgress(
@@ -513,8 +669,9 @@ async function uploadPendingBookImages(
 
         formData.append(
             "file",
-            file,
-            file.name || `book-image-${index + 1}.jpg`
+            uploadFile,
+            uploadFile.name
+                || `book-image-${index + 1}.jpg`
         );
 
         const response =
@@ -536,6 +693,22 @@ async function uploadPendingBookImages(
         }
 
         if (!response.ok) {
+            /*
+             * A már sikeresen feltöltött képeket kivesszük
+             * a várakozó listából.
+             *
+             * Így egy későbbi újrapróbáláskor csak a hibás
+             * és a még fel nem töltött képek maradnak.
+             */
+            revokePendingBookImagePreviewUrls();
+
+            pendingBookImages =
+                filesToUpload.slice(
+                    uploadedCount
+                );
+
+            renderPendingBookImages();
+
             throw new Error(
                 (
                     data?.detail
@@ -544,6 +717,8 @@ async function uploadPendingBookImages(
                 )
                 + ` Feltöltve: ${uploadedCount}`
                 + ` / ${totalCount}.`
+                + ` Hátralévő: `
+                + `${pendingBookImages.length}.`
             );
         }
 
@@ -552,7 +727,9 @@ async function uploadPendingBookImages(
 
     return {
         uploadedCount,
-        totalCount
+        totalCount,
+        originalBytes,
+        uploadedBytes
     };
 }
 
@@ -577,7 +754,9 @@ async function finishCreatedBookImages(
 
     let imageUploadResult = {
         uploadedCount: 0,
-        totalCount: selectedImageCount
+        totalCount: selectedImageCount,
+        originalBytes: 0,
+        uploadedBytes: 0
     };
 
     if (selectedImageCount > 0) {
@@ -620,7 +799,15 @@ async function finishCreatedBookImages(
                 `✅ Könyv felvéve. `
                 + `Egyedi index: ${legacyBookId}. `
                 + `${imageUploadResult.uploadedCount} `
-                + `kép feltöltve.`
+                + `kép feltöltve. `
+                + `Eredeti méret: `
+                + `${formatFileSize(
+                    imageUploadResult.originalBytes
+                )} → `
+                + `feltöltve: `
+                + `${formatFileSize(
+                    imageUploadResult.uploadedBytes
+                )}.`
             )
             : (
                 `✅ Könyv felvéve. `
@@ -632,12 +819,46 @@ async function finishCreatedBookImages(
     return {
         itemPublicId,
         legacyBookId,
+
         uploadedCount:
             imageUploadResult.uploadedCount,
+
         totalCount:
             imageUploadResult.totalCount,
+
+        originalBytes:
+            imageUploadResult.originalBytes,
+
+        uploadedBytes:
+            imageUploadResult.uploadedBytes,
+
         message: finalMessage
     };
+}
+
+function formatFileSize(
+    sizeInBytes
+) {
+    const size =
+        Number(sizeInBytes || 0);
+
+    if (size < 1024) {
+        return `${size} B`;
+    }
+
+    if (size < 1024 * 1024) {
+        return (
+            `${(
+                size / 1024
+            ).toFixed(0)} KB`
+        );
+    }
+
+    return (
+        `${(
+            size / 1024 / 1024
+        ).toFixed(1)} MB`
+    );
 }
 
 function normalizeIsbn(value) {
