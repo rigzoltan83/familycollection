@@ -114,6 +114,29 @@ APP_ENV = os.getenv(
 ).strip().lower()
 
 
+SESSION_SECRET_KEY = get_required_setting(
+    "SESSION_SECRET_KEY"
+)
+
+SESSION_COOKIE_SECURE = get_bool_setting(
+    "SESSION_COOKIE_SECURE",
+    default=True,
+)
+
+SESSION_MAX_AGE_SECONDS = int(
+    os.getenv(
+        "SESSION_MAX_AGE_SECONDS",
+        "2592000",
+    )
+)
+
+if SESSION_MAX_AGE_SECONDS <= 0:
+    raise RuntimeError(
+        "A SESSION_MAX_AGE_SECONDS értékének "
+        "pozitív egész számnak kell lennie."
+    )
+
+
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
     "",

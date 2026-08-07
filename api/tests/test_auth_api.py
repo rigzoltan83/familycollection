@@ -72,4 +72,3 @@ def test_login_rejects_wrong_password(
         "detail": "Hibás e-mail cím vagy jelszó."
     }
 
-    assert response.headers["www-authenticate"] == "Bearer"
