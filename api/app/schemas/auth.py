@@ -28,3 +28,15 @@ class AuthenticatedUserResponse(BaseModel):
 class LoginResponse(BaseModel):
     status: str
     user: AuthenticatedUserResponse
+
+
+class AuthHouseholdResponse(BaseModel):
+    id: int
+    name: str
+    slug: str
+    role: str
+
+
+class AuthContextResponse(BaseModel):
+    user: AuthenticatedUserResponse
+    households: list[AuthHouseholdResponse]

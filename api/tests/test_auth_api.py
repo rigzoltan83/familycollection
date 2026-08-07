@@ -2,7 +2,11 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
-from app.models import User
+from app.models import (
+    Household,
+    HouseholdMember,
+    User,
+)
 
 
 TEST_EMAIL = "api-teszt@example.com"
@@ -72,3 +76,81 @@ def test_login_rejects_wrong_password(
         "detail": "Hibás e-mail cím vagy jelszó."
     }
 
+
+def test_auth_context_returns_active_households(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    user = create_api_test_user(
+        db_session
+    )
+
+    active_household = Household(
+        name="Aktív család",
+        slug="aktiv-csalad",
+        is_active=True,
+    )
+
+    inactive_household = Household(
+        name="Inaktív család",
+        slug="inaktiv-csalad",
+        is_active=False,
+    )
+
+    db_session.add_all(
+        [
+            active_household,
+            inactive_household,
+        ]
+    )
+
+    db_session.flush()
+
+    db_session.add_all(
+        [
+            HouseholdMember(
+                household_id=active_household.id,
+                user_id=user.id,
+                role="admin",
+                is_active=True,
+            ),
+            HouseholdMember(
+                household_id=inactive_household.id,
+                user_id=user.id,
+                role="owner",
+                is_active=True,
+            ),
+        ]
+    )
+
+    db_session.flush()
+
+    login_response = test_client.post(
+        "/auth/login",
+        json={
+            "email": TEST_EMAIL,
+            "password": TEST_PASSWORD,
+        },
+    )
+
+    assert login_response.status_code == 200
+
+    response = test_client.get(
+        "/auth/context"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["user"]["id"] == user.id
+    assert data["user"]["email"] == TEST_EMAIL
+
+    assert data["households"] == [
+        {
+            "id": active_household.id,
+            "name": "Aktív család",
+            "slug": "aktiv-csalad",
+            "role": "admin",
+        }
+    ]

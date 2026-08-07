@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FamilyCollection</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #111;
+            color: #eee;
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+        }
+
+        .container {
+            width: min(1100px, 94vw);
+            margin: 0 auto;
+            padding: 24px 0 40px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0;
+            color: #6dff6d;
+        }
+
+        .user-info {
+            color: #aaa;
+            text-align: right;
+        }
+
+        .logout-button {
+            width: auto;
+            margin-top: 8px;
+            padding: 8px 14px;
+            border: 0;
+            border-radius: 7px;
+            background: #555;
+            color: white;
+            cursor: pointer;
+        }
+
+        .household-box {
+            margin-bottom: 24px;
+            padding: 14px;
+            border-radius: 10px;
+            background: #202020;
+        }
+
+        .household-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .household-role {
+            margin-top: 4px;
+            color: #aaa;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(220px, 1fr)
+                );
+            gap: 16px;
+        }
+
+        .menu-card {
+            display: block;
+            min-height: 150px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #222;
+            color: inherit;
+            text-decoration: none;
+            transition:
+                transform 0.15s ease,
+                background 0.15s ease;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-2px);
+            background: #292929;
+        }
+
+        .menu-icon {
+            font-size: 38px;
+        }
+
+        .menu-title {
+            margin-top: 12px;
+            color: #6dff6d;
+            font-size: 21px;
+            font-weight: bold;
+        }
+
+        .menu-description {
+            margin-top: 8px;
+            color: #bbb;
+            line-height: 1.4;
+        }
+
+        .admin-card {
+            display: none;
+        }
+
+        .status {
+            padding: 18px;
+            border-radius: 10px;
+            background: #202020;
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .user-info {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+
+        <div class="topbar">
+            <div>
+                <h1>FamilyCollection</h1>
+            </div>
+
+            <div class="user-info">
+                <div id="currentUser">
+                    Betöltés...
+                </div>
+
+                <button
+                    id="logoutButton"
+                    class="logout-button"
+                    type="button"
+                >
+                    Kilépés
+                </button>
+            </div>
+        </div>
+
+        <div
+            id="householdBox"
+            class="household-box"
+            style="display:none"
+        >
+            <div
+                id="householdName"
+                class="household-name"
+            ></div>
+
+            <div
+                id="householdRole"
+                class="household-role"
+            ></div>
+        </div>
+
+        <div
+            id="status"
+            class="status"
+        >
+            Betöltés...
+        </div>
+
+        <div
+            id="menuGrid"
+            class="menu-grid"
+            style="display:none"
+        >
+            <a
+                class="menu-card"
+                href="/ui/index.html"
+            >
+                <div class="menu-icon">
+                    📚
+                </div>
+
+                <div class="menu-title">
+                    Könyvek
+                </div>
+
+                <div class="menu-description">
+                    Könyvek felvitele és
+                    a legutóbb rögzített példányok.
+                </div>
+            </a>
+
+            <a
+                class="menu-card"
+                href="/ui/books.html"
+            >
+                <div class="menu-icon">
+                    🔎
+                </div>
+
+                <div class="menu-title">
+                    Könyvlista
+                </div>
+
+                <div class="menu-description">
+                    A teljes könyvgyűjtemény
+                    keresése és kezelése.
+                </div>
+            </a>
+
+            <a
+                id="adminCard"
+                class="menu-card admin-card"
+                href="/ui/admin.html"
+            >
+                <div class="menu-icon">
+                    ⚙️
+                </div>
+
+                <div class="menu-title">
+                    Adminisztráció
+                </div>
+
+                <div class="menu-description">
+                    Felhasználók,
+                    gyűjtemények és tárhelyek.
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <script>
+        const currentUser =
+            document.getElementById(
+                "currentUser"
+            );
+
+        const householdBox =
+            document.getElementById(
+                "householdBox"
+            );
+
+        const householdName =
+            document.getElementById(
+                "householdName"
+            );
+
+        const householdRole =
+            document.getElementById(
+                "householdRole"
+            );
+
+        const statusBox =
+            document.getElementById(
+                "status"
+            );
+
+        const menuGrid =
+            document.getElementById(
+                "menuGrid"
+            );
+
+        const adminCard =
+            document.getElementById(
+                "adminCard"
+            );
+
+        const logoutButton =
+            document.getElementById(
+                "logoutButton"
+            );
+
+
+        function roleLabel(role) {
+            const labels = {
+                owner: "Tulajdonos",
+                admin: "Adminisztrátor",
+                editor: "Szerkesztő",
+                viewer: "Megtekintő"
+            };
+
+            return labels[role] || role;
+        }
+
+
+        async function loadContext() {
+            try {
+                const response =
+                    await fetch(
+                        "/auth/context"
+                    );
+
+                if (
+                    response.status === 401
+                ) {
+                    window.location.href =
+                        "/ui/login.html";
+
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(
+                        `HTTP ${response.status}`
+                    );
+                }
+
+                const context =
+                    await response.json();
+
+                currentUser.textContent =
+                    context.user.display_name
+                    || context.user.email;
+
+                if (
+                    !context.households
+                    || context.households.length === 0
+                ) {
+                    statusBox.textContent =
+                        "Nincs aktív háztartási tagság.";
+
+                    return;
+                }
+
+                const household =
+                    context.households[0];
+
+                localStorage.setItem(
+                    "activeHouseholdId",
+                    String(household.id)
+                );
+
+                householdName.textContent =
+                    household.name;
+
+                householdRole.textContent =
+                    `Jogosultság: ${
+                        roleLabel(
+                            household.role
+                        )
+                    }`;
+
+                householdBox.style.display =
+                    "";
+
+                if (
+                    household.role === "admin"
+                    || household.role === "owner"
+                ) {
+                    adminCard.style.display =
+                        "block";
+                }
+
+                statusBox.style.display =
+                    "none";
+
+                menuGrid.style.display =
+                    "grid";
+
+            } catch (error) {
+                statusBox.textContent =
+                    `❌ Nem sikerült betölteni: ${
+                        error.message
+                    }`;
+            }
+        }
+
+
+        logoutButton.addEventListener(
+            "click",
+            async () => {
+                try {
+                    await fetch(
+                        "/auth/logout",
+                        {
+                            method: "POST"
+                        }
+                    );
+                } finally {
+                    window.location.href =
+                        "/ui/login.html";
+                }
+            }
+        );
+
+
+        loadContext();
+    </script>
+</body>
+</html>

@@ -17,6 +17,8 @@ from app.api.dependencies import get_current_user
 from app.core.database import get_db_session
 from app.models import User
 from app.schemas import (
+    AuthContextResponse,
+    AuthHouseholdResponse,
     AuthenticatedUserResponse,
     LoginRequest,
     LoginResponse,
@@ -88,6 +90,60 @@ def get_me(
         AuthenticatedUserResponse.model_validate(
             current_user
         )
+    )
+
+
+@router.get(
+    "/context",
+    response_model=AuthContextResponse,
+)
+def get_auth_context(
+    current_user: User = Depends(
+        get_current_user
+    ),
+) -> AuthContextResponse:
+    """
+    A frontend indulásához szükséges
+    felhasználói és háztartási kontextus.
+    """
+    households = []
+
+    for membership in (
+        current_user.household_memberships
+    ):
+        if not membership.is_active:
+            continue
+
+        household = membership.household
+
+        if (
+            household is None
+            or not household.is_active
+        ):
+            continue
+
+        households.append(
+            AuthHouseholdResponse(
+                id=household.id,
+                name=household.name,
+                slug=household.slug,
+                role=membership.role,
+            )
+        )
+
+    households.sort(
+        key=lambda item: (
+            item.name.lower(),
+            item.id,
+        )
+    )
+
+    return AuthContextResponse(
+        user=(
+            AuthenticatedUserResponse
+            .model_validate(current_user)
+        ),
+        households=households,
     )
 
 

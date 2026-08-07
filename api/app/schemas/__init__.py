@@ -1,4 +1,6 @@
 from app.schemas.auth import (
+    AuthContextResponse,
+    AuthHouseholdResponse,
     AuthenticatedUserResponse,
     LoginRequest,
     LoginResponse,
@@ -35,6 +37,8 @@ from app.schemas.storage import (
 __all__ = [
     "AuthenticatedUserResponse",
     "LoginRequest",
+    "AuthContextResponse",
+    "AuthHouseholdResponse",
     "LoginResponse",
     "AssignableHouseholdRole",
     "HouseholdUserCreateRequest",
