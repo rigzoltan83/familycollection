@@ -83,6 +83,50 @@
             font-size: 14px;
         }
 
+.field-row label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.field-row input,
+.field-row select,
+.field-row textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #555;
+    border-radius: 7px;
+    background: #111;
+    color: #fff;
+    font-size: 16px;
+}
+
+.field-row textarea {
+    resize: vertical;
+}
+
+.field-row select[multiple] {
+    min-height: 130px;
+}
+
+.field-help {
+    margin-top: 5px;
+    color: #999;
+    font-size: 13px;
+}
+
+#createItemButton {
+    width: 100%;
+    padding: 12px;
+    border: 0;
+    border-radius: 8px;
+    background: #2e8b57;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
         .field-section {
             margin-top: 20px;
             padding: 18px;
@@ -125,6 +169,70 @@
                 flex-direction: column;
             }
         }
+
+.item-dynamic-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.item-dynamic-field {
+    color: #ccc;
+}
+
+.item-dynamic-field strong {
+    color: #eee;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.item-detail-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.item-detail-grid {
+    display: grid;
+    gap: 8px;
+    margin-top: 18px;
+    margin-bottom: 18px;
+}
+
+.item-detail-row {
+    display: grid;
+    grid-template-columns:
+        minmax(140px, 220px) 1fr;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom:
+        1px solid rgba(255, 255, 255, 0.08);
+}
+
+.item-detail-notes {
+    margin-top: 18px;
+    margin-bottom: 18px;
+}
+
+.item-detail-notes > div {
+    margin-top: 6px;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 600px) {
+    .item-detail-row {
+        grid-template-columns: 1fr;
+        gap: 3px;
+    }
+}
+
     </style>
 </head>
 
@@ -176,6 +284,68 @@
             ></div>
         </section>
 
+<section
+    id="createSection"
+    class="field-section"
+    style="display:none"
+>
+    <h2>Új elem felvitele</h2>
+
+    <div class="field-list">
+        <div class="field-row">
+            <label for="itemTitle">
+                Név / cím *
+            </label>
+
+            <input
+                id="itemTitle"
+                type="text"
+                maxlength="300"
+            >
+        </div>
+
+        <div class="field-row">
+            <label for="itemSubtitle">
+                Alcím
+            </label>
+
+            <input
+                id="itemSubtitle"
+                type="text"
+                maxlength="300"
+            >
+        </div>
+
+        <div
+            id="dynamicCreateFields"
+            class="field-list"
+        ></div>
+
+        <div class="field-row">
+            <label for="itemNotes">
+                Megjegyzés
+            </label>
+
+            <textarea
+                id="itemNotes"
+                rows="4"
+            ></textarea>
+        </div>
+
+        <button
+            id="createItemButton"
+            type="button"
+        >
+            💾 Mentés
+        </button>
+
+        <div
+            id="createItemStatus"
+            class="status"
+        ></div>
+    </div>
+</section>
+
         <section class="field-section">
             <h2>Mezők</h2>
 
@@ -184,11 +354,252 @@
                 class="field-list"
             ></div>
         </section>
+
+<section class="field-section">
+    <h2>Gyűjtemény elemei</h2>
+
+    <div
+        id="itemsStatus"
+        class="status"
+    >
+        Betöltés...
+    </div>
+
+    <div
+        id="itemsList"
+        class="field-list"
+    ></div>
+</section>
+
+<section
+    id="itemDetailSection"
+    class="field-section"
+    style="display: none;"
+>
+
+<div class="section-header">
+    <h2>Elem adatai</h2>
+
+    <div class="actions">
+        <button
+            id="editItemButton"
+            type="button"
+            class="primary"
+        >
+            ✏️ Szerkesztés
+        </button>
+
+        <button
+            id="closeItemDetailButton"
+            type="button"
+            class="secondary-button"
+        >
+            Bezárás
+        </button>
+    </div>
+</div>
+
+    <div
+        id="itemDetailStatus"
+        class="status"
+        style="display: none;"
+    ></div>
+
+    <div id="itemDetailContent"></div>
+
+<div
+    id="itemEditContent"
+    style="display: none;"
+>
+    <div class="field-list">
+        <div class="field-row">
+            <label for="editItemTitle">
+                Név / cím *
+            </label>
+
+            <input
+                id="editItemTitle"
+                type="text"
+                maxlength="300"
+            >
+        </div>
+
+        <div class="field-row">
+            <label for="editItemSubtitle">
+                Alcím
+            </label>
+
+            <input
+                id="editItemSubtitle"
+                type="text"
+                maxlength="300"
+            >
+        </div>
+
+        <div
+            id="editDynamicFields"
+            class="field-list"
+        ></div>
+
+        <div class="field-row">
+            <label for="editItemNotes">
+                Megjegyzés
+            </label>
+
+            <textarea
+                id="editItemNotes"
+                rows="4"
+            ></textarea>
+        </div>
+
+        <div class="actions">
+            <button
+                id="saveItemEditButton"
+                type="button"
+                class="primary"
+            >
+                💾 Mentés
+            </button>
+
+            <button
+                id="cancelItemEditButton"
+                type="button"
+                class="secondary-button"
+            >
+                Mégse
+            </button>
+        </div>
+
+        <div
+            id="itemEditStatus"
+            class="status"
+        ></div>
+    </div>
+</div>
+
+</section>
+
     </div>
 
 </main>
 
 <script>
+
+let activeHousehold = null;
+let activeCategory = null;
+let activeFields = [];
+let activeItem = null;
+
+const editItemButton =
+    document.getElementById(
+        "editItemButton"
+    );
+
+const itemEditContent =
+    document.getElementById(
+        "itemEditContent"
+    );
+
+const editDynamicFields =
+    document.getElementById(
+        "editDynamicFields"
+    );
+
+const editItemTitle =
+    document.getElementById(
+        "editItemTitle"
+    );
+
+const editItemSubtitle =
+    document.getElementById(
+        "editItemSubtitle"
+    );
+
+const editItemNotes =
+    document.getElementById(
+        "editItemNotes"
+    );
+
+const saveItemEditButton =
+    document.getElementById(
+        "saveItemEditButton"
+    );
+
+const cancelItemEditButton =
+    document.getElementById(
+        "cancelItemEditButton"
+    );
+
+const itemEditStatus =
+    document.getElementById(
+        "itemEditStatus"
+    );
+
+const itemDetailSection =
+    document.getElementById(
+        "itemDetailSection"
+    );
+
+const itemDetailStatus =
+    document.getElementById(
+        "itemDetailStatus"
+    );
+
+const itemDetailContent =
+    document.getElementById(
+        "itemDetailContent"
+    );
+
+const closeItemDetailButton =
+    document.getElementById(
+        "closeItemDetailButton"
+    );
+
+const itemsStatus =
+    document.getElementById(
+        "itemsStatus"
+    );
+
+const itemsList =
+    document.getElementById(
+        "itemsList"
+    );
+
+const itemTitle =
+    document.getElementById(
+        "itemTitle"
+    );
+
+const itemSubtitle =
+    document.getElementById(
+        "itemSubtitle"
+    );
+
+const itemNotes =
+    document.getElementById(
+        "itemNotes"
+    );
+
+const createItemButton =
+    document.getElementById(
+        "createItemButton"
+    );
+
+const createItemStatus =
+    document.getElementById(
+        "createItemStatus"
+    );
+
+const createSection =
+    document.getElementById(
+        "createSection"
+    );
+
+const dynamicCreateFields =
+    document.getElementById(
+        "dynamicCreateFields"
+    );
+
     const pageTitle =
         document.getElementById(
             "pageTitle"
@@ -321,6 +732,1198 @@
     }
 
 
+function renderDynamicFields(
+    container,
+    fields,
+    item = null
+) {
+    container.innerHTML = "";
+
+    for (const field of fields) {
+        const currentValue =
+            item
+                ? getFieldValue(
+                    item,
+                    field
+                )
+                : null;
+
+        const wrapper =
+            document.createElement(
+                "div"
+            );
+
+        wrapper.className =
+            "field-row";
+
+        let inputHtml = "";
+
+        const required =
+            field.is_required
+                ? "required"
+                : "";
+
+        const scalarValue =
+            currentValue === null
+            || currentValue === undefined
+                ? ""
+                : String(currentValue);
+
+        if (field.field_type === "long_text") {
+            inputHtml = `
+                <textarea
+                    data-field-key="${escapeHtml(
+                        field.field_key
+                    )}"
+                    data-field-type="${escapeHtml(
+                        field.field_type
+                    )}"
+                    rows="4"
+                    ${required}
+                >${escapeHtml(
+                    scalarValue
+                )}</textarea>
+            `;
+
+        } else if (
+            field.field_type === "integer"
+            || field.field_type === "decimal"
+            || field.field_type === "year"
+        ) {
+            inputHtml = `
+                <input
+                    data-field-key="${escapeHtml(
+                        field.field_key
+                    )}"
+                    data-field-type="${escapeHtml(
+                        field.field_type
+                    )}"
+                    type="number"
+                    value="${escapeHtml(
+                        scalarValue
+                    )}"
+                    ${required}
+                >
+            `;
+
+        } else if (
+            field.field_type === "boolean"
+        ) {
+            inputHtml = `
+                <label>
+                    <input
+                        data-field-key="${escapeHtml(
+                            field.field_key
+                        )}"
+                        data-field-type="${escapeHtml(
+                            field.field_type
+                        )}"
+                        type="checkbox"
+                        ${
+                            currentValue === true
+                                ? "checked"
+                                : ""
+                        }
+                    >
+                    Igen
+                </label>
+            `;
+
+        } else if (
+            field.field_type === "date"
+        ) {
+            inputHtml = `
+                <input
+                    data-field-key="${escapeHtml(
+                        field.field_key
+                    )}"
+                    data-field-type="${escapeHtml(
+                        field.field_type
+                    )}"
+                    type="date"
+                    value="${escapeHtml(
+                        scalarValue
+                    )}"
+                    ${required}
+                >
+            `;
+
+        } else if (
+            field.field_type === "email"
+        ) {
+            inputHtml = `
+                <input
+                    data-field-key="${escapeHtml(
+                        field.field_key
+                    )}"
+                    data-field-type="${escapeHtml(
+                        field.field_type
+                    )}"
+                    type="email"
+                    value="${escapeHtml(
+                        scalarValue
+                    )}"
+                    ${required}
+                >
+            `;
+
+        } else if (
+            field.field_type === "url"
+        ) {
+            inputHtml = `
+                <input
+                    data-field-key="${escapeHtml(
+                        field.field_key
+                    )}"
+                    data-field-type="${escapeHtml(
+                        field.field_type
+                    )}"
+                    type="url"
+                    value="${escapeHtml(
+                        scalarValue
+                    )}"
+                    ${required}
+                >
+            `;
+
+        } else if (
+            field.field_type
+            === "single_select"
+        ) {
+            inputHtml = `
+                <select
+                    data-field-key="${escapeHtml(
+                        field.field_key
+                    )}"
+                    data-field-type="${escapeHtml(
+                        field.field_type
+                    )}"
+                    ${required}
+                >
+                    <option value="">
+                        -- válassz --
+                    </option>
+
+                    ${field.options
+                        .map(
+                            option => `
+                                <option
+                                    value="${escapeHtml(
+                                        option.value
+                                    )}"
+                                    ${
+                                        currentValue
+                                            === option.value
+                                            ? "selected"
+                                            : ""
+                                    }
+                                >
+                                    ${escapeHtml(
+                                        option.label
+                                    )}
+                                </option>
+                            `
+                        )
+                        .join("")}
+                </select>
+            `;
+
+        } else if (
+            field.field_type
+            === "multi_select"
+        ) {
+            const selectedValues =
+                Array.isArray(currentValue)
+                    ? currentValue
+                    : [];
+
+            inputHtml = `
+                <select
+                    data-field-key="${escapeHtml(
+                        field.field_key
+                    )}"
+                    data-field-type="${escapeHtml(
+                        field.field_type
+                    )}"
+                    multiple
+                    ${required}
+                >
+                    ${field.options
+                        .map(
+                            option => `
+                                <option
+                                    value="${escapeHtml(
+                                        option.value
+                                    )}"
+                                    ${
+                                        selectedValues
+                                            .includes(
+                                                option.value
+                                            )
+                                            ? "selected"
+                                            : ""
+                                    }
+                                >
+                                    ${escapeHtml(
+                                        option.label
+                                    )}
+                                </option>
+                            `
+                        )
+                        .join("")}
+                </select>
+
+                <div class="field-help">
+                    Több érték kijelöléséhez
+                    Ctrl vagy Shift használható.
+                </div>
+            `;
+
+        } else {
+            inputHtml = `
+                <input
+                    data-field-key="${escapeHtml(
+                        field.field_key
+                    )}"
+                    data-field-type="${escapeHtml(
+                        field.field_type
+                    )}"
+                    type="text"
+                    value="${escapeHtml(
+                        scalarValue
+                    )}"
+                    ${required}
+                >
+            `;
+        }
+
+        wrapper.innerHTML = `
+            <label>
+                ${escapeHtml(field.name)}
+                ${
+                    field.is_required
+                        ? " *"
+                        : ""
+                }
+            </label>
+
+            ${inputHtml}
+
+            ${
+                field.description
+                    ? `
+                        <div class="field-help">
+                            ${escapeHtml(
+                                field.description
+                            )}
+                        </div>
+                    `
+                    : ""
+            }
+        `;
+
+        container.appendChild(
+            wrapper
+        );
+    }
+}
+
+
+function renderCreateFields(fields) {
+    renderDynamicFields(
+        dynamicCreateFields,
+        fields
+    );
+}
+
+function getFieldValue(item, field) {
+    const value =
+        item.field_values?.find(
+            itemValue =>
+                itemValue.field_key
+                === field.field_key
+        );
+
+    if (!value) {
+        return null;
+    }
+
+switch (field.field_type) {
+    case "integer":
+    case "year":
+        return value.value_integer;
+
+    case "decimal":
+        return value.value_decimal;
+
+    case "boolean":
+        return value.value_boolean;
+
+    case "date":
+        return value.value_date;
+
+    case "single_select":
+    case "multi_select":
+        return value.value_json;
+
+    default:
+        return value.value_text;
+}
+
+}
+
+
+function getOptionLabel(field, value) {
+    const option =
+        field.options?.find(
+            item =>
+                item.value === value
+        );
+
+    return option
+        ? option.label
+        : value;
+}
+
+
+function formatDynamicFieldValue(
+    field,
+    value
+) {
+    if (
+        value === null
+        || value === undefined
+        || value === ""
+    ) {
+        return "-";
+    }
+
+    if (field.field_type === "boolean") {
+        return value
+            ? "Igen"
+            : "Nem";
+    }
+
+    if (field.field_type === "single_select") {
+        return getOptionLabel(
+            field,
+            value
+        );
+    }
+
+    if (field.field_type === "multi_select") {
+        if (!Array.isArray(value)) {
+            return "-";
+        }
+
+        return value
+            .map(
+                item =>
+                    getOptionLabel(
+                        field,
+                        item
+                    )
+            )
+            .join(", ");
+    }
+
+    if (field.field_type === "date") {
+        const date =
+            new Date(
+                `${value}T00:00:00`
+            );
+
+        if (!Number.isNaN(date.getTime())) {
+            return date.toLocaleDateString(
+                "hu-HU"
+            );
+        }
+    }
+
+    return String(value);
+}
+
+function formatItemDate(value) {
+    if (!value) {
+        return "";
+    }
+
+    const date =
+        new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return date.toLocaleString(
+        "hu-HU"
+    );
+}
+
+
+function renderItemDetail(
+    item,
+    fields
+) {
+    const dynamicRows =
+        fields
+            .map(field => {
+                const value =
+                    getFieldValue(
+                        item,
+                        field
+                    );
+
+                const formattedValue =
+                    formatDynamicFieldValue(
+                        field,
+                        value
+                    );
+
+                return `
+                    <div class="item-detail-row">
+                        <strong>
+                            ${escapeHtml(
+                                field.name
+                            )}
+                        </strong>
+
+                        <span>
+                            ${escapeHtml(
+                                formattedValue
+                            )}
+                        </span>
+                    </div>
+                `;
+            })
+            .join("");
+
+    itemDetailContent.innerHTML = `
+        <div class="item-detail-title">
+            ${escapeHtml(item.title)}
+        </div>
+
+        ${
+            item.subtitle
+                ? `
+                    <div class="category-description">
+                        ${escapeHtml(
+                            item.subtitle
+                        )}
+                    </div>
+                `
+                : ""
+        }
+
+        <div class="item-detail-grid">
+            ${dynamicRows}
+        </div>
+
+        ${
+            item.notes
+                ? `
+                    <div class="item-detail-notes">
+                        <strong>Megjegyzés</strong>
+
+                        <div>
+                            ${escapeHtml(
+                                item.notes
+                            )}
+                        </div>
+                    </div>
+                `
+                : ""
+        }
+
+        <div class="field-meta">
+            Felvéve:
+            ${escapeHtml(
+                formatItemDate(
+                    item.created_at
+                )
+            )}
+
+            <br>
+
+            Módosítva:
+            ${escapeHtml(
+                formatItemDate(
+                    item.updated_at
+                )
+            )}
+        </div>
+    `;
+}
+
+
+async function openItemDetail(
+    publicId
+) {
+    itemDetailSection.style.display =
+        "";
+
+    itemDetailContent.innerHTML = "";
+
+    itemDetailStatus.style.display =
+        "";
+
+    itemDetailStatus.textContent =
+        "Betöltés...";
+
+    try {
+        const response =
+            await fetch(
+                `/items/${
+                    encodeURIComponent(
+                        publicId
+                    )
+                }`
+            );
+
+        let item = null;
+
+        try {
+            item =
+                await response.json();
+        } catch {
+            item = null;
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                item?.detail
+                || `HTTP ${response.status}`
+            );
+        }
+
+        itemDetailStatus.style.display =
+            "none";
+
+activeItem = item;
+
+        renderItemDetail(
+            item,
+            activeFields
+        );
+
+        itemDetailSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+    } catch (error) {
+        itemDetailStatus.style.display =
+            "";
+
+        itemDetailStatus.textContent =
+            `❌ ${error.message}`;
+    }
+}
+
+function openItemEditor() {
+    if (!activeItem) {
+        return;
+    }
+
+    editItemTitle.value =
+        activeItem.title || "";
+
+    editItemSubtitle.value =
+        activeItem.subtitle || "";
+
+    editItemNotes.value =
+        activeItem.notes || "";
+
+    renderDynamicFields(
+        editDynamicFields,
+        activeFields,
+        activeItem
+    );
+
+    itemDetailContent.style.display =
+        "none";
+
+    itemEditContent.style.display =
+        "";
+
+    itemEditStatus.textContent =
+        "";
+}
+
+async function saveItemEdit() {
+    if (
+        !activeItem
+        || !activeHousehold
+        || !activeCategory
+    ) {
+        return;
+    }
+
+    const title =
+        editItemTitle.value.trim();
+
+    if (!title) {
+        itemEditStatus.textContent =
+            "❌ A név / cím kötelező.";
+
+        return;
+    }
+
+    const controls =
+        editDynamicFields.querySelectorAll(
+            "[data-field-key]"
+        );
+
+    for (const control of controls) {
+        if (!control.reportValidity()) {
+            return;
+        }
+    }
+
+    saveItemEditButton.disabled = true;
+
+    itemEditStatus.textContent =
+        "Mentés...";
+
+    try {
+        const response =
+            await fetch(
+                `/items/${
+                    encodeURIComponent(
+                        activeItem.public_id
+                    )
+                }`,
+                {
+                    method: "PATCH",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        title,
+
+                        subtitle:
+                            editItemSubtitle
+                                .value
+                                .trim()
+                            || null,
+
+                        notes:
+                            editItemNotes
+                                .value
+                                .trim()
+                            || null,
+
+                        field_values:
+                            readDynamicFieldValuesFrom(
+                                editDynamicFields
+                            )
+                    })
+                }
+            );
+
+        let item = null;
+
+        try {
+            item =
+                await response.json();
+        } catch {
+            item = null;
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                item?.detail
+                || `HTTP ${response.status}`
+            );
+        }
+
+        activeItem = item;
+
+        renderItemDetail(
+            item,
+            activeFields
+        );
+
+        itemEditContent.style.display =
+            "none";
+
+        itemDetailContent.style.display =
+            "";
+
+        itemEditStatus.textContent =
+            "";
+
+        await loadCollectionItems(
+            activeHousehold,
+            activeCategory,
+            activeFields
+        );
+
+    } catch (error) {
+        itemEditStatus.textContent =
+            `❌ ${error.message}`;
+
+    } finally {
+        saveItemEditButton.disabled =
+            false;
+    }
+}
+
+editItemButton.addEventListener(
+    "click",
+    openItemEditor
+);
+
+saveItemEditButton.addEventListener(
+    "click",
+    saveItemEdit
+);
+
+cancelItemEditButton.addEventListener(
+    "click",
+    () => {
+        itemEditContent.style.display =
+            "none";
+
+        itemDetailContent.style.display =
+            "";
+
+        itemEditStatus.textContent =
+            "";
+    }
+);
+
+async function loadCollectionItems(
+    household,
+    category,
+    fields
+) {
+    itemsStatus.style.display = "";
+
+    itemsStatus.textContent =
+        "Betöltés...";
+
+    itemsList.innerHTML = "";
+
+    try {
+        const response =
+            await fetch(
+                "/items"
+                + "?household_id="
+                + encodeURIComponent(
+                    household.id
+                )
+                + "&category_id="
+                + encodeURIComponent(
+                    category.id
+                )
+                + "&sort_by=created_at"
+                + "&sort_direction=desc"
+                + "&limit=50"
+            );
+
+        let data = null;
+
+        try {
+            data =
+                await response.json();
+        } catch {
+            data = null;
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                data?.detail
+                || `HTTP ${response.status}`
+            );
+        }
+
+        itemsStatus.style.display =
+            "none";
+
+        if (!data.items.length) {
+            itemsList.innerHTML = `
+                <div class="empty">
+                    Ebben a gyűjteményben
+                    még nincs elem.
+                </div>
+            `;
+
+            return;
+        }
+
+const visibleFields =
+    fields.filter(
+        field =>
+            field.is_visible_in_list
+    );
+
+        for (const item of data.items) {
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+            row.className =
+                "field-row";
+
+row.innerHTML = `
+    <div class="field-name">
+        ${escapeHtml(item.title)}
+    </div>
+
+    ${
+        item.subtitle
+            ? `
+                <div class="category-description">
+                    ${escapeHtml(
+                        item.subtitle
+                    )}
+                </div>
+            `
+            : ""
+    }
+
+    ${
+        visibleFields.length
+            ? `
+                <div class="item-dynamic-fields">
+                    ${visibleFields
+                        .map(
+                            field => {
+                                const value =
+                                    getFieldValue(
+                                        item,
+                                        field
+                                    );
+
+                                return `
+                                    <div class="item-dynamic-field">
+                                        <strong>
+                                            ${escapeHtml(
+                                                field.name
+                                            )}:
+                                        </strong>
+
+                                        ${escapeHtml(
+                                            formatDynamicFieldValue(
+                                                field,
+                                                value
+                                            )
+                                        )}
+                                    </div>
+                                `;
+                            }
+                        )
+                        .join("")}
+                </div>
+            `
+            : ""
+    }
+
+    <div class="field-meta">
+        Felvéve:
+        ${escapeHtml(
+            formatItemDate(
+                item.created_at
+            )
+        )}
+    </div>
+`;
+
+row.tabIndex = 0;
+
+row.style.cursor =
+    "pointer";
+
+row.addEventListener(
+    "click",
+    () => {
+        openItemDetail(
+            item.public_id
+        );
+    }
+);
+
+row.addEventListener(
+    "keydown",
+    event => {
+        if (
+            event.key === "Enter"
+            || event.key === " "
+        ) {
+            event.preventDefault();
+
+            openItemDetail(
+                item.public_id
+            );
+        }
+    }
+);
+
+            itemsList.appendChild(
+                row
+            );
+        }
+
+    } catch (error) {
+        itemsStatus.style.display = "";
+
+        itemsStatus.textContent =
+            `❌ ${error.message}`;
+    }
+}
+
+function readDynamicFieldValuesFrom(
+    container
+) {
+    const fieldValues = {};
+
+    const controls =
+        container.querySelectorAll(
+            "[data-field-key]"
+        );
+
+    for (const control of controls) {
+        const fieldKey =
+            control.dataset.fieldKey;
+
+        const fieldType =
+            control.dataset.fieldType;
+
+        if (fieldType === "boolean") {
+            fieldValues[fieldKey] =
+                control.checked;
+
+            continue;
+        }
+
+        if (fieldType === "multi_select") {
+            const values =
+                Array.from(
+                    control.selectedOptions
+                )
+                .map(
+                    option =>
+                        option.value
+                );
+
+            if (values.length) {
+                fieldValues[fieldKey] =
+                    values;
+            }
+
+            continue;
+        }
+
+        const rawValue =
+            control.value.trim();
+
+        if (!rawValue) {
+            continue;
+        }
+
+        if (
+            fieldType === "integer"
+            || fieldType === "year"
+        ) {
+            fieldValues[fieldKey] =
+                Number.parseInt(
+                    rawValue,
+                    10
+                );
+
+            continue;
+        }
+
+        if (fieldType === "decimal") {
+            fieldValues[fieldKey] =
+                Number(rawValue);
+
+            continue;
+        }
+
+        fieldValues[fieldKey] =
+            rawValue;
+    }
+
+    return fieldValues;
+}
+
+function readDynamicFieldValues() {
+    return readDynamicFieldValuesFrom(
+        dynamicCreateFields
+    );
+}
+
+async function createCollectionItem(
+    household,
+    category
+) {
+    const title =
+        itemTitle.value.trim();
+
+    if (!title) {
+        createItemStatus.textContent =
+            "❌ A név / cím kötelező.";
+
+        return;
+    }
+
+    if (!itemTitle.reportValidity()) {
+        return;
+    }
+
+    const dynamicControls =
+        dynamicCreateFields.querySelectorAll(
+            "[data-field-key]"
+        );
+
+    for (const control of dynamicControls) {
+        if (!control.reportValidity()) {
+            return;
+        }
+    }
+
+    createItemButton.disabled = true;
+
+    createItemStatus.textContent =
+        "Mentés...";
+
+    try {
+        const result =
+            await fetch(
+                "/items",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        household_id:
+                            household.id,
+
+                        category_id:
+                            category.id,
+
+                        title,
+
+                        subtitle:
+                            itemSubtitle
+                                .value
+                                .trim()
+                            || null,
+
+                        notes:
+                            itemNotes
+                                .value
+                                .trim()
+                            || null,
+
+                        status:
+                            "active",
+
+                        field_values:
+                            readDynamicFieldValues()
+                    })
+                }
+            );
+
+        let data = null;
+
+        try {
+            data =
+                await result.json();
+        } catch {
+            data = null;
+        }
+
+        if (!result.ok) {
+            throw new Error(
+                data?.detail
+                || `HTTP ${result.status}`
+            );
+        }
+
+        createItemStatus.textContent =
+            "✅ Elem sikeresen létrehozva.";
+
+        itemTitle.value = "";
+        itemSubtitle.value = "";
+        itemNotes.value = "";
+
+        const controls =
+            dynamicCreateFields.querySelectorAll(
+                "[data-field-key]"
+            );
+
+        for (const control of controls) {
+            if (control.type === "checkbox") {
+                control.checked = false;
+
+            } else if (control.multiple) {
+                for (
+                    const option
+                    of control.options
+                ) {
+                    option.selected = false;
+                }
+
+            } else {
+                control.value = "";
+            }
+        }
+
+await loadCollectionItems(
+    household,
+    category,
+    activeFields
+);
+
+        itemTitle.focus();
+
+    } catch (error) {
+        console.error(
+            "Elem létrehozási hiba:",
+            error
+        );
+
+        createItemStatus.textContent =
+            `❌ ${error.message}`;
+
+    } finally {
+        createItemButton.disabled =
+            false;
+    }
+}
+
+closeItemDetailButton.addEventListener(
+    "click",
+    () => {
+activeItem = null;
+
+itemEditContent.style.display =
+    "none";
+
+itemDetailContent.style.display =
+    "";
+        itemDetailSection.style.display =
+            "none";
+
+        itemDetailContent.innerHTML =
+            "";
+
+        itemDetailStatus.style.display =
+            "none";
+    }
+);
+
     async function initializeCollectionPage() {
         try {
             const parameters =
@@ -446,6 +2049,9 @@
             const fields =
                 await fieldsResponse.json();
 
+activeHousehold = household;
+activeCategory = category;
+activeFields = fields;
 
             document.title =
                 `FamilyCollection – ${
@@ -472,13 +2078,36 @@
                     )
                 }`;
 
-            renderFields(fields);
+renderFields(fields);
 
-            statusBox.style.display =
-                "none";
+const canEdit =
+    household.role === "editor"
+    || household.role === "admin"
+    || household.role === "owner";
 
-            content.style.display =
-                "";
+editItemButton.style.display =
+    canEdit
+        ? ""
+        : "none";
+
+if (canEdit) {
+    renderCreateFields(fields);
+
+    createSection.style.display =
+        "";
+}
+
+await loadCollectionItems(
+    household,
+    category,
+    fields
+);
+
+statusBox.style.display =
+    "none";
+
+content.style.display =
+    "";
 
         } catch (error) {
             console.error(
@@ -492,6 +2121,25 @@
         }
     }
 
+createItemButton.addEventListener(
+    "click",
+    () => {
+        if (
+            !activeHousehold
+            || !activeCategory
+        ) {
+            createItemStatus.textContent =
+                "❌ A gyűjtemény még nem töltődött be.";
+
+            return;
+        }
+
+        createCollectionItem(
+            activeHousehold,
+            activeCategory
+        );
+    }
+);
 
     initializeCollectionPage();
 </script>

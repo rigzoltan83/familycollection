@@ -320,6 +320,13 @@ def list_items(
 
     items = session.scalars(
         select(CollectionItem)
+        .options(
+            selectinload(
+                CollectionItem.field_values
+            ).selectinload(
+                ItemFieldValue.field
+            )
+        )
         .where(*filters)
         .order_by(
             primary_order,
@@ -341,6 +348,29 @@ def list_items(
                 is_active=item.is_active,
                 created_at=item.created_at,
                 updated_at=item.updated_at,
+                field_values=[
+                    ItemFieldValueResponse(
+                        field_key=field_value.field.field_key,
+                        field_type=field_value.field.field_type,
+                        value_text=field_value.value_text,
+                        value_integer=(
+                            field_value.value_integer
+                        ),
+                        value_decimal=(
+                            field_value.value_decimal
+                        ),
+                        value_boolean=(
+                            field_value.value_boolean
+                        ),
+                        value_date=field_value.value_date,
+                        value_json=field_value.value_json,
+                    )
+                    for field_value in item.field_values
+                    if (
+                        field_value.field is not None
+                        and field_value.field.is_active
+                    )
+                 ],
             )
             for item in items
         ],

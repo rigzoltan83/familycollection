@@ -160,6 +160,11 @@ class CollectionItemListEntry(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    field_values: list[
+        ItemFieldValueResponse
+    ] = Field(
+        default_factory=list
+    )
 
 
 class CollectionItemListResponse(BaseModel):

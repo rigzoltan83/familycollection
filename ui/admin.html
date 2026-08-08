@@ -1245,6 +1245,527 @@ async function deactivateCategoryField(
     }
 }
 
+function isSelectCategoryField(field) {
+    return (
+        field.field_type === "single_select"
+        || field.field_type === "multi_select"
+    );
+}
+
+
+async function createCategoryFieldOption(
+    category,
+    field,
+    row
+) {
+    const container =
+        row.querySelector(
+            ".field-options"
+        );
+
+    const valueInput =
+        container.querySelector(
+            ".new-option-value"
+        );
+
+    const labelInput =
+        container.querySelector(
+            ".new-option-label"
+        );
+
+    const sortOrderInput =
+        container.querySelector(
+            ".new-option-sort-order"
+        );
+
+    const statusBox =
+        container.querySelector(
+            ".new-option-status"
+        );
+
+    const button =
+        container.querySelector(
+            ".create-option"
+        );
+
+    const value =
+        valueInput.value.trim();
+
+    const label =
+        labelInput.value.trim();
+
+    const sortOrder =
+        Number(
+            sortOrderInput.value
+        );
+
+    if (!value) {
+        setStatus(
+            statusBox,
+            "❌ Az érték kötelező.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!label) {
+        setStatus(
+            statusBox,
+            "❌ A megjelenő név kötelező.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        !Number.isInteger(sortOrder)
+        || sortOrder < 0
+    ) {
+        setStatus(
+            statusBox,
+            (
+                "❌ A sorrend nem lehet "
+                + "negatív egész szám."
+            ),
+            "error"
+        );
+
+        return;
+    }
+
+    button.disabled = true;
+
+    setStatus(
+        statusBox,
+        "Létrehozás..."
+    );
+
+    try {
+        await apiFetch(
+            `/admin/households/${
+                activeHousehold.id
+            }/categories/${
+                category.id
+            }/fields/${
+                field.id
+            }/options`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    value,
+                    label,
+                    sort_order: sortOrder
+                })
+            }
+        );
+
+        valueInput.value = "";
+        labelInput.value = "";
+        sortOrderInput.value = "100";
+
+        await loadCategoryFieldOptions(
+            category,
+            field,
+            row
+        );
+
+    } catch (error) {
+        setStatus(
+            statusBox,
+            `❌ ${error.message}`,
+            "error"
+        );
+
+    } finally {
+        button.disabled = false;
+    }
+}
+
+
+async function saveCategoryFieldOption(
+    category,
+    field,
+    option,
+    row,
+    optionRow
+) {
+    const statusBox =
+        optionRow.querySelector(
+            ".option-row-status"
+        );
+
+    const button =
+        optionRow.querySelector(
+            ".save-option"
+        );
+
+    const label =
+        optionRow
+            .querySelector(
+                ".option-label"
+            )
+            .value
+            .trim();
+
+    const sortOrder =
+        Number(
+            optionRow
+                .querySelector(
+                    ".option-sort-order"
+                )
+                .value
+        );
+
+    if (!label) {
+        setStatus(
+            statusBox,
+            "❌ A megjelenő név kötelező.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        !Number.isInteger(sortOrder)
+        || sortOrder < 0
+    ) {
+        setStatus(
+            statusBox,
+            (
+                "❌ A sorrend nem lehet "
+                + "negatív egész szám."
+            ),
+            "error"
+        );
+
+        return;
+    }
+
+    button.disabled = true;
+
+    setStatus(
+        statusBox,
+        "Mentés..."
+    );
+
+    try {
+        await apiFetch(
+            `/admin/households/${
+                activeHousehold.id
+            }/categories/${
+                category.id
+            }/fields/${
+                field.id
+            }/options/${
+                option.id
+            }`,
+            {
+                method: "PATCH",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    label,
+                    sort_order: sortOrder,
+                    is_active:
+                        optionRow
+                            .querySelector(
+                                ".option-active"
+                            )
+                            .checked
+                })
+            }
+        );
+
+        setStatus(
+            statusBox,
+            "✅ Opció mentve.",
+            "success"
+        );
+
+    } catch (error) {
+        setStatus(
+            statusBox,
+            `❌ ${error.message}`,
+            "error"
+        );
+
+    } finally {
+        button.disabled = false;
+    }
+}
+
+
+async function deactivateCategoryFieldOption(
+    category,
+    field,
+    option,
+    row
+) {
+    const confirmed =
+        window.confirm(
+            (
+                "Biztosan inaktiválod ezt "
+                + "a választható értéket?\n\n"
+                + `${option.label} (${option.value})`
+            )
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        await apiFetch(
+            `/admin/households/${
+                activeHousehold.id
+            }/categories/${
+                category.id
+            }/fields/${
+                field.id
+            }/options/${
+                option.id
+            }`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        await loadCategoryFieldOptions(
+            category,
+            field,
+            row
+        );
+
+    } catch (error) {
+        const statusBox =
+            row.querySelector(
+                ".field-options-status"
+            );
+
+        setStatus(
+            statusBox,
+            `❌ ${error.message}`,
+            "error"
+        );
+    }
+}
+
+
+async function loadCategoryFieldOptions(
+    category,
+    field,
+    row
+) {
+    const container =
+        row.querySelector(
+            ".field-options"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    const list =
+        container.querySelector(
+            ".field-options-list"
+        );
+
+    const statusBox =
+        container.querySelector(
+            ".field-options-status"
+        );
+
+    setStatus(
+        statusBox,
+        "Opciók betöltése..."
+    );
+
+    try {
+        const options =
+            await apiFetch(
+                `/admin/households/${
+                    activeHousehold.id
+                }/categories/${
+                    category.id
+                }/fields/${
+                    field.id
+                }/options`
+            );
+
+        list.innerHTML = "";
+
+        statusBox.textContent = "";
+
+        if (!options.length) {
+            list.innerHTML = `
+                <div class="muted">
+                    Még nincs választható érték.
+                </div>
+            `;
+
+            return;
+        }
+
+        for (const option of options) {
+            const optionRow =
+                document.createElement(
+                    "div"
+                );
+
+            optionRow.className =
+                "category-field-option-row";
+
+            optionRow.innerHTML = `
+                <div class="category-edit-grid">
+                    <div>
+                        <label>
+                            Érték
+                        </label>
+
+                        <input
+                            type="text"
+                            value="${escapeHtml(
+                                option.value
+                            )}"
+                            disabled
+                        >
+                    </div>
+
+                    <div>
+                        <label>
+                            Megjelenő név
+                        </label>
+
+                        <input
+                            class="option-label"
+                            type="text"
+                            maxlength="150"
+                            value="${escapeHtml(
+                                option.label
+                            )}"
+                        >
+                    </div>
+
+                    <div>
+                        <label>
+                            Sorrend
+                        </label>
+
+                        <input
+                            class="option-sort-order"
+                            type="number"
+                            min="0"
+                            value="${escapeHtml(
+                                option.sort_order
+                            )}"
+                        >
+                    </div>
+
+                    <div class="checkbox-field">
+                        <label>
+                            <input
+                                class="option-active"
+                                type="checkbox"
+                                ${
+                                    option.is_active
+                                        ? "checked"
+                                        : ""
+                                }
+                            >
+                            Aktív
+                        </label>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button
+                        type="button"
+                        class="primary save-option"
+                    >
+                        Mentés
+                    </button>
+
+                    ${
+                        option.is_active
+                            ? `
+                                <button
+                                    type="button"
+                                    class="deactivate-option"
+                                >
+                                    🗑️ Inaktiválás
+                                </button>
+                            `
+                            : ""
+                    }
+                </div>
+
+                <div
+                    class="status option-row-status"
+                ></div>
+            `;
+
+            optionRow
+                .querySelector(
+                    ".save-option"
+                )
+                .addEventListener(
+                    "click",
+                    () =>
+                        saveCategoryFieldOption(
+                            category,
+                            field,
+                            option,
+                            row,
+                            optionRow
+                        )
+                );
+
+            const deactivateButton =
+                optionRow.querySelector(
+                    ".deactivate-option"
+                );
+
+            if (deactivateButton) {
+                deactivateButton
+                    .addEventListener(
+                        "click",
+                        () =>
+                            deactivateCategoryFieldOption(
+                                category,
+                                field,
+                                option,
+                                row
+                            )
+                    );
+            }
+
+            list.appendChild(
+                optionRow
+            );
+        }
+
+    } catch (error) {
+        setStatus(
+            statusBox,
+            `❌ ${error.message}`,
+            "error"
+        );
+    }
+}
+
 async function loadCategoryFields(
     category,
     card
@@ -1459,10 +1980,86 @@ row.innerHTML = `
         }
     </div>
 
-    <div
-        class="status field-row-status"
-    ></div>
-`;
+      <div
+          class="status field-row-status"
+      ></div>
+
+      ${
+          isSelectCategoryField(field)
+              ? `
+                  <div class="field-options">
+<h4>
+    Választható értékek:
+    ${escapeHtml(field.name)}
+    <span class="muted">
+        (${escapeHtml(field.field_key)})
+    </span>
+</h4>
+
+                      <div
+                          class="field-options-list"
+                      ></div>
+
+                      <div class="category-edit-grid">
+                          <div>
+                              <label>
+                                  Érték
+                              </label>
+
+                              <input
+                                  class="new-option-value"
+                                  type="text"
+                                  maxlength="100"
+                              >
+                          </div>
+
+                          <div>
+                              <label>
+                                  Megjelenő név
+                              </label>
+
+                              <input
+                                  class="new-option-label"
+                                  type="text"
+                                  maxlength="150"
+                              >
+                          </div>
+
+                          <div>
+                              <label>
+                                  Sorrend
+                              </label>
+
+                              <input
+                                  class="new-option-sort-order"
+                                  type="number"
+                                  min="0"
+                                  value="100"
+                              >
+                          </div>
+                      </div>
+
+                      <div class="actions">
+                          <button
+                              type="button"
+                              class="primary create-option"
+                          >
+                              + Új opció
+                          </button>
+                      </div>
+
+                      <div
+                          class="status new-option-status"
+                      ></div>
+
+                      <div
+                          class="status field-options-status"
+                      ></div>
+                  </div>
+              `
+              : ""
+      }
+  `;
 
 row
     .querySelector(
@@ -1484,6 +2081,22 @@ const deactivateButton =
         ".deactivate-field"
     );
 
+if (isSelectCategoryField(field)) {
+    row
+        .querySelector(
+            ".create-option"
+        )
+        .addEventListener(
+            "click",
+            () =>
+                createCategoryFieldOption(
+                    category,
+                    field,
+                    row
+                )
+        );
+}
+
 if (deactivateButton) {
     deactivateButton.addEventListener(
         "click",
@@ -1498,7 +2111,16 @@ if (deactivateButton) {
 }
 
             list.appendChild(row);
-        }
+
+if (isSelectCategoryField(field)) {
+    await loadCategoryFieldOptions(
+        category,
+        field,
+        row
+    );
+} 
+
+       }
 
     } catch (error) {
         setStatus(
