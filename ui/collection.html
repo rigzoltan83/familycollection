@@ -736,6 +736,23 @@
         ></div>
 
 <div class="field-row">
+    <label for="itemStorage">
+        Tárhely
+    </label>
+
+    <select id="itemStorage">
+        <option value="">
+            -- nincs tárhely megadva --
+        </option>
+    </select>
+
+    <div class="field-help">
+        A tárhelyek az adminisztrációban
+        beállított aktív rekeszekből választhatók.
+    </div>
+</div>
+
+<div class="field-row">
     <div class="pending-item-image-header">
         <label>
             Képek
@@ -992,6 +1009,23 @@
         ></div>
 
 <div class="field-row">
+    <label for="editItemStorage">
+        Tárhely
+    </label>
+
+    <select id="editItemStorage">
+        <option value="">
+            -- nincs tárhely megadva --
+        </option>
+    </select>
+
+    <div class="field-help">
+        Másik hely kiválasztásakor
+        tárhely-áthelyezési előzmény készül.
+    </div>
+</div>
+
+<div class="field-row">
     <div class="edit-item-image-header">
         <label>
             Képek
@@ -1123,6 +1157,9 @@ let activeCategory = null;
 let activeFields = [];
 let activeItem = null;
 
+let storageLocations = [];
+let storageByPublicId = new Map();
+
 const itemSearch =
     document.getElementById(
         "itemSearch"
@@ -1188,6 +1225,11 @@ const editItemSubtitle =
 const editItemNotes =
     document.getElementById(
         "editItemNotes"
+    );
+
+const editItemStorage =
+    document.getElementById(
+        "editItemStorage"
     );
 
 const saveItemEditButton =
@@ -1302,6 +1344,11 @@ const itemNotes =
         "itemNotes"
     );
 
+const itemStorage =
+    document.getElementById(
+        "itemStorage"
+    );
+
 const pendingItemImageCount =
     document.getElementById(
         "pendingItemImageCount"
@@ -1400,6 +1447,204 @@ const dynamicCreateFields =
             "fieldList"
         );
 
+function flattenCollectionStorageTree(
+    nodes,
+    parentPath = []
+) {
+    const result = [];
+
+    for (const node of nodes || []) {
+        const pathNames = [
+            ...parentPath,
+            node.name
+        ];
+
+        result.push({
+            ...node,
+            path_names: pathNames
+        });
+
+        if (
+            Array.isArray(node.children)
+            && node.children.length
+        ) {
+            result.push(
+                ...flattenCollectionStorageTree(
+                    node.children,
+                    pathNames
+                )
+            );
+        }
+    }
+
+    return result;
+}
+
+
+function storageLocationLabel(location) {
+    if (!location) {
+        return "";
+    }
+
+    if (
+        Array.isArray(location.path_names)
+        && location.path_names.length
+    ) {
+        return location.path_names.join(
+            " / "
+        );
+    }
+
+    return location.name || "";
+}
+
+
+function fillCollectionStorageSelect(
+    selectElement,
+    selectedPublicId = ""
+) {
+    selectElement.innerHTML = `
+        <option value="">
+            -- nincs tárhely megadva --
+        </option>
+    `;
+
+    const activeSlots =
+        storageLocations.filter(
+            location =>
+                location.is_active
+                && location.location_type
+                    === "slot"
+        );
+
+    activeSlots.sort(
+        (left, right) =>
+            storageLocationLabel(left)
+                .localeCompare(
+                    storageLocationLabel(right),
+                    "hu"
+                )
+    );
+
+    for (const location of activeSlots) {
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value =
+            location.public_id;
+
+        option.textContent =
+            storageLocationLabel(
+                location
+            );
+
+        selectElement.appendChild(
+            option
+        );
+    }
+
+    if (
+        selectedPublicId
+        && storageByPublicId.has(
+            selectedPublicId
+        )
+    ) {
+        selectElement.value =
+            selectedPublicId;
+    }
+}
+
+
+async function loadCollectionStorageTree() {
+    if (!activeHousehold) {
+        storageLocations = [];
+        storageByPublicId =
+            new Map();
+
+        fillCollectionStorageSelect(
+            itemStorage
+        );
+
+        fillCollectionStorageSelect(
+            editItemStorage
+        );
+
+        return;
+    }
+
+    const params =
+        new URLSearchParams({
+            household_id:
+                String(
+                    activeHousehold.id
+                ),
+
+            include_inactive:
+                "false"
+        });
+
+    const response =
+        await fetch(
+            `/storage/tree?${
+                params.toString()
+            }`
+        );
+
+    let data = null;
+
+    try {
+        data =
+            await response.json();
+    } catch {
+        data = null;
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data?.detail
+            || (
+                "A tárhelyek betöltése "
+                + "sikertelen."
+            )
+        );
+    }
+
+    if (
+        !data
+        || !Array.isArray(
+            data.locations
+        )
+    ) {
+        throw new Error(
+            "A tárhelyfa hibás választ adott."
+        );
+    }
+
+    storageLocations =
+        flattenCollectionStorageTree(
+            data.locations
+        );
+
+    storageByPublicId =
+        new Map(
+            storageLocations.map(
+                location => [
+                    location.public_id,
+                    location
+                ]
+            )
+        );
+
+    fillCollectionStorageSelect(
+        itemStorage
+    );
+
+    fillCollectionStorageSelect(
+        editItemStorage
+    );
+}
 
     function roleLabel(role) {
         const labels = {
@@ -2039,9 +2284,24 @@ function renderItemDetail(
                             )}
                         </span>
                     </div>
+
                 `;
             })
             .join("");
+
+    const storageLocation =
+        item.storage_public_id
+            ? storageByPublicId.get(
+                item.storage_public_id
+            )
+            : null;
+
+    const storageLabel =
+        storageLocation
+            ? storageLocationLabel(
+                storageLocation
+            )
+            : "";
 
     itemDetailContent.innerHTML = `
         <div class="item-detail-title">
@@ -2061,6 +2321,24 @@ function renderItemDetail(
         }
 
         <div class="item-detail-grid">
+            ${
+                storageLabel
+                    ? `
+                        <div class="item-detail-row">
+                            <strong>
+                                Tárhely
+                            </strong>
+
+                            <span>
+                                ${escapeHtml(
+                                    storageLabel
+                                )}
+                            </span>
+                        </div>
+                    `
+                    : ""
+            }
+
             ${dynamicRows}
         </div>
 
@@ -2978,6 +3256,12 @@ async function openItemEditor() {
     editItemNotes.value =
         activeItem.notes || "";
 
+    fillCollectionStorageSelect(
+        editItemStorage,
+        activeItem.storage_public_id
+        || ""
+    );
+
     renderDynamicFields(
         editDynamicFields,
         activeFields,
@@ -3066,17 +3350,21 @@ async function saveItemEdit() {
                                 .value
                                 .trim()
                             || null,
-
                         notes:
                             editItemNotes
                                 .value
                                 .trim()
                             || null,
 
+                        storage_public_id:
+                            editItemStorage.value
+                                || null,
+
                         field_values:
                             readDynamicFieldValuesFrom(
                                 editDynamicFields
                             )
+
                     })
                 }
             );
@@ -4201,6 +4489,10 @@ async function createCollectionItem(
                         status:
                             "active",
 
+                        storage_public_id:
+                            itemStorage.value
+                                || null,
+
                         field_values:
                             readDynamicFieldValues()
                     })
@@ -4263,6 +4555,7 @@ createItemStatus.textContent =
         itemTitle.value = "";
         itemSubtitle.value = "";
         itemNotes.value = "";
+        itemStorage.value = "";
 
         const controls =
             dynamicCreateFields.querySelectorAll(
@@ -4460,6 +4753,8 @@ itemDetailContent.style.display =
 activeHousehold = household;
 activeCategory = category;
 activeFields = fields;
+
+await loadCollectionStorageTree();
 
             document.title =
                 `FamilyCollection – ${
