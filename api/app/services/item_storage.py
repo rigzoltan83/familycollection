@@ -19,6 +19,9 @@ from app.models import (
     StorageLocation,
 )
 
+from app.services.category_storage import (
+    is_storage_location_allowed,
+)
 
 def get_active_item_storage_assignment(
     session: Session,
@@ -118,6 +121,18 @@ def set_item_storage_location(
         raise ValueError(
             "A tárolóhely nem ehhez "
             "a háztartáshoz tartozik."
+        )
+
+    if not is_storage_location_allowed(
+        session=session,
+        household_id=item.household_id,
+        category_id=item.category_id,
+        storage_location_id=target_location.id,
+    ):
+        raise ValueError(
+            "A megadott tárolóhely "
+            "nem engedélyezett ehhez "
+            "a kategóriához."
         )
 
     if target_location.location_type != "slot":

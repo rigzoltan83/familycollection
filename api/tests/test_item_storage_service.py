@@ -1,8 +1,11 @@
+import pytest
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models import (
     Category,
+    CategoryStorageLocation,
     CollectionItem,
     Household,
     ItemStorageAssignment,
@@ -471,3 +474,125 @@ def test_remove_current_storage_assignment(
     )
 
     assert active_assignment is None
+
+def test_set_item_storage_location_rejects_location_not_allowed_for_category(
+    db_session: Session,
+) -> None:
+    household = create_household(
+        db_session,
+        name="Kategória tárhely tiltás",
+        slug="category-storage-denied",
+    )
+
+    category = create_category(
+        db_session,
+        name="Kategória tárhely tiltás teszt",
+        slug="category-storage-denied-category",
+    )
+
+    item = create_item(
+        db_session,
+        household=household,
+        category=category,
+        title="Tiltott tárhely teszt",
+    )
+
+    allowed_location = create_storage_location(
+        db_session,
+        household=household,
+        name="Engedélyezett hely",
+        slug="allowed-category-slot",
+    )
+
+    denied_location = create_storage_location(
+        db_session,
+        household=household,
+        name="Tiltott hely",
+        slug="denied-category-slot",
+    )
+
+    db_session.add(
+        CategoryStorageLocation(
+            household_id=household.id,
+            category_id=category.id,
+            storage_location_id=(
+                allowed_location.id
+            ),
+            include_descendants=False,
+        )
+    )
+
+    db_session.flush()
+
+    with pytest.raises(
+        ValueError,
+        match=(
+            "nem engedélyezett ehhez "
+            "a kategóriához"
+        ),
+    ):
+        set_item_storage_location(
+            session=db_session,
+            item=item,
+            storage_public_id=(
+                denied_location.public_id
+            ),
+        )
+
+
+def test_set_item_storage_location_accepts_location_allowed_for_category(
+    db_session: Session,
+) -> None:
+    household = create_household(
+        db_session,
+        name="Kategória tárhely engedély",
+        slug="category-storage-allowed",
+    )
+
+    category = create_category(
+        db_session,
+        name="Kategória tárhely engedély teszt",
+        slug="category-storage-allowed-category",
+    )
+
+    item = create_item(
+        db_session,
+        household=household,
+        category=category,
+        title="Engedélyezett tárhely teszt",
+    )
+
+    allowed_location = create_storage_location(
+        db_session,
+        household=household,
+        name="Engedélyezett hely",
+        slug="allowed-category-storage-slot",
+    )
+
+    db_session.add(
+        CategoryStorageLocation(
+            household_id=household.id,
+            category_id=category.id,
+            storage_location_id=(
+                allowed_location.id
+            ),
+            include_descendants=False,
+        )
+    )
+
+    db_session.flush()
+
+    assignment = set_item_storage_location(
+        session=db_session,
+        item=item,
+        storage_public_id=(
+            allowed_location.public_id
+        ),
+    )
+
+    assert assignment is not None
+    assert (
+        assignment.storage_location_id
+        == allowed_location.id
+    )
+    assert assignment.is_active is True
