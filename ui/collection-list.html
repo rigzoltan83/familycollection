@@ -8,7 +8,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>FamilyCollection – Gyűjtemény</title>
+<title>FamilyCollection – Gyűjtemény lista</title>
 
     <style>
         * {
@@ -656,7 +656,7 @@
     <div class="topbar">
         <div>
             <h1 id="pageTitle">
-                Gyűjtemény
+                Gyűjtemény lista
             </h1>
 
             <div
@@ -665,12 +665,14 @@
             ></div>
         </div>
 
-        <a
-            class="back-link"
-            href="/ui/dashboard.html"
-        >
-            ← Vissza
-        </a>
+<a
+    id="collectionHomeLink"
+    class="back-link"
+    href="#"
+>
+    ← Gyűjtemény főoldal
+</a>
+
     </div>
 
     <div
@@ -701,7 +703,7 @@
 <section
     id="createSection"
     class="field-section"
-    style="display:none"
+    style="display:none !important"
 >
     <h2>Új elem felvitele</h2>
 
@@ -866,17 +868,7 @@
         </section>
 
 <section class="field-section">
-    <div class="section-header">
-        <h2>Legutóbb felvett elemek</h2>
-
-        <a
-            id="allItemsLink"
-            class="back-link"
-            href="#"
-        >
-            Összes elem →
-        </a>
-    </div>
+    <h2>Összes elem</h2>
 
 <div class="collection-toolbar">
     <input
@@ -1136,10 +1128,7 @@
     </div>
 </div>
 
-<div
-    class="pagination"
-    style="display:none"
->
+<div class="pagination">
     <button
         id="previousPageButton"
         type="button"
@@ -1173,6 +1162,11 @@ let activeItem = null;
 let storageLocations = [];
 let storageByPublicId = new Map();
 
+const collectionHomeLink =
+    document.getElementById(
+        "collectionHomeLink"
+    );
+
 const itemSearch =
     document.getElementById(
         "itemSearch"
@@ -1203,7 +1197,7 @@ let currentItemSearch = "";
 let currentItemSortBy = "created_at";
 let currentItemSortDirection = "desc";
 
-const itemPageSize = 10;
+const itemPageSize = 50;
 
 const editItemButton =
     document.getElementById(
@@ -1340,11 +1334,6 @@ const itemsStatus =
 const itemsList =
     document.getElementById(
         "itemsList"
-    );
-
-const allItemsLink =
-    document.getElementById(
-        "allItemsLink"
     );
 
 const itemTitle =
@@ -4772,8 +4761,8 @@ activeHousehold = household;
 activeCategory = category;
 activeFields = fields;
 
-allItemsLink.href =
-    `/ui/collection-list.html?category_id=${
+collectionHomeLink.href =
+    `/ui/collection.html?category_id=${
         encodeURIComponent(
             activeCategory.id
         )
@@ -4786,8 +4775,8 @@ await loadCollectionStorageTree();
                     category.name
                 }`;
 
-            pageTitle.textContent =
-                category.name;
+pageTitle.textContent =
+    `${activeCategory.name} – összes elem`;
 
             householdName.textContent =
                 household.name;
@@ -5057,6 +5046,7 @@ pendingItemImagePreview.addEventListener(
     }
 );
 
+
 createItemButton.addEventListener(
     "click",
     () => {
@@ -5076,6 +5066,9 @@ createItemButton.addEventListener(
         );
     }
 );
+
+createSection.style.display =
+    "none";
 
     initializeCollectionPage();
 </script>
