@@ -150,6 +150,7 @@ class CollectionItemResponse(BaseModel):
     identifiers: list[ItemIdentifierResponse]
     field_values: list[ItemFieldValueResponse]
 
+
 class CollectionItemListEntry(BaseModel):
     public_id: str
     household_id: int
@@ -160,6 +161,9 @@ class CollectionItemListEntry(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+
+    primary_image_thumbnail_url: str | None = None
+
     field_values: list[
         ItemFieldValueResponse
     ] = Field(

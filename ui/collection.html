@@ -233,6 +233,420 @@
     }
 }
 
+.pending-item-image-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+#pendingItemImageCount {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.pending-item-image-preview {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(130px, 1fr)
+        );
+    gap: 12px;
+    min-height: 135px;
+}
+
+.pending-item-image-empty {
+    grid-column: 1 / -1;
+    min-height: 135px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 2px dashed #444;
+    border-radius: 9px;
+    color: #999;
+    text-align: center;
+}
+
+.pending-item-image-empty-icon {
+    font-size: 34px;
+}
+
+.pending-item-image-card {
+    overflow: hidden;
+    border: 1px solid #444;
+    border-radius: 9px;
+    background: #242424;
+}
+
+.pending-item-image-card img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    display: block;
+    object-fit: cover;
+    background: #111;
+}
+
+.pending-item-image-meta {
+    padding: 8px;
+    color: #aaa;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.pending-item-image-card-actions {
+    display: flex;
+    gap: 6px;
+    padding: 0 8px 8px;
+}
+
+.pending-item-image-card-actions button {
+    flex: 1;
+    padding: 6px;
+    border: 0;
+    border-radius: 6px;
+    background: #444;
+    color: #fff;
+    cursor: pointer;
+}
+
+.pending-item-image-card-actions button:hover {
+    background: #555;
+}
+
+.pending-item-image-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.pending-item-image-button {
+    flex: 1;
+    padding: 10px;
+    border: 0;
+    border-radius: 7px;
+    background: #2563a8;
+    color: #fff;
+    cursor: pointer;
+}
+
+.pending-item-image-button:disabled {
+    background: #3b3b3b;
+    color: #777;
+    cursor: default;
+}
+
+@media (max-width: 600px) {
+    .pending-item-image-preview {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+    .pending-item-image-actions {
+        flex-direction: column;
+    }
+}
+
+.item-detail-images {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid #444;
+}
+
+.item-detail-images-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.item-detail-images-header h3 {
+    margin: 0;
+    color: #6dff6d;
+}
+
+#itemDetailImageCount {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.item-detail-image-gallery {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(140px, 1fr)
+        );
+    gap: 12px;
+}
+
+.item-detail-image-card {
+    overflow: hidden;
+    border: 1px solid #444;
+    border-radius: 9px;
+    background: #242424;
+}
+
+.item-detail-image-link {
+    display: block;
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: #111;
+}
+
+.item-detail-image-link img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.item-detail-image-primary {
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    padding: 4px 7px;
+    border-radius: 5px;
+    background: rgba(35, 124, 69, 0.94);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.item-detail-image-caption {
+    padding: 8px;
+    color: #ccc;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.item-detail-image-empty {
+    grid-column: 1 / -1;
+    padding: 18px;
+    border: 2px dashed #444;
+    border-radius: 9px;
+    color: #999;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .item-detail-image-gallery {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+}
+
+.edit-item-image-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+#editItemImageCount {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.edit-item-image-gallery {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(140px, 1fr)
+        );
+    gap: 12px;
+    min-height: 135px;
+}
+
+.edit-item-image-empty {
+    grid-column: 1 / -1;
+    min-height: 135px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #444;
+    border-radius: 9px;
+    color: #999;
+    text-align: center;
+}
+
+.edit-item-image-card {
+    overflow: hidden;
+    border: 1px solid #444;
+    border-radius: 9px;
+    background: #242424;
+}
+
+.edit-item-image-preview {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: #111;
+}
+
+.edit-item-image-preview img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.edit-item-image-primary {
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    padding: 4px 7px;
+    border-radius: 5px;
+    background: rgba(35, 124, 69, 0.94);
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.edit-item-image-meta {
+    padding: 8px;
+    color: #aaa;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.edit-item-image-actions {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+    gap: 7px;
+    padding: 0 8px 8px;
+}
+
+.edit-item-image-action {
+    padding: 6px;
+    border: 0;
+    border-radius: 6px;
+    background: #444;
+    color: #fff;
+    cursor: pointer;
+}
+
+.edit-item-image-action:hover:not(:disabled) {
+    background: #555;
+}
+
+.edit-item-image-action:disabled {
+    background: #237c45;
+    cursor: default;
+}
+
+.edit-item-image-action.danger:hover {
+    background: #9b2d2d;
+}
+
+.edit-item-image-upload-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.edit-item-image-button {
+    flex: 1;
+    padding: 10px;
+    border: 0;
+    border-radius: 7px;
+    background: #2563a8;
+    color: #fff;
+    cursor: pointer;
+}
+
+.edit-item-image-button:disabled {
+    background: #3b3b3b;
+    color: #777;
+    cursor: default;
+}
+
+.edit-item-image-status {
+    min-height: 20px;
+    margin-top: 8px;
+    color: #ffb84d;
+    font-size: 14px;
+}
+
+@media (max-width: 600px) {
+    .edit-item-image-gallery {
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0, 1fr)
+            );
+    }
+
+    .edit-item-image-upload-actions {
+        flex-direction: column;
+    }
+}
+
+.collection-item-list-layout {
+    display: grid;
+    grid-template-columns:
+        120px minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.collection-item-list-content {
+    min-width: 0;
+}
+
+.collection-item-thumb {
+    width: 120px;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #111;
+}
+
+.collection-item-thumb img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.collection-item-thumb-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed #555;
+    color: #777;
+    font-size: 30px;
+}
+
+@media (max-width: 600px) {
+    .collection-item-list-layout {
+        grid-template-columns:
+            90px minmax(0, 1fr);
+        gap: 12px;
+    }
+
+    .collection-item-thumb {
+        width: 90px;
+    }
+}
+
     </style>
 </head>
 
@@ -320,6 +734,85 @@
             id="dynamicCreateFields"
             class="field-list"
         ></div>
+
+<div class="field-row">
+    <div class="pending-item-image-header">
+        <label>
+            Képek
+        </label>
+
+        <span id="pendingItemImageCount">
+            0 kép kiválasztva
+        </span>
+    </div>
+
+    <div
+        id="pendingItemImagePreview"
+        class="pending-item-image-preview"
+    >
+        <div
+            id="pendingItemImageEmpty"
+            class="pending-item-image-empty"
+        >
+            <div class="pending-item-image-empty-icon">
+                🖼️
+            </div>
+
+            <div>
+                Még nincs kép kiválasztva.
+            </div>
+        </div>
+    </div>
+
+    <div class="pending-item-image-actions">
+        <button
+            id="pendingItemCameraButton"
+            type="button"
+            class="pending-item-image-button"
+        >
+            📷 Fotó készítése
+        </button>
+
+        <button
+            id="pendingItemFilesButton"
+            type="button"
+            class="pending-item-image-button"
+        >
+            🖼️ Képek kiválasztása
+        </button>
+
+        <button
+            id="pendingItemImagesClearButton"
+            type="button"
+            class="pending-item-image-button"
+            disabled
+        >
+            🧹 Képek törlése
+        </button>
+    </div>
+
+    <input
+        id="pendingItemCameraInput"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+    >
+
+    <input
+        id="pendingItemFilesInput"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        hidden
+    >
+
+    <div class="field-help">
+        A nagy képek feltöltés előtt automatikusan
+        legfeljebb 2000 pixelesre lesznek átméretezve.
+        Az első kép lesz az elsődleges kép.
+    </div>
+</div>
 
         <div class="field-row">
             <label for="itemNotes">
@@ -446,6 +939,25 @@
     <div id="itemDetailContent"></div>
 
 <div
+    id="itemDetailImages"
+    class="item-detail-images"
+    style="display:none"
+>
+    <div class="item-detail-images-header">
+        <h3>Képek</h3>
+
+        <span id="itemDetailImageCount">
+            0 kép
+        </span>
+    </div>
+
+    <div
+        id="itemDetailImageGallery"
+        class="item-detail-image-gallery"
+    ></div>
+</div>
+
+<div
     id="itemEditContent"
     style="display: none;"
 >
@@ -478,6 +990,71 @@
             id="editDynamicFields"
             class="field-list"
         ></div>
+
+<div class="field-row">
+    <div class="edit-item-image-header">
+        <label>
+            Képek
+        </label>
+
+        <span id="editItemImageCount">
+            0 kép
+        </span>
+    </div>
+
+    <div
+        id="editItemImageGallery"
+        class="edit-item-image-gallery"
+    >
+        <div class="edit-item-image-empty">
+            🖼️ Még nincs kép ehhez az elemhez.
+        </div>
+    </div>
+
+    <div class="edit-item-image-upload-actions">
+        <button
+            id="editItemImageCameraButton"
+            type="button"
+            class="edit-item-image-button"
+        >
+            📷 Fotó készítése
+        </button>
+
+        <button
+            id="editItemImageFilesButton"
+            type="button"
+            class="edit-item-image-button"
+        >
+            🖼️ Képek kiválasztása
+        </button>
+    </div>
+
+    <input
+        id="editItemImageCameraInput"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+    >
+
+    <input
+        id="editItemImageFilesInput"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        hidden
+    >
+
+    <div class="field-help">
+        A nagy képek feltöltés előtt automatikusan
+        legfeljebb 2000 pixelesre lesznek átméretezve.
+    </div>
+
+    <div
+        id="editItemImageStatus"
+        class="edit-item-image-status"
+    ></div>
+</div>
 
         <div class="field-row">
             <label for="editItemNotes">
@@ -628,6 +1205,43 @@ const itemEditStatus =
         "itemEditStatus"
     );
 
+const editItemImageCount =
+    document.getElementById(
+        "editItemImageCount"
+    );
+
+const editItemImageGallery =
+    document.getElementById(
+        "editItemImageGallery"
+    );
+
+const editItemImageCameraButton =
+    document.getElementById(
+        "editItemImageCameraButton"
+    );
+
+const editItemImageFilesButton =
+    document.getElementById(
+        "editItemImageFilesButton"
+    );
+
+const editItemImageCameraInput =
+    document.getElementById(
+        "editItemImageCameraInput"
+    );
+
+const editItemImageFilesInput =
+    document.getElementById(
+        "editItemImageFilesInput"
+    );
+
+const editItemImageStatus =
+    document.getElementById(
+        "editItemImageStatus"
+    );
+
+let editItemImages = [];
+
 const itemDetailSection =
     document.getElementById(
         "itemDetailSection"
@@ -641,6 +1255,21 @@ const itemDetailStatus =
 const itemDetailContent =
     document.getElementById(
         "itemDetailContent"
+    );
+
+const itemDetailImages =
+    document.getElementById(
+        "itemDetailImages"
+    );
+
+const itemDetailImageGallery =
+    document.getElementById(
+        "itemDetailImageGallery"
+    );
+
+const itemDetailImageCount =
+    document.getElementById(
+        "itemDetailImageCount"
     );
 
 const closeItemDetailButton =
@@ -672,6 +1301,44 @@ const itemNotes =
     document.getElementById(
         "itemNotes"
     );
+
+const pendingItemImageCount =
+    document.getElementById(
+        "pendingItemImageCount"
+    );
+
+const pendingItemImagePreview =
+    document.getElementById(
+        "pendingItemImagePreview"
+    );
+
+const pendingItemCameraButton =
+    document.getElementById(
+        "pendingItemCameraButton"
+    );
+
+const pendingItemFilesButton =
+    document.getElementById(
+        "pendingItemFilesButton"
+    );
+
+const pendingItemImagesClearButton =
+    document.getElementById(
+        "pendingItemImagesClearButton"
+    );
+
+const pendingItemCameraInput =
+    document.getElementById(
+        "pendingItemCameraInput"
+    );
+
+const pendingItemFilesInput =
+    document.getElementById(
+        "pendingItemFilesInput"
+    );
+
+let pendingItemImages = [];
+let pendingItemImagePreviewUrls = [];
 
 const createItemButton =
     document.getElementById(
@@ -801,6 +1468,12 @@ async function deleteActiveItem() {
 
         itemDetailContent.innerHTML =
             "";
+
+itemDetailImageGallery.innerHTML =
+    "";
+
+itemDetailImages.style.display =
+    "none";
 
         itemEditContent.style.display =
             "none";
@@ -1427,6 +2100,170 @@ function renderItemDetail(
     `;
 }
 
+function renderItemDetailImages(
+    images
+) {
+    const normalizedImages =
+        Array.isArray(images)
+            ? images
+            : [];
+
+    itemDetailImageCount.textContent =
+        (
+            `${normalizedImages.length} `
+            + "kép"
+        );
+
+    itemDetailImageGallery.innerHTML =
+        "";
+
+    if (normalizedImages.length === 0) {
+        itemDetailImageGallery.innerHTML = `
+            <div class="item-detail-image-empty">
+                🖼️ Ehhez az elemhez még nincs kép.
+            </div>
+        `;
+
+        itemDetailImages.style.display =
+            "";
+
+        return;
+    }
+
+    for (const image of normalizedImages) {
+        const thumbnailUrl =
+            `/item-images/${
+                encodeURIComponent(
+                    image.public_id
+                )
+            }/thumbnail`;
+
+        const contentUrl =
+            `/item-images/${
+                encodeURIComponent(
+                    image.public_id
+                )
+            }/content`;
+
+        const card =
+            document.createElement(
+                "div"
+            );
+
+        card.className =
+            "item-detail-image-card";
+
+        card.innerHTML = `
+            <a
+                class="item-detail-image-link"
+                href="${escapeHtml(
+                    contentUrl
+                )}"
+                target="_blank"
+                rel="noopener"
+            >
+                <img
+                    src="${escapeHtml(
+                        thumbnailUrl
+                    )}"
+                    alt="${escapeHtml(
+                        image.caption
+                        || image.original_filename
+                        || "Gyűjteményi kép"
+                    )}"
+                    loading="lazy"
+                >
+
+                ${
+                    image.is_primary
+                        ? `
+                            <span
+                                class="item-detail-image-primary"
+                            >
+                                ⭐ Elsődleges
+                            </span>
+                        `
+                        : ""
+                }
+            </a>
+
+            ${
+                image.caption
+                || image.original_filename
+                    ? `
+                        <div
+                            class="item-detail-image-caption"
+                        >
+                            ${escapeHtml(
+                                image.caption
+                                || image.original_filename
+                            )}
+                        </div>
+                    `
+                    : ""
+            }
+        `;
+
+        itemDetailImageGallery.appendChild(
+            card
+        );
+    }
+
+    itemDetailImages.style.display =
+        "";
+}
+
+
+async function loadItemDetailImages(
+    itemPublicId
+) {
+    itemDetailImages.style.display =
+        "";
+
+    itemDetailImageCount.textContent =
+        "Betöltés...";
+
+    itemDetailImageGallery.innerHTML =
+        `
+            <div class="item-detail-image-empty">
+                Képek betöltése...
+            </div>
+        `;
+
+    const response =
+        await fetch(
+            `/items/${
+                encodeURIComponent(
+                    itemPublicId
+                )
+            }/images`
+        );
+
+    let data = null;
+
+    try {
+        data =
+            await response.json();
+    } catch {
+        data = null;
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data?.detail
+            || (
+                "A képek betöltése sikertelen: "
+                + `HTTP ${response.status}`
+            )
+        );
+    }
+
+    renderItemDetailImages(
+        data
+    );
+
+    return data;
+}
 
 async function openItemDetail(
     publicId
@@ -1478,6 +2315,10 @@ activeItem = item;
             activeFields
         );
 
+await loadItemDetailImages(
+    item.public_id
+);
+
         itemDetailSection.scrollIntoView({
             behavior: "smooth",
             block: "start"
@@ -1492,7 +2333,638 @@ activeItem = item;
     }
 }
 
-function openItemEditor() {
+async function loadEditItemImages(
+    itemPublicId
+) {
+    if (!itemPublicId) {
+        return [];
+    }
+
+    const response =
+        await fetch(
+            `/items/${
+                encodeURIComponent(
+                    itemPublicId
+                )
+            }/images`
+        );
+
+    let data = null;
+
+    try {
+        data =
+            await response.json();
+    } catch {
+        data = null;
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data?.detail
+            || "A képek nem tölthetők be."
+        );
+    }
+
+    return Array.isArray(data)
+        ? data
+        : [];
+}
+
+
+function renderEditItemImages(
+    images
+) {
+    editItemImages =
+        Array.isArray(images)
+            ? [...images]
+            : [];
+
+    editItemImageCount.textContent =
+        `${editItemImages.length} kép`;
+
+    editItemImageGallery.innerHTML =
+        "";
+
+    if (editItemImages.length === 0) {
+        editItemImageGallery.innerHTML = `
+            <div class="edit-item-image-empty">
+                🖼️ Még nincs kép ehhez az elemhez.
+            </div>
+        `;
+
+        return;
+    }
+
+    editItemImages.forEach(
+        (image, index) => {
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+            card.className =
+                "edit-item-image-card";
+
+            const thumbnailUrl =
+                `/item-images/${
+                    encodeURIComponent(
+                        image.public_id
+                    )
+                }/thumbnail`;
+
+            const contentUrl =
+                `/item-images/${
+                    encodeURIComponent(
+                        image.public_id
+                    )
+                }/content`;
+
+            card.innerHTML = `
+                <div
+                    class="edit-item-image-preview"
+                >
+                    <a
+                        href="${escapeHtml(
+                            contentUrl
+                        )}"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        <img
+                            src="${escapeHtml(
+                                thumbnailUrl
+                            )}"
+                            alt="Gyűjteményi kép"
+                            loading="lazy"
+                        >
+                    </a>
+
+                    ${
+                        image.is_primary
+                            ? `
+                                <span
+                                    class="edit-item-image-primary"
+                                >
+                                    ⭐ Elsődleges
+                                </span>
+                            `
+                            : ""
+                    }
+                </div>
+
+                <div class="edit-item-image-meta">
+                    ${escapeHtml(
+                        image.caption
+                        || image.original_filename
+                        || `Kép ${index + 1}`
+                    )}
+                </div>
+
+                <div class="edit-item-image-actions">
+                    <button
+                        type="button"
+                        class="edit-item-image-action"
+                        data-edit-image-action="left"
+                        data-edit-image-id="${escapeHtml(
+                            image.public_id
+                        )}"
+                        ${
+                            (
+                                index === 0
+                                || image.is_primary
+                            )
+                                ? "disabled"
+                                : ""
+                        }
+                    >
+                        ←
+                    </button>
+
+                    <button
+                        type="button"
+                        class="edit-item-image-action"
+                        data-edit-image-action="right"
+                        data-edit-image-id="${escapeHtml(
+                            image.public_id
+                        )}"
+                        ${
+                            (
+                                index
+                                === editItemImages.length - 1
+                                || image.is_primary
+                            )
+                                ? "disabled"
+                                : ""
+                        }
+                    >
+                        →
+                    </button>
+
+                    <button
+                        type="button"
+                        class="edit-item-image-action"
+                        data-edit-image-action="primary"
+                        data-edit-image-id="${escapeHtml(
+                            image.public_id
+                        )}"
+                        ${
+                            image.is_primary
+                                ? "disabled"
+                                : ""
+                        }
+                    >
+                        ⭐ Elsődleges
+                    </button>
+
+                    <button
+                        type="button"
+                        class="
+                            edit-item-image-action
+                            danger
+                        "
+                        data-edit-image-action="delete"
+                        data-edit-image-id="${escapeHtml(
+                            image.public_id
+                        )}"
+                    >
+                        🗑️ Törlés
+                    </button>
+                </div>
+            `;
+
+            editItemImageGallery.appendChild(
+                card
+            );
+        }
+    );
+}
+
+
+async function refreshEditItemImages() {
+    if (!activeItem?.public_id) {
+        return [];
+    }
+
+    editItemImageStatus.textContent =
+        "Képek betöltése...";
+
+    const images =
+        await loadEditItemImages(
+            activeItem.public_id
+        );
+
+    renderEditItemImages(
+        images
+    );
+
+    editItemImageStatus.textContent =
+        "";
+
+    return images;
+}
+
+async function uploadEditItemImageFiles(
+    fileList
+) {
+    const files =
+        Array.from(
+            fileList || []
+        )
+        .filter(
+            file =>
+                file.type
+                    .toLowerCase()
+                    .startsWith("image/")
+        );
+
+    if (
+        files.length === 0
+        || !activeItem?.public_id
+    ) {
+        return;
+    }
+
+    editItemImageCameraButton.disabled =
+        true;
+
+    editItemImageFilesButton.disabled =
+        true;
+
+    let uploadedCount = 0;
+
+    try {
+        for (
+            let index = 0;
+            index < files.length;
+            index += 1
+        ) {
+            editItemImageStatus.textContent =
+                (
+                    `Feltöltés: ${index + 1}`
+                    + ` / ${files.length}`
+                );
+
+            const uploadFile =
+                await prepareCollectionImageForUpload(
+                    files[index]
+                );
+
+            const formData =
+                new FormData();
+
+            formData.append(
+                "file",
+                uploadFile,
+                uploadFile.name
+                || `item-image-${index + 1}.jpg`
+            );
+
+            formData.append(
+                "sort_order",
+                String(
+                    (
+                        editItemImages.length
+                        + index
+                    ) * 10
+                )
+            );
+
+            /*
+             * Ha még egyáltalán nincs kép,
+             * az első új kép automatikusan
+             * elsődleges lesz.
+             */
+            if (
+                editItemImages.length === 0
+                && index === 0
+            ) {
+                formData.append(
+                    "is_primary",
+                    "true"
+                );
+            }
+
+            const response =
+                await fetch(
+                    `/items/${
+                        encodeURIComponent(
+                            activeItem.public_id
+                        )
+                    }/images`,
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+            let data = null;
+
+            try {
+                data =
+                    await response.json();
+            } catch {
+                data = null;
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.detail
+                    || `HTTP ${response.status}`
+                );
+            }
+
+            uploadedCount += 1;
+        }
+
+        await refreshEditItemImages();
+
+        await loadItemDetailImages(
+            activeItem.public_id
+        );
+
+        editItemImageStatus.textContent =
+            uploadedCount === 1
+                ? "✅ A kép feltöltve."
+                : (
+                    `✅ ${uploadedCount} kép `
+                    + "feltöltve."
+                );
+
+    } catch (error) {
+        console.error(
+            "Képfeltöltési hiba:",
+            error
+        );
+
+        editItemImageStatus.textContent =
+            `❌ Képfeltöltési hiba: ${
+                error.message
+            }`;
+
+    } finally {
+        editItemImageCameraButton.disabled =
+            false;
+
+        editItemImageFilesButton.disabled =
+            false;
+    }
+}
+
+async function setEditItemPrimaryImage(
+    imagePublicId
+) {
+    editItemImageStatus.textContent =
+        "Elsődleges kép beállítása...";
+
+    try {
+        const response =
+            await fetch(
+                `/item-images/${
+                    encodeURIComponent(
+                        imagePublicId
+                    )
+                }`,
+                {
+                    method: "PATCH",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        is_primary: true
+                    })
+                }
+            );
+
+        let data = null;
+
+        try {
+            data =
+                await response.json();
+        } catch {
+            data = null;
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                data?.detail
+                || `HTTP ${response.status}`
+            );
+        }
+
+        await refreshEditItemImages();
+
+        await loadItemDetailImages(
+            activeItem.public_id
+        );
+
+        editItemImageStatus.textContent =
+            "✅ Elsődleges kép beállítva.";
+
+    } catch (error) {
+        editItemImageStatus.textContent =
+            `❌ ${error.message}`;
+    }
+}
+
+async function deleteEditItemImage(
+    imagePublicId
+) {
+    const confirmed =
+        window.confirm(
+            "Biztosan törlöd ezt a képet?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    editItemImageStatus.textContent =
+        "Kép törlése...";
+
+    try {
+        const response =
+            await fetch(
+                `/item-images/${
+                    encodeURIComponent(
+                        imagePublicId
+                    )
+                }`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+        if (!response.ok) {
+            let data = null;
+
+            try {
+                data =
+                    await response.json();
+            } catch {
+                data = null;
+            }
+
+            throw new Error(
+                data?.detail
+                || `HTTP ${response.status}`
+            );
+        }
+
+        await refreshEditItemImages();
+
+        await loadItemDetailImages(
+            activeItem.public_id
+        );
+
+        editItemImageStatus.textContent =
+            "✅ A kép törölve.";
+
+    } catch (error) {
+        editItemImageStatus.textContent =
+            `❌ ${error.message}`;
+    }
+}
+
+async function moveEditItemImage(
+    imagePublicId,
+    direction
+) {
+    const currentIndex =
+        editItemImages.findIndex(
+            image =>
+                image.public_id
+                === imagePublicId
+        );
+
+    if (currentIndex < 0) {
+        return;
+    }
+
+    const currentImage =
+        editItemImages[
+            currentIndex
+        ];
+
+    if (currentImage.is_primary) {
+        return;
+    }
+
+    const firstMovableIndex =
+        editItemImages[0]?.is_primary
+            ? 1
+            : 0;
+
+    const targetIndex =
+        direction === "left"
+            ? currentIndex - 1
+            : currentIndex + 1;
+
+    if (
+        targetIndex < firstMovableIndex
+        || targetIndex
+            >= editItemImages.length
+    ) {
+        return;
+    }
+
+    const reorderedImages = [
+        ...editItemImages
+    ];
+
+    [
+        reorderedImages[currentIndex],
+        reorderedImages[targetIndex]
+    ] = [
+        reorderedImages[targetIndex],
+        reorderedImages[currentIndex]
+    ];
+
+    editItemImageStatus.textContent =
+        "Képsorrend mentése...";
+
+    try {
+        for (
+            let index = 0;
+            index < reorderedImages.length;
+            index += 1
+        ) {
+            const image =
+                reorderedImages[index];
+
+            const sortOrder =
+                index * 10;
+
+            if (
+                image.sort_order
+                === sortOrder
+            ) {
+                continue;
+            }
+
+            const response =
+                await fetch(
+                    `/item-images/${
+                        encodeURIComponent(
+                            image.public_id
+                        )
+                    }`,
+                    {
+                        method: "PATCH",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            sort_order:
+                                sortOrder
+                        })
+                    }
+                );
+
+            let data = null;
+
+            try {
+                data =
+                    await response.json();
+            } catch {
+                data = null;
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data?.detail
+                    || `HTTP ${response.status}`
+                );
+            }
+        }
+
+        await refreshEditItemImages();
+
+        await loadItemDetailImages(
+            activeItem.public_id
+        );
+
+        editItemImageStatus.textContent =
+            "✅ Képsorrend elmentve.";
+
+    } catch (error) {
+        editItemImageStatus.textContent =
+            `❌ ${error.message}`;
+
+        try {
+            await refreshEditItemImages();
+        } catch {
+            // A szerveren tárolt állapot marad.
+        }
+    }
+}
+
+async function openItemEditor() {
     if (!activeItem) {
         return;
     }
@@ -1511,6 +2983,19 @@ function openItemEditor() {
         activeFields,
         activeItem
     );
+
+try {
+    await refreshEditItemImages();
+
+} catch (error) {
+    console.error(
+        "Szerkesztői képek betöltési hiba:",
+        error
+    );
+
+    editItemImageStatus.textContent =
+        `❌ ${error.message}`;
+}
 
     itemDetailContent.style.display =
         "none";
@@ -1644,6 +3129,97 @@ async function saveItemEdit() {
     }
 }
 
+editItemImageCameraButton.addEventListener(
+    "click",
+    () => {
+        editItemImageCameraInput.click();
+    }
+);
+
+
+editItemImageFilesButton.addEventListener(
+    "click",
+    () => {
+        editItemImageFilesInput.click();
+    }
+);
+
+
+editItemImageCameraInput.addEventListener(
+    "change",
+    async () => {
+        await uploadEditItemImageFiles(
+            editItemImageCameraInput.files
+        );
+
+        editItemImageCameraInput.value =
+            "";
+    }
+);
+
+
+editItemImageFilesInput.addEventListener(
+    "change",
+    async () => {
+        await uploadEditItemImageFiles(
+            editItemImageFilesInput.files
+        );
+
+        editItemImageFilesInput.value =
+            "";
+    }
+);
+
+
+editItemImageGallery.addEventListener(
+    "click",
+    async event => {
+        const button =
+            event.target.closest(
+                "[data-edit-image-action]"
+            );
+
+        if (!button) {
+            return;
+        }
+
+        const action =
+            button.dataset.editImageAction;
+
+        const imagePublicId =
+            button.dataset.editImageId;
+
+        if (!imagePublicId) {
+            return;
+        }
+
+        if (action === "primary") {
+            await setEditItemPrimaryImage(
+                imagePublicId
+            );
+
+            return;
+        }
+
+        if (action === "delete") {
+            await deleteEditItemImage(
+                imagePublicId
+            );
+
+            return;
+        }
+
+        if (
+            action === "left"
+            || action === "right"
+        ) {
+            await moveEditItemImage(
+                imagePublicId,
+                action
+            );
+        }
+    }
+);
 
 editItemButton.addEventListener(
     "click",
@@ -1811,10 +3387,50 @@ const visibleFields =
             row.className =
                 "field-row";
 
+const primaryThumbnailUrl =
+    String(
+        item.primary_image_thumbnail_url
+        || ""
+    ).trim();
+
+const thumbnailHtml =
+    primaryThumbnailUrl
+        ? `
+            <div class="collection-item-thumb">
+                <img
+                    src="${escapeHtml(
+                        primaryThumbnailUrl
+                    )}"
+                    alt="${escapeHtml(
+                        (
+                            item.title
+                            || "Gyűjteményi elem"
+                        )
+                        + " képe"
+                    )}"
+                    loading="lazy"
+                >
+            </div>
+        `
+        : `
+            <div
+                class="
+                    collection-item-thumb
+                    collection-item-thumb-empty
+                "
+            >
+                🖼️
+            </div>
+        `;
+
 row.innerHTML = `
-    <div class="field-name">
-        ${escapeHtml(item.title)}
-    </div>
+<div class="collection-item-list-layout">
+        ${thumbnailHtml}
+
+        <div class="collection-item-list-content">
+            <div class="field-name">
+                ${escapeHtml(item.title)}
+            </div>
 
     ${
         item.subtitle
@@ -1855,6 +3471,9 @@ row.innerHTML = `
                                                 value
                                             )
                                         )}
+ </div>
+    </div>
+
                                     </div>
                                 `;
                             }
@@ -1925,6 +3544,509 @@ row.addEventListener(
         true;
 }
 
+}
+
+function revokePendingItemImagePreviewUrls() {
+    for (
+        const url
+        of pendingItemImagePreviewUrls
+    ) {
+        URL.revokeObjectURL(url);
+    }
+
+    pendingItemImagePreviewUrls = [];
+}
+
+
+function formatFileSize(bytes) {
+    const value =
+        Number(bytes) || 0;
+
+    if (value < 1024) {
+        return `${value} B`;
+    }
+
+    if (value < 1024 * 1024) {
+        return (
+            `${(
+                value / 1024
+            ).toFixed(1)} KB`
+        );
+    }
+
+    return (
+        `${(
+            value / 1024 / 1024
+        ).toFixed(1)} MB`
+    );
+}
+
+
+function renderPendingItemImages() {
+    revokePendingItemImagePreviewUrls();
+
+    pendingItemImageCount.textContent =
+        (
+            `${pendingItemImages.length} `
+            + "kép kiválasztva"
+        );
+
+    pendingItemImagesClearButton.disabled =
+        pendingItemImages.length === 0;
+
+    if (pendingItemImages.length === 0) {
+        pendingItemImagePreview.innerHTML = `
+            <div
+                class="pending-item-image-empty"
+            >
+                <div
+                    class="pending-item-image-empty-icon"
+                >
+                    🖼️
+                </div>
+
+                <div>
+                    Még nincs kép kiválasztva.
+                </div>
+            </div>
+        `;
+
+        return;
+    }
+
+    pendingItemImagePreview.innerHTML = "";
+
+    pendingItemImages.forEach(
+        (file, index) => {
+            const url =
+                URL.createObjectURL(
+                    file
+                );
+
+            pendingItemImagePreviewUrls.push(
+                url
+            );
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+            card.className =
+                "pending-item-image-card";
+
+            card.innerHTML = `
+                <img
+                    src="${escapeHtml(url)}"
+                    alt="Kiválasztott kép"
+                >
+
+                <div
+                    class="pending-item-image-meta"
+                >
+                    ${
+                        index === 0
+                            ? "⭐ Elsődleges · "
+                            : ""
+                    }
+
+                    ${escapeHtml(
+                        file.name
+                        || `Kép ${index + 1}`
+                    )}
+
+                    <br>
+
+                    ${escapeHtml(
+                        formatFileSize(
+                            file.size
+                        )
+                    )}
+                </div>
+
+                <div
+                    class="pending-item-image-card-actions"
+                >
+                    <button
+                        type="button"
+                        data-image-action="left"
+                        data-image-index="${index}"
+                        ${
+                            index === 0
+                                ? "disabled"
+                                : ""
+                        }
+                    >
+                        ←
+                    </button>
+
+                    <button
+                        type="button"
+                        data-image-action="right"
+                        data-image-index="${index}"
+                        ${
+                            index
+                            === pendingItemImages.length - 1
+                                ? "disabled"
+                                : ""
+                        }
+                    >
+                        →
+                    </button>
+
+                    <button
+                        type="button"
+                        data-image-action="remove"
+                        data-image-index="${index}"
+                    >
+                        ✕
+                    </button>
+                </div>
+            `;
+
+            pendingItemImagePreview.appendChild(
+                card
+            );
+        }
+    );
+}
+
+
+function addPendingItemImages(fileList) {
+    const files =
+        Array.from(
+            fileList || []
+        );
+
+    const imageFiles =
+        files.filter(
+            file =>
+                file.type
+                    .toLowerCase()
+                    .startsWith(
+                        "image/"
+                    )
+        );
+
+    pendingItemImages.push(
+        ...imageFiles
+    );
+
+    renderPendingItemImages();
+}
+
+
+function removePendingItemImage(index) {
+    if (
+        !Number.isInteger(index)
+        || index < 0
+        || index >= pendingItemImages.length
+    ) {
+        return;
+    }
+
+    pendingItemImages.splice(
+        index,
+        1
+    );
+
+    renderPendingItemImages();
+}
+
+
+function movePendingItemImage(
+    index,
+    direction
+) {
+    const targetIndex =
+        direction === "left"
+            ? index - 1
+            : index + 1;
+
+    if (
+        index < 0
+        || targetIndex < 0
+        || index >= pendingItemImages.length
+        || targetIndex
+            >= pendingItemImages.length
+    ) {
+        return;
+    }
+
+    [
+        pendingItemImages[index],
+        pendingItemImages[targetIndex]
+    ] = [
+        pendingItemImages[targetIndex],
+        pendingItemImages[index]
+    ];
+
+    renderPendingItemImages();
+}
+
+
+function clearPendingItemImages() {
+    revokePendingItemImagePreviewUrls();
+
+    pendingItemImages = [];
+
+    renderPendingItemImages();
+}
+
+async function prepareCollectionImageForUpload(
+    file
+) {
+    const maxDimension = 2000;
+
+    if (
+        !file
+        || !file.type
+            .toLowerCase()
+            .startsWith("image/")
+    ) {
+        return file;
+    }
+
+    const imageBitmap =
+        await createImageBitmap(
+            file
+        );
+
+    const originalWidth =
+        imageBitmap.width;
+
+    const originalHeight =
+        imageBitmap.height;
+
+    if (
+        originalWidth <= maxDimension
+        && originalHeight <= maxDimension
+    ) {
+        imageBitmap.close();
+
+        return file;
+    }
+
+    const scale =
+        Math.min(
+            maxDimension / originalWidth,
+            maxDimension / originalHeight
+        );
+
+    const targetWidth =
+        Math.max(
+            1,
+            Math.round(
+                originalWidth * scale
+            )
+        );
+
+    const targetHeight =
+        Math.max(
+            1,
+            Math.round(
+                originalHeight * scale
+            )
+        );
+
+    const canvas =
+        document.createElement(
+            "canvas"
+        );
+
+    canvas.width =
+        targetWidth;
+
+    canvas.height =
+        targetHeight;
+
+    const context =
+        canvas.getContext(
+            "2d"
+        );
+
+    if (!context) {
+        imageBitmap.close();
+
+        throw new Error(
+            "A kép átméretezése nem sikerült."
+        );
+    }
+
+    context.drawImage(
+        imageBitmap,
+        0,
+        0,
+        targetWidth,
+        targetHeight
+    );
+
+    imageBitmap.close();
+
+    const blob =
+        await new Promise(
+            (resolve, reject) => {
+                canvas.toBlob(
+                    result => {
+                        if (!result) {
+                            reject(
+                                new Error(
+                                    "A kép tömörítése "
+                                    + "nem sikerült."
+                                )
+                            );
+
+                            return;
+                        }
+
+                        resolve(result);
+                    },
+                    "image/jpeg",
+                    0.85
+                );
+            }
+        );
+
+    const originalName =
+        file.name
+        || "photo.jpg";
+
+    const baseName =
+        originalName.replace(
+            /\.[^.]+$/,
+            ""
+        );
+
+    return new File(
+        [blob],
+        `${baseName}.jpg`,
+        {
+            type:
+                "image/jpeg",
+
+            lastModified:
+                Date.now()
+        }
+    );
+}
+
+async function uploadPendingItemImages(
+    itemPublicId,
+    onProgress = null
+) {
+    const normalizedItemPublicId =
+        String(
+            itemPublicId || ""
+        ).trim();
+
+    if (!normalizedItemPublicId) {
+        throw new Error(
+            "Hiányzik a létrehozott elem "
+            + "azonosítója."
+        );
+    }
+
+    const filesToUpload = [
+        ...pendingItemImages
+    ];
+
+    if (filesToUpload.length === 0) {
+        return {
+            uploadedCount: 0,
+            totalCount: 0
+        };
+    }
+
+    let uploadedCount = 0;
+
+    for (
+        let index = 0;
+        index < filesToUpload.length;
+        index += 1
+    ) {
+        const originalFile =
+            filesToUpload[index];
+
+        if (
+            typeof onProgress
+            === "function"
+        ) {
+            onProgress(
+                index + 1,
+                filesToUpload.length,
+                originalFile
+            );
+        }
+
+        const uploadFile =
+            await prepareCollectionImageForUpload(
+                originalFile
+            );
+
+        const formData =
+            new FormData();
+
+        formData.append(
+            "file",
+            uploadFile,
+            uploadFile.name
+            || `item-image-${index + 1}.jpg`
+        );
+
+        formData.append(
+            "sort_order",
+            String(index * 10)
+        );
+
+        if (index === 0) {
+            formData.append(
+                "is_primary",
+                "true"
+            );
+        }
+
+        const response =
+            await fetch(
+                `/items/${
+                    encodeURIComponent(
+                        normalizedItemPublicId
+                    )
+                }/images`,
+                {
+                    method: "POST",
+                    body: formData
+                }
+            );
+
+        let data = null;
+
+        try {
+            data =
+                await response.json();
+        } catch {
+            data = null;
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                data?.detail
+                || (
+                    "Képfeltöltési hiba: "
+                    + `HTTP ${response.status}`
+                )
+            );
+        }
+
+        uploadedCount += 1;
+    }
+
+    clearPendingItemImages();
+
+    return {
+        uploadedCount,
+        totalCount:
+            filesToUpload.length
+    };
 }
 
 function readDynamicFieldValuesFrom(
@@ -2101,8 +4223,42 @@ async function createCollectionItem(
             );
         }
 
-        createItemStatus.textContent =
-            "✅ Elem sikeresen létrehozva.";
+let imageUploadResult = {
+    uploadedCount: 0,
+    totalCount: 0
+};
+
+if (pendingItemImages.length > 0) {
+    createItemStatus.textContent =
+        (
+            "Elem létrehozva. "
+            + "Képek feltöltése..."
+        );
+
+    imageUploadResult =
+        await uploadPendingItemImages(
+            data.public_id,
+            (
+                current,
+                total
+            ) => {
+                createItemStatus.textContent =
+                    (
+                        "Képek feltöltése: "
+                        + `${current} / ${total}`
+                    );
+            }
+        );
+}
+
+createItemStatus.textContent =
+    imageUploadResult.uploadedCount > 0
+        ? (
+            "✅ Elem sikeresen létrehozva, "
+            + `${imageUploadResult.uploadedCount} `
+            + "kép feltöltve."
+        )
+        : "✅ Elem sikeresen létrehozva.";
 
         itemTitle.value = "";
         itemSubtitle.value = "";
@@ -2486,6 +4642,98 @@ nextPageButton.addEventListener(
             activeCategory,
             activeFields
         );
+    }
+);
+
+pendingItemCameraButton.addEventListener(
+    "click",
+    () => {
+        pendingItemCameraInput.click();
+    }
+);
+
+
+pendingItemFilesButton.addEventListener(
+    "click",
+    () => {
+        pendingItemFilesInput.click();
+    }
+);
+
+
+pendingItemCameraInput.addEventListener(
+    "change",
+    () => {
+        addPendingItemImages(
+            pendingItemCameraInput.files
+        );
+
+        pendingItemCameraInput.value =
+            "";
+    }
+);
+
+
+pendingItemFilesInput.addEventListener(
+    "change",
+    () => {
+        addPendingItemImages(
+            pendingItemFilesInput.files
+        );
+
+        pendingItemFilesInput.value =
+            "";
+    }
+);
+
+
+pendingItemImagesClearButton.addEventListener(
+    "click",
+    clearPendingItemImages
+);
+
+
+pendingItemImagePreview.addEventListener(
+    "click",
+    event => {
+        const button =
+            event.target.closest(
+                "[data-image-action]"
+            );
+
+        if (!button) {
+            return;
+        }
+
+        const index =
+            Number(
+                button.dataset.imageIndex
+            );
+
+        const action =
+            button.dataset.imageAction;
+
+        if (!Number.isInteger(index)) {
+            return;
+        }
+
+        if (action === "remove") {
+            removePendingItemImage(
+                index
+            );
+
+            return;
+        }
+
+        if (
+            action === "left"
+            || action === "right"
+        ) {
+            movePendingItemImage(
+                index,
+                action
+            );
+        }
     }
 );
 

@@ -336,6 +336,31 @@ def list_items(
         .offset(offset)
     ).all()
 
+    item_ids = [
+        item.id
+        for item in items
+    ]
+
+    primary_images_by_item_id: dict[
+        int,
+        ItemImage,
+    ] = {}
+
+    if item_ids:
+        primary_images = session.scalars(
+            select(ItemImage)
+            .where(
+                ItemImage.item_id.in_(item_ids),
+                ItemImage.is_active.is_(True),
+                ItemImage.is_primary.is_(True),
+            )
+        ).all()
+
+        primary_images_by_item_id = {
+            image.item_id: image
+            for image in primary_images
+        }
+
     return CollectionItemListResponse(
         items=[
             CollectionItemListEntry(
@@ -348,6 +373,15 @@ def list_items(
                 is_active=item.is_active,
                 created_at=item.created_at,
                 updated_at=item.updated_at,
+                primary_image_thumbnail_url=(
+                    (
+                        f"/item-images/"
+                        f"{primary_images_by_item_id[item.id].public_id}"
+                        f"/thumbnail"
+                    )
+                    if item.id in primary_images_by_item_id
+                    else None
+                ),
                 field_values=[
                     ItemFieldValueResponse(
                         field_key=field_value.field.field_key,
