@@ -1,0 +1,155 @@
+"""
+Kategóriákhoz engedélyezett tárhelyek kezelése.
+
+Szabály:
+
+- ha egy household + category pároshoz nincs szabály,
+  akkor minden aktív tárhely engedélyezett;
+- ha van legalább egy szabály, akkor csak a kijelölt
+  tárhelyek és az include_descendants=True szabályok
+  leszármazottai engedélyezettek.
+"""
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.models import (
+    CategoryStorageLocation,
+    StorageLocation,
+)
+
+
+def _collect_descendant_ids(
+    *,
+    root_id: int,
+    children_by_parent_id: dict[
+        int | None,
+        list[StorageLocation],
+    ],
+) -> set[int]:
+    result: set[int] = set()
+
+    stack = list(
+        children_by_parent_id.get(
+            root_id,
+            [],
+        )
+    )
+
+    while stack:
+        location = stack.pop()
+
+        if location.id in result:
+            continue
+
+        result.add(
+            location.id
+        )
+
+        stack.extend(
+            children_by_parent_id.get(
+                location.id,
+                [],
+            )
+        )
+
+    return result
+
+
+def get_allowed_storage_location_ids(
+    session: Session,
+    *,
+    household_id: int,
+    category_id: int,
+) -> set[int]:
+    """
+    Visszaadja az adott kategóriában használható
+    aktív StorageLocation rekordok ID-it.
+
+    Ha nincs kategória-specifikus szabály:
+    minden aktív household tárhely engedélyezett.
+    """
+
+    locations = session.scalars(
+        select(StorageLocation).where(
+            StorageLocation.household_id
+            == household_id,
+            StorageLocation.is_active.is_(True),
+        )
+    ).all()
+
+    location_by_id = {
+        location.id: location
+        for location in locations
+    }
+
+    rules = session.scalars(
+        select(CategoryStorageLocation).where(
+            CategoryStorageLocation.household_id
+            == household_id,
+            CategoryStorageLocation.category_id
+            == category_id,
+        )
+    ).all()
+
+    if not rules:
+        return set(
+            location_by_id
+        )
+
+    children_by_parent_id: dict[
+        int | None,
+        list[StorageLocation],
+    ] = {}
+
+    for location in locations:
+        children_by_parent_id.setdefault(
+            location.parent_id,
+            [],
+        ).append(
+            location
+        )
+
+    allowed_ids: set[int] = set()
+
+    for rule in rules:
+        if (
+            rule.storage_location_id
+            not in location_by_id
+        ):
+            continue
+
+        allowed_ids.add(
+            rule.storage_location_id
+        )
+
+        if rule.include_descendants:
+            allowed_ids.update(
+                _collect_descendant_ids(
+                    root_id=(
+                        rule.storage_location_id
+                    ),
+                    children_by_parent_id=(
+                        children_by_parent_id
+                    ),
+                )
+            )
+
+    return allowed_ids
+
+
+def is_storage_location_allowed(
+    session: Session,
+    *,
+    household_id: int,
+    category_id: int,
+    storage_location_id: int,
+) -> bool:
+    return (
+        storage_location_id
+        in get_allowed_storage_location_ids(
+            session=session,
+            household_id=household_id,
+            category_id=category_id,
+        )
+    )

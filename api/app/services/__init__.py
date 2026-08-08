@@ -194,4 +194,12 @@ __all__ = [
     "deactivate_admin_category_field_option",
     "list_admin_category_field_options",
     "update_admin_category_field_option",
+    "get_allowed_storage_location_ids",
+    "is_storage_location_allowed",
 ]
+
+
+from app.services.category_storage import (
+    get_allowed_storage_location_ids,
+    is_storage_location_allowed,
+)
