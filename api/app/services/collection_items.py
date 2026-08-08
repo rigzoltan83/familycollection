@@ -56,6 +56,7 @@ class CollectionItemCreateInput:
     notes: str | None = None
     status: str = "active"
     created_by_user_id: int | None = None
+    storage_public_id: str | None = None
     identifiers: list[IdentifierInput] = field(default_factory=list)
     field_values: dict[str, Any] = field(default_factory=dict)
 
@@ -68,6 +69,7 @@ class CollectionItemUpdateInput:
     status: str | None = None
     is_active: bool | None = None
     updated_by_user_id: int | None = None
+    storage_public_id: str | None = None
     identifiers: list[IdentifierInput] | None = None
     field_values: dict[str, Any] | None = None
     fields_set: set[str] = field(default_factory=set)
@@ -90,6 +92,7 @@ class CollectionItemUpdateInput:
                     "status",
                     "is_active",
                     "updated_by_user_id",
+                    "storage_public_id",
                     "identifiers",
                     "field_values",
                 )

@@ -26,6 +26,7 @@ from app.models import (
     ItemFieldValue,
     ItemIdentifier,
     ItemImage,
+    ItemStorageAssignment,
     User,
 )
 from app.schemas import (
@@ -50,6 +51,8 @@ from app.services import (
     delete_item_image_file,
     store_item_image,
     list_item_images,
+    get_active_item_storage_assignment,
+    set_item_storage_location,
 )
 
 
@@ -70,6 +73,11 @@ def _load_item_for_response(
             selectinload(CollectionItem.field_values).selectinload(
                 ItemFieldValue.field
             ),
+            selectinload(
+                CollectionItem.storage_assignments
+            ).selectinload(
+                ItemStorageAssignment.storage_location
+            ),
         )
         .where(CollectionItem.id == item_id)
     )
@@ -85,6 +93,23 @@ def _load_item_for_response(
 def _build_item_response(
     item: CollectionItem,
 ) -> CollectionItemResponse:
+    active_storage_assignment = next(
+        (
+            assignment
+            for assignment in item.storage_assignments
+            if assignment.is_active
+        ),
+        None,
+    )
+
+    storage_public_id = (
+        active_storage_assignment.storage_location.public_id
+        if (
+            active_storage_assignment is not None
+            and active_storage_assignment.storage_location is not None
+        )
+        else None
+    )
     return CollectionItemResponse(
         public_id=item.public_id,
         household_id=item.household_id,
@@ -98,6 +123,7 @@ def _build_item_response(
         updated_by_user_id=item.updated_by_user_id,
         created_at=item.created_at,
         updated_at=item.updated_at,
+        storage_public_id=storage_public_id,
         identifiers=[
             ItemIdentifierResponse.model_validate(identifier)
             for identifier in item.identifiers
@@ -361,6 +387,30 @@ def list_items(
             for image in primary_images
         }
 
+    active_storage_by_item_id: dict[
+        int,
+        ItemStorageAssignment,
+    ] = {}
+
+    if item_ids:
+        active_storage_assignments = session.scalars(
+            select(ItemStorageAssignment)
+            .options(
+                selectinload(
+                    ItemStorageAssignment.storage_location
+                )
+            )
+            .where(
+                ItemStorageAssignment.item_id.in_(item_ids),
+                ItemStorageAssignment.is_active.is_(True),
+            )
+        ).all()
+
+        active_storage_by_item_id = {
+            assignment.item_id: assignment
+            for assignment in active_storage_assignments
+        }
+
     return CollectionItemListResponse(
         items=[
             CollectionItemListEntry(
@@ -373,6 +423,18 @@ def list_items(
                 is_active=item.is_active,
                 created_at=item.created_at,
                 updated_at=item.updated_at,
+                storage_public_id=(
+                    active_storage_by_item_id[
+                        item.id
+                    ].storage_location.public_id
+                    if (
+                        item.id in active_storage_by_item_id
+                        and active_storage_by_item_id[
+                            item.id
+                        ].storage_location is not None
+                    )
+                    else None
+                ),
                 primary_image_thumbnail_url=(
                     (
                         f"/item-images/"
@@ -442,6 +504,7 @@ def create_item(
                 notes=request.notes,
                 status=request.status,
                 created_by_user_id=request.created_by_user_id,
+                storage_public_id=request.storage_public_id,
                 identifiers=[
                     IdentifierInput(
                         identifier_type=identifier.identifier_type,
@@ -454,6 +517,15 @@ def create_item(
                 field_values=request.field_values,
             ),
         )
+
+        if request.storage_public_id is not None:
+            set_item_storage_location(
+                session=session,
+                item=item,
+                storage_public_id=request.storage_public_id,
+                moved_by_user_id=request.created_by_user_id,
+                movement_reason="item_creation",
+            )
 
         session.commit()
 
@@ -523,6 +595,7 @@ def update_item(
                 status=request.status,
                 is_active=request.is_active,
                 updated_by_user_id=request.updated_by_user_id,
+                storage_public_id=request.storage_public_id,
                 identifiers=(
                     [
                         IdentifierInput(
@@ -540,6 +613,15 @@ def update_item(
                 fields_set=set(request.model_fields_set),
             ),
         )
+
+        if "storage_public_id" in request.model_fields_set:
+            set_item_storage_location(
+                session=session,
+                item=updated_item,
+                storage_public_id=request.storage_public_id,
+                moved_by_user_id=request.updated_by_user_id,
+                movement_reason="item_update",
+            )
 
         session.commit()
 

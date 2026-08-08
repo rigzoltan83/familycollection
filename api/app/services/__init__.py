@@ -88,6 +88,10 @@ from app.services.storage import (
     list_storage_tree,
     update_storage_location,
 )
+from app.services.item_storage import (
+    get_active_item_storage_assignment,
+    set_item_storage_location,
+)
 
 from app.services.image_storage import (
     ImageStorageError,
@@ -156,6 +160,8 @@ __all__ = [
     "update_book_by_legacy_id",
     "StorageTreeNode",
     "StorageLocationCreateInput",
+    "get_active_item_storage_assignment",
+    "set_item_storage_location",
     "create_storage_location",
     "delete_storage_location",
     "list_storage_tree",

@@ -44,6 +44,12 @@ class CollectionItemCreateRequest(BaseModel):
         gt=0,
     )
 
+    storage_public_id: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=26,
+    )
+
     identifiers: list[ItemIdentifierCreate] = Field(
         default_factory=list,
     )
@@ -147,6 +153,8 @@ class CollectionItemResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    storage_public_id: str | None = None
+
     identifiers: list[ItemIdentifierResponse]
     field_values: list[ItemFieldValueResponse]
 
@@ -162,6 +170,7 @@ class CollectionItemListEntry(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    storage_public_id: str | None = None
     primary_image_thumbnail_url: str | None = None
 
     field_values: list[
@@ -199,6 +208,13 @@ class CollectionItemUpdateRequest(BaseModel):
         default=None,
         gt=0,
     )
+
+    storage_public_id: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=26,
+    )
+
 
     identifiers: list[ItemIdentifierCreate] | None = None
 
