@@ -229,8 +229,14 @@ def get_category_storage_rules(
             category_id=category_id,
             restricted=bool(rules),
             rules=[
-                CategoryStorageLocationRuleResponse
-                .model_validate(rule)
+                CategoryStorageLocationRuleResponse(
+                    storage_location_public_id=(
+                        rule.storage_location.public_id
+                    ),
+                    include_descendants=(
+                        rule.include_descendants
+                    ),
+                )
                 for rule in rules
             ],
         )
@@ -270,7 +276,7 @@ def replace_category_storage_rules_endpoint(
             category_id=category_id,
             rules=[
                 (
-                    rule.storage_location_id,
+                    rule.storage_location_public_id,
                     rule.include_descendants,
                 )
                 for rule in request.rules
@@ -286,8 +292,14 @@ def replace_category_storage_rules_endpoint(
             category_id=category_id,
             restricted=bool(rules),
             rules=[
-                CategoryStorageLocationRuleResponse
-                .model_validate(rule)
+                CategoryStorageLocationRuleResponse(
+                    storage_location_public_id=(
+                        rule.storage_location.public_id
+                    ),
+                    include_descendants=(
+                        rule.include_descendants
+                    ),
+                )
                 for rule in rules
             ],
         )

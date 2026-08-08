@@ -1176,6 +1176,9 @@ let activeItem = null;
 let storageLocations = [];
 let storageByPublicId = new Map();
 
+let categoryStorageRestricted = false;
+let categoryAllowedStoragePublicIds = new Set();
+
 const itemSearch =
     document.getElementById(
         "itemSearch"
@@ -1520,6 +1523,68 @@ function storageLocationLabel(location) {
 }
 
 
+async function loadCategoryAllowedStorage() {
+    categoryStorageRestricted = false;
+    categoryAllowedStoragePublicIds =
+        new Set();
+
+    if (
+        !activeHousehold
+        || !activeCategory
+    ) {
+        return;
+    }
+
+    const response =
+        await fetch(
+            `/households/${
+                activeHousehold.id
+            }/categories/${
+                activeCategory.id
+            }/allowed-storage`
+        );
+
+    let data = null;
+
+    try {
+        data =
+            await response.json();
+    } catch {
+        data = null;
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data?.detail
+            || (
+                "A gyűjteményhez engedélyezett "
+                + "tárhelyek betöltése sikertelen."
+            )
+        );
+    }
+
+    if (
+        !data
+        || !Array.isArray(
+            data.storage_public_ids
+        )
+    ) {
+        throw new Error(
+            "Az engedélyezett tárhelyek "
+            + "lekérdezése hibás választ adott."
+        );
+    }
+
+    categoryStorageRestricted =
+        data.restricted === true;
+
+    categoryAllowedStoragePublicIds =
+        new Set(
+            data.storage_public_ids
+        );
+}
+
+
 function fillCollectionStorageSelect(
     selectElement,
     selectedPublicId = ""
@@ -1530,13 +1595,19 @@ function fillCollectionStorageSelect(
         </option>
     `;
 
-    const activeSlots =
-        storageLocations.filter(
-            location =>
-                location.is_active
-                && location.location_type
-                    === "slot"
-        );
+const activeSlots =
+    storageLocations.filter(
+        location =>
+            location.is_active
+            && location.location_type
+                === "slot"
+            && (
+                !categoryStorageRestricted
+                || categoryAllowedStoragePublicIds.has(
+                    location.public_id
+                )
+            )
+    );
 
     activeSlots.sort(
         (left, right) =>
@@ -4782,9 +4853,11 @@ allItemsLink.href =
         )
     }`;
 
+await loadCategoryAllowedStorage();
 await loadCollectionStorageTree();
 
-            document.title =
+document.title =
+
                 `FamilyCollection – ${
                     category.name
                 }`;

@@ -375,11 +375,11 @@ def test_replace_category_storage_rules_replaces_all_rules(
         category_id=category.id,
         rules=[
             (
-                first_slot.id,
+                first_slot.public_id,
                 False,
             ),
             (
-                second_slot.id,
+                second_slot.public_id,
                 True,
             ),
         ],
@@ -512,11 +512,11 @@ def test_replace_category_storage_rules_rejects_duplicate_location(
             category_id=category.id,
             rules=[
                 (
-                    first_slot.id,
+                    first_slot.public_id,
                     False,
                 ),
                 (
-                    first_slot.id,
+                    first_slot.public_id,
                     True,
                 ),
             ],
@@ -583,7 +583,7 @@ def test_replace_category_storage_rules_rejects_other_household_location(
             category_id=category.id,
             rules=[
                 (
-                    foreign_location.id,
+                    foreign_location.public_id,
                     False,
                 ),
             ],

@@ -598,6 +598,7 @@
         let currentUserId = null;
         let activeHousehold = null;
 
+        let categoryStorageTree = null;
 
         const contextLine =
             document.getElementById(
@@ -753,6 +754,619 @@ function setStatus(
     }
 }
 
+async function loadCategoryStorageTree() {
+    if (categoryStorageTree) {
+        return categoryStorageTree;
+    }
+
+    if (!activeHousehold) {
+        throw new Error(
+            "Nincs aktív háztartás."
+        );
+    }
+
+    const params =
+        new URLSearchParams({
+            household_id:
+                String(activeHousehold.id),
+            include_inactive:
+                "false"
+        });
+
+    const response =
+        await apiFetch(
+            `/storage/tree?${
+                params.toString()
+            }`
+        );
+
+    if (
+        !response
+        || !Array.isArray(
+            response.locations
+        )
+    ) {
+        throw new Error(
+            "A szerver hibás tárhelyfa-választ adott."
+        );
+    }
+
+    categoryStorageTree =
+        response.locations;
+
+    return categoryStorageTree;
+}
+
+
+function renderCategoryStorageRuleNode(
+    node,
+    selectedRules,
+    depth = 0
+) {
+const selectedRule =
+    selectedRules.get(
+        node.public_id
+    );
+
+    const checked =
+        selectedRule
+            ? "checked"
+            : "";
+
+    const includeDescendantsChecked =
+        (
+            selectedRule
+            && selectedRule.include_descendants
+        )
+            ? "checked"
+            : "";
+
+    const children =
+        Array.isArray(node.children)
+            ? node.children
+            : [];
+
+    return `
+        <div
+            class="category-storage-node"
+            style="
+                margin-left:${depth * 20}px;
+                margin-top:8px;
+                padding:8px;
+                border-left:
+                    2px solid rgba(
+                        255,
+                        255,
+                        255,
+                        0.10
+                    );
+            "
+        >
+            <label>
+                <input
+                    type="checkbox"
+                    class="category-storage-location"
+data-location-public-id="${escapeHtml(
+    node.public_id
+)}"
+                    ${checked}
+                >
+
+                <strong>
+                    ${escapeHtml(
+                        node.name
+                    )}
+                </strong>
+
+                <span class="muted">
+                    (${escapeHtml(
+                        node.location_type
+                        || "other"
+                    )})
+                </span>
+            </label>
+
+            <label
+                style="
+                    display:block;
+                    margin-left:24px;
+                    margin-top:5px;
+                "
+            >
+                <input
+                    type="checkbox"
+                    class="category-storage-descendants"
+data-location-public-id="${escapeHtml(
+    node.public_id
+)}"
+                    ${includeDescendantsChecked}
+                >
+
+                Alatta lévő tárhelyek is
+            </label>
+
+            ${
+                children
+                    .map(
+                        child =>
+                            renderCategoryStorageRuleNode(
+                                child,
+                                selectedRules,
+                                depth + 1
+                            )
+                    )
+                    .join("")
+            }
+        </div>
+    `;
+}
+
+
+async function loadCategoryStorageRules(
+    category,
+    card
+) {
+    const panel =
+        card.querySelector(
+            ".category-storage-panel"
+        );
+
+    const statusBox =
+        card.querySelector(
+            ".category-storage-status"
+        );
+
+    const treeContainer =
+        card.querySelector(
+            ".category-storage-tree"
+        );
+
+    setStatus(
+        statusBox,
+        "Tárhelyszabályok betöltése..."
+    );
+
+    treeContainer.innerHTML = "";
+
+    try {
+        const [
+            tree,
+            rulesResponse,
+        ] = await Promise.all([
+            loadCategoryStorageTree(),
+
+            apiFetch(
+                `/admin/households/${
+                    activeHousehold.id
+                }/categories/${
+                    category.id
+                }/storage-rules`
+            ),
+        ]);
+
+const selectedRules =
+    new Map(
+        (
+            rulesResponse.rules
+            || []
+        ).map(
+            rule => [
+                rule.storage_location_public_id,
+                rule,
+            ]
+        )
+    );
+
+        const unrestrictedRadio =
+            panel.querySelector(
+                ".category-storage-unrestricted"
+            );
+
+        const restrictedRadio =
+            panel.querySelector(
+                ".category-storage-restricted"
+            );
+
+        unrestrictedRadio.checked =
+            !rulesResponse.restricted;
+
+        restrictedRadio.checked =
+            Boolean(
+                rulesResponse.restricted
+            );
+
+        treeContainer.innerHTML =
+            tree.length
+                ? tree
+                    .map(
+                        node =>
+                            renderCategoryStorageRuleNode(
+                                node,
+                                selectedRules
+                            )
+                    )
+                    .join("")
+                : `
+                    <div class="muted">
+                        Nincs aktív tárhely.
+                    </div>
+                `;
+
+        updateCategoryStoragePanelState(
+            card
+        );
+
+        setStatus(
+            statusBox,
+            ""
+        );
+
+    } catch (error) {
+        setStatus(
+            statusBox,
+            `❌ ${error.message}`,
+            "error"
+        );
+    }
+}
+
+
+function updateCategoryStoragePanelState(
+    card
+) {
+    const restricted =
+        card.querySelector(
+            ".category-storage-restricted"
+        ).checked;
+
+    const treeContainer =
+        card.querySelector(
+            ".category-storage-tree"
+        );
+
+    treeContainer.style.opacity =
+        restricted
+            ? "1"
+            : "0.45";
+
+    treeContainer.style.pointerEvents =
+        restricted
+            ? ""
+            : "none";
+}
+
+
+async function saveCategoryStorageRules(
+    category,
+    card
+) {
+    const panel =
+        card.querySelector(
+            ".category-storage-panel"
+        );
+
+    const statusBox =
+        card.querySelector(
+            ".category-storage-status"
+        );
+
+    const saveButton =
+        card.querySelector(
+            ".save-category-storage"
+        );
+
+    const restricted =
+        panel.querySelector(
+            ".category-storage-restricted"
+        ).checked;
+
+    let rules = [];
+
+    if (restricted) {
+        const selectedLocations =
+            panel.querySelectorAll(
+                (
+                    ".category-storage-location"
+                    + ":checked"
+                )
+            );
+
+        if (!selectedLocations.length) {
+            setStatus(
+                statusBox,
+                (
+                    "❌ Korlátozott módban "
+                    + "legalább egy tárhelyet "
+                    + "ki kell választani."
+                ),
+                "error"
+            );
+
+            return;
+        }
+
+        rules =
+            Array.from(
+                selectedLocations
+            )
+.map(
+    checkbox => {
+        const publicId =
+            checkbox.dataset
+                .locationPublicId;
+
+        const descendants =
+            panel.querySelector(
+                (
+                    ".category-storage-descendants"
+                    + `[data-location-public-id="${publicId}"]`
+                )
+            );
+
+        return {
+            storage_location_public_id:
+                publicId,
+
+            include_descendants:
+                Boolean(
+                    descendants
+                    ?.checked
+                ),
+        };
+    }
+);
+
+    }
+
+    saveButton.disabled = true;
+
+    setStatus(
+        statusBox,
+        "Mentés..."
+    );
+
+    try {
+        const response =
+            await apiFetch(
+                `/admin/households/${
+                    activeHousehold.id
+                }/categories/${
+                    category.id
+                }/storage-rules`,
+                {
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        rules
+                    })
+                }
+            );
+
+        setStatus(
+            statusBox,
+            response.restricted
+                ? (
+                    "✅ Tárhelykorlátozás "
+                    + "elmentve."
+                )
+                : (
+                    "✅ Minden tárhely "
+                    + "engedélyezve."
+                ),
+            "success"
+        );
+
+        await loadCategoryStorageRules(
+            category,
+            card
+        );
+
+    } catch (error) {
+        setStatus(
+            statusBox,
+            `❌ ${error.message}`,
+            "error"
+        );
+
+    } finally {
+        saveButton.disabled =
+            false;
+    }
+}
+
+
+function appendCategoryStorageControls(
+    card,
+    category
+) {
+    const wrapper =
+        document.createElement(
+            "div"
+        );
+
+    wrapper.innerHTML = `
+        <div
+            class="actions"
+            style="margin-top:12px;"
+        >
+            <button
+                type="button"
+                class="manage-storage-rules"
+            >
+                🗄️ Tárhelyek kezelése
+            </button>
+        </div>
+
+        <div
+            class="category-storage-panel"
+            style="
+                display:none;
+                margin-top:12px;
+                padding:14px;
+                border-radius:8px;
+                background:#202020;
+            "
+        >
+            <h4>
+                Engedélyezett tárhelyek
+            </h4>
+
+            <p class="muted">
+                Ha nincs korlátozás,
+                a gyűjtemény minden aktív
+                tárhelyet használhat.
+            </p>
+
+            <label
+                style="
+                    display:block;
+                    margin-bottom:8px;
+                "
+            >
+                <input
+                    type="radio"
+                    class="category-storage-unrestricted"
+                    name="category-storage-${
+                        escapeHtml(
+                            category.id
+                        )
+                    }"
+                    value="all"
+                >
+
+                Minden tárhely engedélyezett
+            </label>
+
+            <label
+                style="
+                    display:block;
+                    margin-bottom:12px;
+                "
+            >
+                <input
+                    type="radio"
+                    class="category-storage-restricted"
+                    name="category-storage-${
+                        escapeHtml(
+                            category.id
+                        )
+                    }"
+                    value="restricted"
+                >
+
+                Csak a kijelölt tárhelyek
+            </label>
+
+            <div
+                class="category-storage-tree"
+            ></div>
+
+            <div
+                class="actions"
+                style="margin-top:14px;"
+            >
+                <button
+                    type="button"
+                    class="primary save-category-storage"
+                >
+                    💾 Tárhelyszabályok mentése
+                </button>
+            </div>
+
+            <div
+                class="status category-storage-status"
+            ></div>
+        </div>
+    `;
+
+    while (wrapper.firstChild) {
+        card.appendChild(
+            wrapper.firstChild
+        );
+    }
+
+    const manageButton =
+        card.querySelector(
+            ".manage-storage-rules"
+        );
+
+    const panel =
+        card.querySelector(
+            ".category-storage-panel"
+        );
+
+    manageButton.addEventListener(
+        "click",
+        async () => {
+            const opening =
+                panel.style.display
+                === "none";
+
+            panel.style.display =
+                opening
+                    ? ""
+                    : "none";
+
+            manageButton.textContent =
+                opening
+                    ? "▲ Tárhelyek bezárása"
+                    : "🗄️ Tárhelyek kezelése";
+
+            if (opening) {
+                await loadCategoryStorageRules(
+                    category,
+                    card
+                );
+            }
+        }
+    );
+
+    panel
+        .querySelector(
+            ".category-storage-unrestricted"
+        )
+        .addEventListener(
+            "change",
+            () => {
+                updateCategoryStoragePanelState(
+                    card
+                );
+            }
+        );
+
+    panel
+        .querySelector(
+            ".category-storage-restricted"
+        )
+        .addEventListener(
+            "change",
+            () => {
+                updateCategoryStoragePanelState(
+                    card
+                );
+            }
+        );
+
+    panel
+        .querySelector(
+            ".save-category-storage"
+        )
+        .addEventListener(
+            "click",
+            () => {
+                saveCategoryStorageRules(
+                    category,
+                    card
+                );
+            }
+        );
+}
+
 function renderSystemCategories(categories) {
     systemCategoriesList.innerHTML = "";
 
@@ -831,6 +1445,11 @@ function renderSystemCategories(categories) {
                 </span>
             </div>
         `;
+
+appendCategoryStorageControls(
+    card,
+    category
+);
 
         systemCategoriesList.appendChild(
             card
@@ -2554,6 +3173,11 @@ function renderHouseholdCategories(categories) {
                         card
                     )
             );
+
+appendCategoryStorageControls(
+    card,
+    category
+);
 
         householdCategoriesList.appendChild(
             card

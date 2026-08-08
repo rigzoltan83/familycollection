@@ -7,6 +7,7 @@ from app.schemas.auth import (
 )
 
 from app.schemas.category_storage_locations import (
+    CategoryAllowedStorageResponse,
     CategoryStorageLocationRuleRequest,
     CategoryStorageLocationRuleResponse,
     CategoryStorageLocationRulesResponse,
@@ -102,6 +103,7 @@ __all__ = [
     "CategoryFieldOptionAdminResponse",
     "CategoryFieldOptionCreateRequest",
     "CategoryFieldOptionUpdateRequest",
+    "CategoryAllowedStorageResponse",
     "CategoryStorageLocationRuleRequest",
     "CategoryStorageLocationRuleResponse",
     "CategoryStorageLocationRulesResponse",

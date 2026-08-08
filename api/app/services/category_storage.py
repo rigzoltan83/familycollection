@@ -185,7 +185,7 @@ def replace_category_storage_rules(
     household_id: int,
     category_id: int,
     rules: list[
-        tuple[int, bool]
+        tuple[str, bool]
     ],
 ) -> list[CategoryStorageLocation]:
     """
@@ -194,7 +194,7 @@ def replace_category_storage_rules(
 
     A rules elemei:
     (
-        storage_location_id,
+        storage_location_public_id,
         include_descendants,
     )
 
@@ -214,39 +214,43 @@ def replace_category_storage_rules(
             existing_rule
         )
 
-    seen_location_ids: set[int] = set()
+    seen_public_ids: set[str] = set()
 
     new_rules: list[
         CategoryStorageLocation
     ] = []
 
     for (
-        storage_location_id,
+        storage_location_public_id,
         include_descendants,
     ) in rules:
-        if storage_location_id <= 0:
+        normalized_public_id = (
+            storage_location_public_id.strip()
+        )
+
+        if not normalized_public_id:
             raise ValueError(
-                "A storage_location_id "
-                "csak pozitív egész szám lehet."
+                "A tárhely public_id "
+                "nem lehet üres."
             )
 
         if (
-            storage_location_id
-            in seen_location_ids
+            normalized_public_id
+            in seen_public_ids
         ):
             raise ValueError(
                 "Ugyanaz a tárhely csak egyszer "
                 "szerepelhet a szabályok között."
             )
 
-        seen_location_ids.add(
-            storage_location_id
+        seen_public_ids.add(
+            normalized_public_id
         )
 
         location = session.scalar(
             select(StorageLocation).where(
-                StorageLocation.id
-                == storage_location_id,
+                StorageLocation.public_id
+                == normalized_public_id,
                 StorageLocation.household_id
                 == household_id,
             )
@@ -286,3 +290,40 @@ def replace_category_storage_rules(
     session.flush()
 
     return new_rules
+
+
+def get_allowed_storage_location_public_ids(
+    session: Session,
+    *,
+    household_id: int,
+    category_id: int,
+) -> set[str]:
+    """
+    Visszaadja az adott kategóriában használható
+    aktív tárhelyek public_id értékeit.
+    """
+
+    allowed_ids = (
+        get_allowed_storage_location_ids(
+            session=session,
+            household_id=household_id,
+            category_id=category_id,
+        )
+    )
+
+    if not allowed_ids:
+        return set()
+
+    locations = session.scalars(
+        select(StorageLocation).where(
+            StorageLocation.id.in_(
+                allowed_ids
+            ),
+            StorageLocation.is_active.is_(True),
+        )
+    ).all()
+
+    return {
+        location.public_id
+        for location in locations
+    }

@@ -595,8 +595,8 @@ def test_admin_can_replace_and_read_category_storage_rules(
         json={
             "rules": [
                 {
-                    "storage_location_id":
-                        location.id,
+                    "storage_location_public_id":
+                        location.public_id,
                     "include_descendants":
                         True,
                 }
@@ -612,8 +612,8 @@ def test_admin_can_replace_and_read_category_storage_rules(
     assert data["restricted"] is True
     assert len(data["rules"]) == 1
     assert (
-        data["rules"][0]["storage_location_id"]
-        == location.id
+        data["rules"][0]["storage_location_public_id"]
+        == location.public_id
     )
     assert (
         data["rules"][0]["include_descendants"]
@@ -633,8 +633,8 @@ def test_admin_can_replace_and_read_category_storage_rules(
     assert get_data["restricted"] is True
     assert len(get_data["rules"]) == 1
     assert (
-        get_data["rules"][0]["storage_location_id"]
-        == location.id
+        get_data["rules"][0]["storage_location_public_id"]
+        == location.public_id
     )
 
 
@@ -685,8 +685,8 @@ def test_admin_can_remove_category_storage_restriction(
         json={
             "rules": [
                 {
-                    "storage_location_id":
-                        location.id,
+                    "storage_location_public_id":
+                        location.public_id,
                     "include_descendants":
                         False,
                 }
@@ -771,8 +771,8 @@ def test_admin_category_storage_rules_reject_other_household_location(
         json={
             "rules": [
                 {
-                    "storage_location_id":
-                        foreign_location.id,
+                    "storage_location_public_id":
+                        foreign_location.public_id,
                     "include_descendants":
                         False,
                 }
@@ -837,14 +837,14 @@ def test_admin_category_storage_rules_reject_duplicate_location(
         json={
             "rules": [
                 {
-                    "storage_location_id":
-                        location.id,
+                    "storage_location_public_id":
+                        location.public_id,
                     "include_descendants":
                         False,
                 },
                 {
-                    "storage_location_id":
-                        location.id,
+                    "storage_location_public_id":
+                        location.public_id,
                     "include_descendants":
                         True,
                 },

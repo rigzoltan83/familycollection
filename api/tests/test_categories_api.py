@@ -4,8 +4,10 @@ from sqlalchemy.orm import Session
 from app.core.security import hash_password
 from app.models import (
     Category,
+    CategoryStorageLocation,
     Household,
     HouseholdMember,
+    StorageLocation,
     User,
 )
 
@@ -265,3 +267,293 @@ def test_anonymous_user_is_rejected(
     )
 
     assert response.status_code == 401
+
+
+def test_viewer_gets_all_active_storage_without_rules(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_household(
+        db_session,
+        name="Allowed storage household",
+        slug="allowed-storage-all",
+    )
+
+    category = create_category(
+        db_session,
+        household_id=None,
+        name="Könyv",
+        slug="allowed-storage-book",
+        is_system=True,
+        is_active=True,
+        sort_order=10,
+    )
+
+    room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Szoba",
+        slug="allowed-storage-room",
+        location_type="room",
+        sort_order=0,
+        is_active=True,
+    )
+
+    db_session.add(room)
+    db_session.flush()
+
+    slot = StorageLocation(
+        household_id=household.id,
+        parent_id=room.id,
+        name="1. hely",
+        slug="allowed-storage-slot",
+        location_type="slot",
+        sort_order=10,
+        is_active=True,
+    )
+
+    inactive_slot = StorageLocation(
+        household_id=household.id,
+        parent_id=room.id,
+        name="Inaktív hely",
+        slug="allowed-storage-inactive",
+        location_type="slot",
+        sort_order=20,
+        is_active=False,
+    )
+
+    db_session.add_all(
+        [
+            slot,
+            inactive_slot,
+        ]
+    )
+
+    db_session.flush()
+
+    viewer = create_user(
+        db_session,
+        household=household,
+        email="allowed-storage-all@example.com",
+        username="allowed-storage-all",
+        role="viewer",
+    )
+
+    login(
+        test_client,
+        user=viewer,
+    )
+
+    response = test_client.get(
+        f"/households/"
+        f"{household.id}/categories/"
+        f"{category.id}/allowed-storage"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["category_id"] == category.id
+    assert data["restricted"] is False
+
+    assert set(
+        data["storage_public_ids"]
+    ) == {
+        room.public_id,
+        slot.public_id,
+    }
+
+    assert (
+        inactive_slot.public_id
+        not in data["storage_public_ids"]
+    )
+
+
+def test_viewer_gets_restricted_storage_with_descendants(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_household(
+        db_session,
+        name="Restricted storage household",
+        slug="allowed-storage-restricted",
+    )
+
+    category = create_category(
+        db_session,
+        household_id=None,
+        name="Könyv",
+        slug="allowed-storage-restricted-book",
+        is_system=True,
+        is_active=True,
+        sort_order=10,
+    )
+
+    room = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Szoba",
+        slug="restricted-room",
+        location_type="room",
+        sort_order=0,
+        is_active=True,
+    )
+
+    db_session.add(room)
+    db_session.flush()
+
+    shelf = StorageLocation(
+        household_id=household.id,
+        parent_id=room.id,
+        name="Könyvespolc",
+        slug="restricted-shelf",
+        location_type="shelf",
+        sort_order=10,
+        is_active=True,
+    )
+
+    db_session.add(shelf)
+    db_session.flush()
+
+    first_slot = StorageLocation(
+        household_id=household.id,
+        parent_id=shelf.id,
+        name="1. hely",
+        slug="restricted-slot-1",
+        location_type="slot",
+        sort_order=10,
+        is_active=True,
+    )
+
+    second_slot = StorageLocation(
+        household_id=household.id,
+        parent_id=shelf.id,
+        name="2. hely",
+        slug="restricted-slot-2",
+        location_type="slot",
+        sort_order=20,
+        is_active=True,
+    )
+
+    other_slot = StorageLocation(
+        household_id=household.id,
+        parent_id=room.id,
+        name="Másik hely",
+        slug="restricted-other-slot",
+        location_type="slot",
+        sort_order=30,
+        is_active=True,
+    )
+
+    db_session.add_all(
+        [
+            first_slot,
+            second_slot,
+            other_slot,
+        ]
+    )
+
+    db_session.flush()
+
+    db_session.add(
+        CategoryStorageLocation(
+            household_id=household.id,
+            category_id=category.id,
+            storage_location_id=shelf.id,
+            include_descendants=True,
+        )
+    )
+
+    db_session.flush()
+
+    viewer = create_user(
+        db_session,
+        household=household,
+        email="allowed-storage-restricted@example.com",
+        username="allowed-storage-restricted",
+        role="viewer",
+    )
+
+    login(
+        test_client,
+        user=viewer,
+    )
+
+    response = test_client.get(
+        f"/households/"
+        f"{household.id}/categories/"
+        f"{category.id}/allowed-storage"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["restricted"] is True
+
+    assert set(
+        data["storage_public_ids"]
+    ) == {
+        shelf.public_id,
+        first_slot.public_id,
+        second_slot.public_id,
+    }
+
+    assert (
+        room.public_id
+        not in data["storage_public_ids"]
+    )
+
+    assert (
+        other_slot.public_id
+        not in data["storage_public_ids"]
+    )
+
+
+def test_allowed_storage_other_household_is_forbidden(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    own_household = create_household(
+        db_session,
+        name="Allowed storage own",
+        slug="allowed-storage-own",
+    )
+
+    other_household = create_household(
+        db_session,
+        name="Allowed storage other",
+        slug="allowed-storage-other",
+    )
+
+    category = create_category(
+        db_session,
+        household_id=None,
+        name="Könyv",
+        slug="allowed-storage-forbidden-book",
+        is_system=True,
+        is_active=True,
+        sort_order=10,
+    )
+
+    viewer = create_user(
+        db_session,
+        household=own_household,
+        email="allowed-storage-forbidden@example.com",
+        username="allowed-storage-forbidden",
+        role="viewer",
+    )
+
+    login(
+        test_client,
+        user=viewer,
+    )
+
+    response = test_client.get(
+        f"/households/"
+        f"{other_household.id}/categories/"
+        f"{category.id}/allowed-storage"
+    )
+
+    assert response.status_code == 403

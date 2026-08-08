@@ -20,12 +20,15 @@ from app.api.dependencies import (
 from app.core.database import get_db_session
 from app.models import HouseholdMember
 from app.schemas import (
+    CategoryAllowedStorageResponse,
     CategoryFieldResponse,
     HouseholdCategoryResponse,
 )
 from app.services import (
+    get_allowed_storage_location_public_ids,
     list_available_household_categories,
     list_category_fields,
+    list_category_storage_rules,
 )
 
 
@@ -137,6 +140,58 @@ def get_category_fields(
             )
             for record in records
         ]
+
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+
+
+@router.get(
+    (
+        "/{household_id}/categories/"
+        "{category_id}/allowed-storage"
+    ),
+    response_model=CategoryAllowedStorageResponse,
+)
+def get_category_allowed_storage(
+    household_id: int,
+    category_id: int,
+    membership: HouseholdMember = Depends(
+        require_household_viewer
+    ),
+    session: Session = Depends(
+        get_db_session
+    ),
+) -> CategoryAllowedStorageResponse:
+    """
+    Az adott kategóriában ténylegesen
+    használható aktív tárhelyek lekérése.
+    """
+
+    try:
+        rules = list_category_storage_rules(
+            session=session,
+            household_id=household_id,
+            category_id=category_id,
+        )
+
+        public_ids = (
+            get_allowed_storage_location_public_ids(
+                session=session,
+                household_id=household_id,
+                category_id=category_id,
+            )
+        )
+
+        return CategoryAllowedStorageResponse(
+            category_id=category_id,
+            restricted=bool(rules),
+            storage_public_ids=sorted(
+                public_ids
+            ),
+        )
 
     except ValueError as error:
         raise HTTPException(

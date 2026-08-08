@@ -198,10 +198,12 @@ __all__ = [
     "is_storage_location_allowed",
     "list_category_storage_rules",
     "replace_category_storage_rules",
+    "get_allowed_storage_location_public_ids",
 ]
 
 
 from app.services.category_storage import (
+    get_allowed_storage_location_public_ids,
     get_allowed_storage_location_ids,
     is_storage_location_allowed,
     list_category_storage_rules,
