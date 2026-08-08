@@ -4812,12 +4812,8 @@ deleteItemButton.style.display =
         ? ""
         : "none";
 
-if (canEdit) {
-    renderCreateFields(fields);
-
-    createSection.style.display =
-        "";
-}
+createSection.style.display =
+    "none";
 
 await loadCollectionItems(
     household,
