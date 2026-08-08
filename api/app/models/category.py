@@ -146,6 +146,13 @@ class Category(Base):
 
     household: Mapped["Household | None"] = relationship()
 
+    storage_location_rules: Mapped[
+        list["CategoryStorageLocation"]
+    ] = relationship(
+        back_populates="category",
+        cascade="all, delete-orphan",
+    )
+
     def __repr__(self) -> str:
         return (
             f"Category(id={self.id!r}, "

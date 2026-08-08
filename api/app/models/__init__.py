@@ -12,7 +12,11 @@ from app.models.collection_item import CollectionItem
 from app.models.item_field_value import ItemFieldValue
 from app.models.item_identifier import ItemIdentifier
 from app.models.legacy_book_migration import LegacyBookMigration
+
 from app.models.storage_location import StorageLocation
+from app.models.category_storage_location import (
+    CategoryStorageLocation,
+)
 from app.models.item_storage_assignment import ItemStorageAssignment
 from app.models.item_image import ItemImage
 
@@ -27,6 +31,7 @@ __all__ = [
     "ItemFieldValue",
     "ItemIdentifier",
     "ItemStorageAssignment",
+    "CategoryStorageLocation",
     "LegacyBookMigration",
     "MetadataProvider",
     "StorageLocation",

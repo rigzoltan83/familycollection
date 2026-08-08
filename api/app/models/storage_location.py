@@ -149,6 +149,13 @@ class StorageLocation(
         single_parent=True,
     )
 
+    category_rules: Mapped[
+        list["CategoryStorageLocation"]
+    ] = relationship(
+        back_populates="storage_location",
+        cascade="all, delete-orphan",
+    )
+
     def __repr__(self) -> str:
         return (
             f"StorageLocation(id={self.id!r}, "
