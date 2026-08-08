@@ -32,6 +32,7 @@ from app.models import (
     ItemIdentifier,
     ItemImage,
     ItemStorageAssignment,
+    StorageLocation,
     User,
 )
 from app.schemas import (
@@ -179,6 +180,7 @@ def list_items(
     household_id: int,
     category_id: int | None = None,
     item_status: str | None = None,
+    storage_public_id: str | None = None,
     query: str | None = None,
     identifier: str | None = None,
     field_filters: str | None = None,
@@ -230,6 +232,12 @@ def list_items(
     normalized_identifier = (
         identifier.strip()
         if identifier is not None
+        else None
+    )
+
+    normalized_storage_public_id = (
+        storage_public_id.strip()
+        if storage_public_id is not None
         else None
     )
 
@@ -288,6 +296,9 @@ def list_items(
     if normalized_identifier == "":
         normalized_identifier = None
 
+    if normalized_storage_public_id == "":
+        normalized_storage_public_id = None
+
     if normalized_query == "":
         normalized_query = None
 
@@ -295,6 +306,38 @@ def list_items(
         CollectionItem.household_id == household_id,
         CollectionItem.is_active.is_(True),
     ]
+
+    if normalized_storage_public_id is not None:
+        storage_location = session.scalar(
+            select(StorageLocation).where(
+                StorageLocation.public_id
+                == normalized_storage_public_id,
+                StorageLocation.household_id
+                == household_id,
+                StorageLocation.is_active.is_(True),
+            )
+        )
+
+        if storage_location is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "A megadott tárolóhely nem létezik "
+                    "ebben a háztartásban."
+                ),
+            )
+
+        filters.append(
+            exists(
+                select(ItemStorageAssignment.id).where(
+                    ItemStorageAssignment.item_id
+                    == CollectionItem.id,
+                    ItemStorageAssignment.storage_location_id
+                    == storage_location.id,
+                    ItemStorageAssignment.is_active.is_(True),
+                )
+            )
+        )
 
     if normalized_identifier is not None:
         filters.append(

@@ -878,6 +878,7 @@
     >
 
     <select id="itemSort">
+
         <option value="created_at:desc">
             Legújabb elöl
         </option>
@@ -899,6 +900,12 @@
         </option>
     </select>
 </div>
+
+<div
+    id="dynamicFilters"
+    class="field-list"
+    style="margin-top: 14px;"
+></div>
 
     <div
         id="itemsStatus"
@@ -1170,6 +1177,11 @@ const collectionHomeLink =
 const itemSearch =
     document.getElementById(
         "itemSearch"
+    );
+
+const dynamicFilters =
+    document.getElementById(
+        "dynamicFilters"
     );
 
 const itemSort =
@@ -1827,6 +1839,193 @@ itemDetailImages.style.display =
             fieldList.appendChild(row);
         }
     }
+
+function renderDynamicFilters(fields) {
+    dynamicFilters.innerHTML = "";
+
+    const filterableFields =
+        fields.filter(
+            field =>
+                field.is_filterable
+        );
+
+    if (!filterableFields.length) {
+        dynamicFilters.style.display =
+            "none";
+
+        return;
+    }
+
+    dynamicFilters.style.display =
+        "";
+
+    for (const field of filterableFields) {
+        const wrapper =
+            document.createElement(
+                "div"
+            );
+
+        wrapper.className =
+            "field-row";
+
+        let inputHtml = "";
+
+        if (
+            field.field_type === "integer"
+            || field.field_type === "decimal"
+            || field.field_type === "year"
+        ) {
+            inputHtml = `
+                <div
+                    style="
+                        display:grid;
+                        grid-template-columns:1fr 1fr;
+                        gap:8px;
+                    "
+                >
+                    <input
+                        data-filter-field-key="${escapeHtml(
+                            field.field_key
+                        )}"
+                        data-filter-kind="min"
+                        type="number"
+                        placeholder="Minimum"
+                    >
+
+                    <input
+                        data-filter-field-key="${escapeHtml(
+                            field.field_key
+                        )}"
+                        data-filter-kind="max"
+                        type="number"
+                        placeholder="Maximum"
+                    >
+                </div>
+            `;
+
+        } else if (
+            field.field_type === "date"
+        ) {
+            inputHtml = `
+                <div
+                    style="
+                        display:grid;
+                        grid-template-columns:1fr 1fr;
+                        gap:8px;
+                    "
+                >
+                    <input
+                        data-filter-field-key="${escapeHtml(
+                            field.field_key
+                        )}"
+                        data-filter-kind="min"
+                        type="date"
+                    >
+
+                    <input
+                        data-filter-field-key="${escapeHtml(
+                            field.field_key
+                        )}"
+                        data-filter-kind="max"
+                        type="date"
+                    >
+                </div>
+            `;
+
+        } else if (
+            field.field_type === "boolean"
+        ) {
+            inputHtml = `
+                <select
+                    data-filter-field-key="${escapeHtml(
+                        field.field_key
+                    )}"
+                    data-filter-kind="value"
+                >
+                    <option value="">
+                        Mind
+                    </option>
+
+                    <option value="true">
+                        Igen
+                    </option>
+
+                    <option value="false">
+                        Nem
+                    </option>
+                </select>
+            `;
+
+        } else if (
+            field.field_type === "single_select"
+            || field.field_type === "multi_select"
+        ) {
+            inputHtml = `
+                <select
+                    data-filter-field-key="${escapeHtml(
+                        field.field_key
+                    )}"
+                    data-filter-kind="value"
+                >
+                    <option value="">
+                        Mind
+                    </option>
+
+                    ${field.options
+                        .map(
+                            option => `
+                                <option
+                                    value="${escapeHtml(
+                                        option.value
+                                    )}"
+                                >
+                                    ${escapeHtml(
+                                        option.label
+                                    )}
+                                </option>
+                            `
+                        )
+                        .join("")}
+                </select>
+            `;
+
+        } else if (
+            field.field_type === "text"
+            || field.field_type === "long_text"
+            || field.field_type === "url"
+            || field.field_type === "email"
+            || field.field_type === "barcode"
+        ) {
+            inputHtml = `
+                <input
+                    data-filter-field-key="${escapeHtml(
+                        field.field_key
+                    )}"
+                    data-filter-kind="value"
+                    type="search"
+                    placeholder="Szűrés..."
+                >
+            `;
+
+        } else {
+            continue;
+        }
+
+        wrapper.innerHTML = `
+            <label>
+                ${escapeHtml(
+                    field.name
+                )}
+            </label>
+
+            ${inputHtml}
+        `;
+
+        dynamicFilters.appendChild(
+            wrapper
+        );
+    }
+}
 
 
 function renderDynamicFields(
@@ -4760,6 +4959,10 @@ itemDetailContent.style.display =
 activeHousehold = household;
 activeCategory = category;
 activeFields = fields;
+
+renderDynamicFilters(
+    activeFields
+);
 
 collectionHomeLink.href =
     `/ui/collection.html?category_id=${

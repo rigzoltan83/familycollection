@@ -14,7 +14,10 @@ from app.models import (
     Category,
     CategoryField,
     CategoryFieldOption,
+    CollectionItem,
     Household,
+    ItemStorageAssignment,
+    StorageLocation,
     User,
 )
 
@@ -3128,4 +3131,143 @@ def test_list_items_filters_by_multi_select(
     assert (
         data["items"][0]["title"]
         == "Kooperatív kampány"
+    )
+
+
+def test_list_items_filters_by_storage_location(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    first_location = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Első tárhely",
+        slug="elso-tarhely",
+        location_type="slot",
+        description=None,
+        sort_order=10,
+        is_active=True,
+    )
+
+    second_location = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Második tárhely",
+        slug="masodik-tarhely",
+        location_type="slot",
+        description=None,
+        sort_order=20,
+        is_active=True,
+    )
+
+    db_session.add_all(
+        [
+            first_location,
+            second_location,
+        ]
+    )
+
+    db_session.flush()
+
+    first_response = test_client.post(
+        "/items",
+        json={
+            "household_id":
+                household.id,
+            "category_id":
+                category.id,
+            "title":
+                "Első tárgy",
+        },
+    )
+
+    second_response = test_client.post(
+        "/items",
+        json={
+            "household_id":
+                household.id,
+            "category_id":
+                category.id,
+            "title":
+                "Második tárgy",
+        },
+    )
+
+    assert first_response.status_code == 201
+    assert second_response.status_code == 201
+
+    first_public_id = (
+        first_response.json()["public_id"]
+    )
+
+    second_public_id = (
+        second_response.json()["public_id"]
+    )
+
+    first_item = db_session.query(
+        CollectionItem
+    ).filter(
+        CollectionItem.public_id
+        == first_public_id
+    ).one()
+
+    second_item = db_session.query(
+        CollectionItem
+    ).filter(
+        CollectionItem.public_id
+        == second_public_id
+    ).one()
+
+    db_session.add_all(
+        [
+            ItemStorageAssignment(
+                item_id=first_item.id,
+                storage_location_id=(
+                    first_location.id
+                ),
+                is_active=True,
+                movement_reason="test",
+            ),
+            ItemStorageAssignment(
+                item_id=second_item.id,
+                storage_location_id=(
+                    second_location.id
+                ),
+                is_active=True,
+                movement_reason="test",
+            ),
+        ]
+    )
+
+    db_session.commit()
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id":
+                household.id,
+            "category_id":
+                category.id,
+            "storage_public_id":
+                first_location.public_id,
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+    assert (
+        data["items"][0]["title"]
+        == "Első tárgy"
     )
