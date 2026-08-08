@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>FamilyCollection – Gyűjtemény</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #111;
+            color: #eee;
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+        }
+
+        .container {
+            width: min(1100px, 94vw);
+            margin: 0 auto;
+            padding: 24px 0 40px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0;
+            color: #6dff6d;
+        }
+
+        .subtitle {
+            margin-top: 6px;
+            color: #aaa;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 9px 14px;
+            border-radius: 7px;
+            background: #444;
+            color: white;
+            text-decoration: none;
+        }
+
+        .status {
+            padding: 18px;
+            border-radius: 10px;
+            background: #202020;
+        }
+
+        .category-info {
+            margin-bottom: 20px;
+            padding: 18px;
+            border-radius: 12px;
+            background: #202020;
+        }
+
+        .category-description {
+            margin-top: 8px;
+            color: #bbb;
+            line-height: 1.4;
+        }
+
+        .permission {
+            margin-top: 10px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .field-section {
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 12px;
+            background: #202020;
+        }
+
+        .field-section h2 {
+            margin-top: 0;
+            color: #6dff6d;
+        }
+
+        .field-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .field-row {
+            padding: 12px;
+            border-radius: 8px;
+            background: #292929;
+        }
+
+        .field-name {
+            font-weight: bold;
+        }
+
+        .field-meta {
+            margin-top: 5px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .empty {
+            color: #aaa;
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<main class="container">
+
+    <div class="topbar">
+        <div>
+            <h1 id="pageTitle">
+                Gyűjtemény
+            </h1>
+
+            <div
+                id="householdName"
+                class="subtitle"
+            ></div>
+        </div>
+
+        <a
+            class="back-link"
+            href="/ui/dashboard.html"
+        >
+            ← Vissza
+        </a>
+    </div>
+
+    <div
+        id="status"
+        class="status"
+    >
+        Betöltés...
+    </div>
+
+    <div
+        id="content"
+        style="display:none"
+    >
+        <section class="category-info">
+            <strong id="categoryName"></strong>
+
+            <div
+                id="categoryDescription"
+                class="category-description"
+            ></div>
+
+            <div
+                id="permission"
+                class="permission"
+            ></div>
+        </section>
+
+        <section class="field-section">
+            <h2>Mezők</h2>
+
+            <div
+                id="fieldList"
+                class="field-list"
+            ></div>
+        </section>
+    </div>
+
+</main>
+
+<script>
+    const pageTitle =
+        document.getElementById(
+            "pageTitle"
+        );
+
+    const householdName =
+        document.getElementById(
+            "householdName"
+        );
+
+    const statusBox =
+        document.getElementById(
+            "status"
+        );
+
+    const content =
+        document.getElementById(
+            "content"
+        );
+
+    const categoryName =
+        document.getElementById(
+            "categoryName"
+        );
+
+    const categoryDescription =
+        document.getElementById(
+            "categoryDescription"
+        );
+
+    const permission =
+        document.getElementById(
+            "permission"
+        );
+
+    const fieldList =
+        document.getElementById(
+            "fieldList"
+        );
+
+
+    function roleLabel(role) {
+        const labels = {
+            owner: "Tulajdonos",
+            admin: "Adminisztrátor",
+            editor: "Szerkesztő",
+            viewer: "Megtekintő"
+        };
+
+        return labels[role] || role;
+    }
+
+
+    function fieldTypeLabel(type) {
+        const labels = {
+            text: "Szöveg",
+            long_text: "Hosszú szöveg",
+            integer: "Egész szám",
+            decimal: "Szám",
+            boolean: "Igen / nem",
+            date: "Dátum",
+            year: "Év",
+            url: "Webcím",
+            email: "E-mail",
+            single_select: "Egyszeres választás",
+            multi_select: "Többszörös választás",
+            barcode: "Vonalkód",
+            image: "Kép",
+            file: "Fájl"
+        };
+
+        return labels[type] || type;
+    }
+
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+
+    function renderFields(fields) {
+        fieldList.innerHTML = "";
+
+        if (!fields.length) {
+            fieldList.innerHTML = `
+                <div class="empty">
+                    Ehhez a gyűjteményhez
+                    még nincs mező definiálva.
+                </div>
+            `;
+
+            return;
+        }
+
+        for (const field of fields) {
+            const row =
+                document.createElement("div");
+
+            row.className = "field-row";
+
+            row.innerHTML = `
+                <div class="field-name">
+                    ${escapeHtml(field.name)}
+                </div>
+
+                <div class="field-meta">
+                    ${escapeHtml(
+                        fieldTypeLabel(
+                            field.field_type
+                        )
+                    )}
+
+                    ${
+                        field.is_required
+                            ? " · kötelező"
+                            : ""
+                    }
+
+                    · ${escapeHtml(field.field_key)}
+                </div>
+            `;
+
+            fieldList.appendChild(row);
+        }
+    }
+
+
+    async function initializeCollectionPage() {
+        try {
+            const parameters =
+                new URLSearchParams(
+                    window.location.search
+                );
+
+            const categoryId =
+                Number(
+                    parameters.get(
+                        "category_id"
+                    )
+                );
+
+            if (
+                !Number.isInteger(categoryId)
+                || categoryId <= 0
+            ) {
+                throw new Error(
+                    "Hiányzó vagy hibás kategóriaazonosító."
+                );
+            }
+
+
+            const contextResponse =
+                await fetch(
+                    "/auth/context"
+                );
+
+            if (contextResponse.status === 401) {
+                window.location.href =
+                    "/ui/login.html";
+
+                return;
+            }
+
+            if (!contextResponse.ok) {
+                throw new Error(
+                    "A jogosultságok betöltése "
+                    + "sikertelen."
+                );
+            }
+
+            const context =
+                await contextResponse.json();
+
+
+            const storedHouseholdId =
+                Number(
+                    localStorage.getItem(
+                        "activeHouseholdId"
+                    )
+                );
+
+            const household =
+                context.households.find(
+                    item =>
+                        item.id
+                        === storedHouseholdId
+                )
+                || context.households[0]
+                || null;
+
+            if (!household) {
+                throw new Error(
+                    "Nincs aktív háztartási tagság."
+                );
+            }
+
+            localStorage.setItem(
+                "activeHouseholdId",
+                String(household.id)
+            );
+
+
+            const categoriesResponse =
+                await fetch(
+                    `/households/${
+                        household.id
+                    }/categories`
+                );
+
+            if (!categoriesResponse.ok) {
+                throw new Error(
+                    "A gyűjtemények betöltése "
+                    + "sikertelen."
+                );
+            }
+
+            const categories =
+                await categoriesResponse.json();
+
+            const category =
+                categories.find(
+                    item =>
+                        item.id === categoryId
+                );
+
+            if (!category) {
+                throw new Error(
+                    "A kiválasztott gyűjtemény "
+                    + "nem érhető el."
+                );
+            }
+
+
+            const fieldsResponse =
+                await fetch(
+                    `/households/${
+                        household.id
+                    }/categories/${
+                        category.id
+                    }/fields`
+                );
+
+            if (!fieldsResponse.ok) {
+                throw new Error(
+                    "A meződefiníciók betöltése "
+                    + "sikertelen."
+                );
+            }
+
+            const fields =
+                await fieldsResponse.json();
+
+
+            document.title =
+                `FamilyCollection – ${
+                    category.name
+                }`;
+
+            pageTitle.textContent =
+                category.name;
+
+            householdName.textContent =
+                household.name;
+
+            categoryName.textContent =
+                category.name;
+
+            categoryDescription.textContent =
+                category.description
+                || "Nincs leírás.";
+
+            permission.textContent =
+                `Jogosultság: ${
+                    roleLabel(
+                        household.role
+                    )
+                }`;
+
+            renderFields(fields);
+
+            statusBox.style.display =
+                "none";
+
+            content.style.display =
+                "";
+
+        } catch (error) {
+            console.error(
+                "Gyűjteményoldal "
+                + "inicializálási hiba:",
+                error
+            );
+
+            statusBox.textContent =
+                `❌ ${error.message}`;
+        }
+    }
+
+
+    initializeCollectionPage();
+</script>
+
+</body>
+</html>

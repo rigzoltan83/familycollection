@@ -413,10 +413,15 @@ function renderCategories(
                     category.description
                     || "Saját gyűjtemény.",
                 icon: categoryIcon(category),
-                badge:
-                    "A kezelőfelület következő lépésben készül",
+                href:
+                    "/ui/collection.html"
+                    + "?category_id="
+                    + encodeURIComponent(
+                        category.id
+                    ),
             })
         );
+
     }
 }
 

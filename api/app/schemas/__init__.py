@@ -19,6 +19,19 @@ from app.schemas.admin_categories import (
     HouseholdCategoryUpdateRequest,
 )
 
+from app.schemas.admin_category_fields import (
+    CategoryFieldAdminResponse,
+    CategoryFieldCreateRequest,
+    CategoryFieldType,
+    CategoryFieldUpdateRequest,
+)
+
+from app.schemas.admin_category_field_options import (
+    CategoryFieldOptionAdminResponse,
+    CategoryFieldOptionCreateRequest,
+    CategoryFieldOptionUpdateRequest,
+)
+
 from app.schemas.collection_items import (
     CollectionItemCreateRequest,
     CollectionItemResponse,
@@ -30,6 +43,11 @@ from app.schemas.collection_items import (
     ItemIdentifierResponse,
     ItemImageResponse,
     ItemImageUpdateRequest,
+)
+
+from app.schemas.category_fields import (
+    CategoryFieldOptionResponse,
+    CategoryFieldResponse,
 )
 
 from app.schemas.storage import (
@@ -68,4 +86,13 @@ __all__ = [
     "StorageLocationUpdateRequest",
     "ItemImageResponse",
     "ItemImageUpdateRequest",
+    "CategoryFieldOptionResponse",
+    "CategoryFieldResponse",
+    "CategoryFieldAdminResponse",
+    "CategoryFieldCreateRequest",
+    "CategoryFieldType",
+    "CategoryFieldUpdateRequest",
+    "CategoryFieldOptionAdminResponse",
+    "CategoryFieldOptionCreateRequest",
+    "CategoryFieldOptionUpdateRequest",
 ]

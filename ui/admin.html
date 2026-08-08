@@ -732,18 +732,26 @@ const newUsername =
         }
 
 
-        function setStatus(
-            element,
-            message,
-            type = ""
-        ) {
-            element.textContent = message;
-            element.className = "status";
+function setStatus(
+    element,
+    message,
+    type = ""
+) {
+    if (!element) {
+        return;
+    }
 
-            if (type) {
-                element.classList.add(type);
-            }
-        }
+    element.textContent = message;
+
+    element.classList.remove(
+        "success",
+        "error"
+    );
+
+    if (type) {
+        element.classList.add(type);
+    }
+}
 
 function renderSystemCategories(categories) {
     systemCategoriesList.innerHTML = "";
@@ -828,6 +836,715 @@ function renderSystemCategories(categories) {
             card
         );
     }
+}
+
+async function createCategoryField(
+    category,
+    card
+) {
+    const name =
+        card
+            .querySelector(
+                ".new-field-name"
+            )
+            .value
+            .trim();
+
+    const fieldKey =
+        card
+            .querySelector(
+                ".new-field-key"
+            )
+            .value
+            .trim();
+
+    const fieldType =
+        card
+            .querySelector(
+                ".new-field-type"
+            )
+            .value;
+
+    const sortOrder =
+        Number(
+            card
+                .querySelector(
+                    ".new-field-sort-order"
+                )
+                .value
+        );
+
+    const statusBox =
+        card.querySelector(
+            ".create-field-status"
+        );
+
+    const button =
+        card.querySelector(
+            ".create-field"
+        );
+
+    if (!name) {
+        setStatus(
+            statusBox,
+            "❌ A mező neve kötelező.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!fieldKey) {
+        setStatus(
+            statusBox,
+            "❌ A mezőkulcs kötelező.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        !Number.isInteger(sortOrder)
+        || sortOrder < 0
+    ) {
+        setStatus(
+            statusBox,
+            (
+                "❌ A sorrend nem lehet "
+                + "negatív egész szám."
+            ),
+            "error"
+        );
+
+        return;
+    }
+
+    button.disabled = true;
+
+    setStatus(
+        statusBox,
+        "Létrehozás..."
+    );
+
+    try {
+        await apiFetch(
+            `/admin/households/${
+                activeHousehold.id
+            }/categories/${
+                category.id
+            }/fields`,
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    name,
+                    field_key:
+                        fieldKey,
+                    field_type:
+                        fieldType,
+                    is_required:
+                        card
+                            .querySelector(
+                                ".new-field-required"
+                            )
+                            .checked,
+                    is_searchable:
+                        card
+                            .querySelector(
+                                ".new-field-searchable"
+                            )
+                            .checked,
+                    is_filterable:
+                        card
+                            .querySelector(
+                                ".new-field-filterable"
+                            )
+                            .checked,
+                    is_visible_in_list:
+                        card
+                            .querySelector(
+                                ".new-field-visible-list"
+                            )
+                            .checked,
+                    sort_order:
+                        sortOrder,
+                    validation_rules: {},
+                    default_value: {}
+                })
+            }
+        );
+
+        card
+            .querySelector(
+                ".new-field-name"
+            )
+            .value = "";
+
+        card
+            .querySelector(
+                ".new-field-key"
+            )
+            .value = "";
+
+        card
+            .querySelector(
+                ".new-field-sort-order"
+            )
+            .value = "100";
+
+        card
+            .querySelector(
+                ".new-field-required"
+            )
+            .checked = false;
+
+        card
+            .querySelector(
+                ".new-field-searchable"
+            )
+            .checked = false;
+
+        card
+            .querySelector(
+                ".new-field-filterable"
+            )
+            .checked = false;
+
+        card
+            .querySelector(
+                ".new-field-visible-list"
+            )
+            .checked = false;
+
+        setStatus(
+            statusBox,
+            "✅ Mező létrehozva.",
+            "success"
+        );
+
+        await loadCategoryFields(
+            category,
+            card
+        );
+
+    } catch (error) {
+        setStatus(
+            statusBox,
+            `❌ ${error.message}`,
+            "error"
+        );
+
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function saveCategoryField(
+    category,
+    field,
+    card,
+    row
+) {
+    const statusBox =
+        row.querySelector(
+            ".field-row-status"
+        );
+
+    const button =
+        row.querySelector(
+            ".save-field"
+        );
+
+    const name =
+        row
+            .querySelector(
+                ".field-name"
+            )
+            .value
+            .trim();
+
+    const sortOrder =
+        Number(
+            row
+                .querySelector(
+                    ".field-sort-order"
+                )
+                .value
+        );
+
+    if (!name) {
+        setStatus(
+            statusBox,
+            "❌ A mező neve kötelező.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        !Number.isInteger(sortOrder)
+        || sortOrder < 0
+    ) {
+        setStatus(
+            statusBox,
+            (
+                "❌ A sorrend nem lehet "
+                + "negatív egész szám."
+            ),
+            "error"
+        );
+
+        return;
+    }
+
+    button.disabled = true;
+
+    setStatus(
+        statusBox,
+        "Mentés..."
+    );
+
+    try {
+        await apiFetch(
+            `/admin/households/${
+                activeHousehold.id
+            }/categories/${
+                category.id
+            }/fields/${
+                field.id
+            }`,
+            {
+                method: "PATCH",
+
+                headers: {
+                    "Content-Type":
+                        "application/json"
+                },
+
+                body: JSON.stringify({
+                    name,
+                    sort_order:
+                        sortOrder,
+
+                    is_required:
+                        row
+                            .querySelector(
+                                ".field-required"
+                            )
+                            .checked,
+
+                    is_searchable:
+                        row
+                            .querySelector(
+                                ".field-searchable"
+                            )
+                            .checked,
+
+                    is_filterable:
+                        row
+                            .querySelector(
+                                ".field-filterable"
+                            )
+                            .checked,
+
+                    is_visible_in_list:
+                        row
+                            .querySelector(
+                                ".field-visible-list"
+                            )
+                            .checked,
+
+                    is_active:
+                        row
+                            .querySelector(
+                                ".field-active"
+                            )
+                            .checked
+                })
+            }
+        );
+
+        setStatus(
+            statusBox,
+            "✅ Mező mentve.",
+            "success"
+        );
+
+    } catch (error) {
+        setStatus(
+            statusBox,
+            `❌ ${error.message}`,
+            "error"
+        );
+
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function deactivateCategoryField(
+    category,
+    field,
+    card,
+    row
+) {
+    const statusBox =
+        row.querySelector(
+            ".field-row-status"
+        );
+
+    const confirmed =
+        window.confirm(
+            (
+                `Biztosan inaktiválod ezt a mezőt?\n\n`
+                + `${field.name} (${field.field_key})`
+            )
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    setStatus(
+        statusBox,
+        "Inaktiválás..."
+    );
+
+    try {
+        await apiFetch(
+            `/admin/households/${
+                activeHousehold.id
+            }/categories/${
+                category.id
+            }/fields/${
+                field.id
+            }`,
+            {
+                method: "DELETE"
+            }
+        );
+
+        await loadCategoryFields(
+            category,
+            card
+        );
+
+    } catch (error) {
+        setStatus(
+            statusBox,
+            `❌ ${error.message}`,
+            "error"
+        );
+    }
+}
+
+async function loadCategoryFields(
+    category,
+    card
+) {
+    const list =
+        card.querySelector(
+            ".category-fields-list"
+        );
+
+    const statusBox =
+        card.querySelector(
+            ".category-fields-status"
+        );
+
+    list.innerHTML = "";
+
+    setStatus(
+        statusBox,
+        "Mezők betöltése..."
+    );
+
+    try {
+        const fields =
+            await apiFetch(
+                `/admin/households/${
+                    activeHousehold.id
+                }/categories/${
+                    category.id
+                }/fields`
+            );
+
+        statusBox.style.display =
+            "none";
+
+        if (!fields.length) {
+            list.innerHTML = `
+                <div class="muted">
+                    Ehhez a gyűjteményhez
+                    még nincs mező definiálva.
+                </div>
+            `;
+
+            return;
+        }
+
+        for (const field of fields) {
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+            row.className =
+                "category-field-row";
+
+row.innerHTML = `
+    <div class="category-edit-grid">
+        <div>
+            <label>
+                Név
+            </label>
+
+            <input
+                class="field-name"
+                type="text"
+                maxlength="150"
+                value="${escapeHtml(
+                    field.name
+                )}"
+            >
+        </div>
+
+        <div>
+            <label>
+                Mezőkulcs
+            </label>
+
+            <input
+                type="text"
+                value="${escapeHtml(
+                    field.field_key
+                )}"
+                disabled
+            >
+        </div>
+
+        <div>
+            <label>
+                Típus
+            </label>
+
+            <input
+                type="text"
+                value="${escapeHtml(
+                    field.field_type
+                )}"
+                disabled
+            >
+        </div>
+
+        <div>
+            <label>
+                Sorrend
+            </label>
+
+            <input
+                class="field-sort-order"
+                type="number"
+                min="0"
+                value="${escapeHtml(
+                    field.sort_order
+                )}"
+            >
+        </div>
+    </div>
+
+    <div class="category-edit-grid">
+        <div class="checkbox-field">
+            <label>
+                <input
+                    class="field-required"
+                    type="checkbox"
+                    ${
+                        field.is_required
+                            ? "checked"
+                            : ""
+                    }
+                >
+                Kötelező
+            </label>
+        </div>
+
+        <div class="checkbox-field">
+            <label>
+                <input
+                    class="field-searchable"
+                    type="checkbox"
+                    ${
+                        field.is_searchable
+                            ? "checked"
+                            : ""
+                    }
+                >
+                Kereshető
+            </label>
+        </div>
+
+        <div class="checkbox-field">
+            <label>
+                <input
+                    class="field-filterable"
+                    type="checkbox"
+                    ${
+                        field.is_filterable
+                            ? "checked"
+                            : ""
+                    }
+                >
+                Szűrhető
+            </label>
+        </div>
+
+        <div class="checkbox-field">
+            <label>
+                <input
+                    class="field-visible-list"
+                    type="checkbox"
+                    ${
+                        field.is_visible_in_list
+                            ? "checked"
+                            : ""
+                    }
+                >
+                Listában látható
+            </label>
+        </div>
+
+        <div class="checkbox-field">
+            <label>
+                <input
+                    class="field-active"
+                    type="checkbox"
+                    ${
+                        field.is_active
+                            ? "checked"
+                            : ""
+                    }
+                >
+                Aktív
+            </label>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button
+            type="button"
+            class="primary save-field"
+        >
+            Mentés
+        </button>
+
+        ${
+            field.is_active
+                ? `
+                    <button
+                        type="button"
+                        class="deactivate-field"
+                    >
+                        🗑️ Inaktiválás
+                    </button>
+                `
+                : ""
+        }
+    </div>
+
+    <div
+        class="status field-row-status"
+    ></div>
+`;
+
+row
+    .querySelector(
+        ".save-field"
+    )
+    .addEventListener(
+        "click",
+        () =>
+            saveCategoryField(
+                category,
+                field,
+                card,
+                row
+            )
+    );
+
+const deactivateButton =
+    row.querySelector(
+        ".deactivate-field"
+    );
+
+if (deactivateButton) {
+    deactivateButton.addEventListener(
+        "click",
+        () =>
+            deactivateCategoryField(
+                category,
+                field,
+                card,
+                row
+            )
+    );
+}
+
+            list.appendChild(row);
+        }
+
+    } catch (error) {
+        setStatus(
+            statusBox,
+            `❌ ${error.message}`,
+            "error"
+        );
+    }
+}
+
+
+async function toggleCategoryFields(
+    category,
+    card
+) {
+    const panel =
+        card.querySelector(
+            ".category-fields-panel"
+        );
+
+    const button =
+        card.querySelector(
+            ".manage-fields"
+        );
+
+    const isOpen =
+        panel.style.display !== "none";
+
+    if (isOpen) {
+        panel.style.display = "none";
+
+        button.textContent =
+            "🧩 Mezők kezelése";
+
+        return;
+    }
+
+    panel.style.display = "block";
+
+    button.textContent =
+        "▲ Mezők bezárása";
+
+    await loadCategoryFields(
+        category,
+        card
+    );
 }
 
 function renderHouseholdCategories(categories) {
@@ -975,11 +1692,206 @@ function renderHouseholdCategories(categories) {
                 >
                     Mentés
                 </button>
+
+                <button
+                    type="button"
+                    class="manage-fields"
+                >
+                    🧩 Mezők kezelése
+                </button>
             </div>
 
             <div
                 class="status category-row-status"
             ></div>
+
+            <div
+                class="category-fields-panel"
+                style="display: none;"
+            >
+                <h4>
+                    Gyűjtemény mezői
+                </h4>
+
+                <div
+                    class="category-fields-status status"
+                ></div>
+
+                <div
+                    class="category-field-create"
+                >
+                    <h5>
+                        Új mező hozzáadása
+                    </h5>
+
+                    <div class="category-edit-grid">
+                        <div>
+                            <label>
+                                Név
+                            </label>
+
+                            <input
+                                class="new-field-name"
+                                type="text"
+                                maxlength="150"
+                            >
+                        </div>
+
+                        <div>
+                            <label>
+                                Mezőkulcs
+                            </label>
+
+                            <input
+                                class="new-field-key"
+                                type="text"
+                                maxlength="100"
+                                placeholder="pl. play_time"
+                            >
+                        </div>
+
+                        <div>
+                            <label>
+                                Típus
+                            </label>
+
+                            <select
+                                class="new-field-type"
+                            >
+                                <option value="text">
+                                    Szöveg
+                                </option>
+
+                                <option value="long_text">
+                                    Hosszú szöveg
+                                </option>
+
+                                <option value="integer">
+                                    Egész szám
+                                </option>
+
+                                <option value="decimal">
+                                    Decimális szám
+                                </option>
+
+                                <option value="boolean">
+                                    Igen / nem
+                                </option>
+
+                                <option value="date">
+                                    Dátum
+                                </option>
+
+                                <option value="year">
+                                    Év
+                                </option>
+
+                                <option value="url">
+                                    Webcím
+                                </option>
+
+                                <option value="email">
+                                    E-mail
+                                </option>
+
+                                <option value="single_select">
+                                    Egyszeres választás
+                                </option>
+
+                                <option value="multi_select">
+                                    Többszörös választás
+                                </option>
+
+                                <option value="barcode">
+                                    Vonalkód
+                                </option>
+
+                                <option value="image">
+                                    Kép
+                                </option>
+
+                                <option value="file">
+                                    Fájl
+                                </option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label>
+                                Sorrend
+                            </label>
+
+                            <input
+                                class="new-field-sort-order"
+                                type="number"
+                                min="0"
+                                value="100"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="category-edit-grid">
+                        <div class="checkbox-field">
+                            <label>
+                                <input
+                                    class="new-field-required"
+                                    type="checkbox"
+                                >
+                                Kötelező
+                            </label>
+                        </div>
+
+                        <div class="checkbox-field">
+                            <label>
+                                <input
+                                    class="new-field-searchable"
+                                    type="checkbox"
+                                >
+                                Kereshető
+                            </label>
+                        </div>
+
+                        <div class="checkbox-field">
+                            <label>
+                                <input
+                                    class="new-field-filterable"
+                                    type="checkbox"
+                                >
+                                Szűrhető
+                            </label>
+                        </div>
+
+                        <div class="checkbox-field">
+                            <label>
+                                <input
+                                    class="new-field-visible-list"
+                                    type="checkbox"
+                                >
+                                Listában látható
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button
+                            type="button"
+                            class="primary create-field"
+                        >
+                            ➕ Mező létrehozása
+                        </button>
+                    </div>
+
+                    <div
+                        class="status create-field-status"
+                    ></div>
+                </div>
+
+                <div
+                    class="category-fields-list"
+                ></div>
+
+            </div>
+
         `;
 
         card
@@ -990,6 +1902,32 @@ function renderHouseholdCategories(categories) {
                 "click",
                 () =>
                     saveCategory(
+                        category,
+                        card
+                    )
+            );
+
+        card
+            .querySelector(
+                ".manage-fields"
+            )
+            .addEventListener(
+                "click",
+                () =>
+                    toggleCategoryFields(
+                        category,
+                        card
+                    )
+            );
+
+        card
+            .querySelector(
+                ".create-field"
+            )
+            .addEventListener(
+                "click",
+                () =>
+                    createCategoryField(
                         category,
                         card
                     )

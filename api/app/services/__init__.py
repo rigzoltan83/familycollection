@@ -19,6 +19,19 @@ from app.services.admin_categories import (
     slugify_category_name,
     update_household_category,
 )
+from app.services.admin_category_fields import (
+    create_admin_category_field,
+    deactivate_admin_category_field,
+    list_admin_category_fields,
+    normalize_field_key,
+    update_admin_category_field,
+)
+from app.services.admin_category_field_options import (
+    create_admin_category_field_option,
+    deactivate_admin_category_field_option,
+    list_admin_category_field_options,
+    update_admin_category_field_option,
+)
 from app.services.collection_items import (
     CollectionItemCreateInput,
     CollectionItemUpdateInput,
@@ -84,6 +97,12 @@ from app.services.image_storage import (
     resolve_item_image_thumbnail_path,
     ensure_item_image_thumbnail,
     store_item_image,
+)
+
+from app.services.category_fields import (
+    CategoryFieldOptionRecord,
+    CategoryFieldRecord,
+    list_category_fields,
 )
 
 __all__ = [
@@ -157,4 +176,16 @@ __all__ = [
     "set_primary_item_image",
     "ItemImageUpdateInput",
     "update_item_image",
+    "CategoryFieldOptionRecord",
+    "CategoryFieldRecord",
+    "list_category_fields",
+    "create_admin_category_field",
+    "deactivate_admin_category_field",
+    "list_admin_category_fields",
+    "normalize_field_key",
+    "update_admin_category_field",
+    "create_admin_category_field_option",
+    "deactivate_admin_category_field_option",
+    "list_admin_category_field_options",
+    "update_admin_category_field_option",
 ]
