@@ -902,6 +902,56 @@
 </div>
 
 <div
+    id="systemFilters"
+    class="field-list"
+    style="margin-top: 14px;"
+>
+    <div class="field-row">
+        <label for="itemStatusFilter">
+            Státusz
+        </label>
+
+        <select id="itemStatusFilter">
+            <option value="">
+                Mind
+            </option>
+
+            <option value="active">
+                Aktív
+            </option>
+
+            <option value="loaned">
+                Kölcsönadva
+            </option>
+
+            <option value="archived">
+                Archivált
+            </option>
+
+            <option value="missing">
+                Hiányzik
+            </option>
+
+            <option value="disposed">
+                Selejtezett
+            </option>
+        </select>
+    </div>
+
+    <div class="field-row">
+        <label for="itemStorageFilter">
+            Tárhely
+        </label>
+
+        <select id="itemStorageFilter">
+            <option value="">
+                Minden tárhely
+            </option>
+        </select>
+    </div>
+</div>
+
+<div
     id="dynamicFilters"
     class="field-list"
     style="margin-top: 14px;"
@@ -1177,6 +1227,16 @@ const collectionHomeLink =
 const itemSearch =
     document.getElementById(
         "itemSearch"
+    );
+
+const itemStatusFilter =
+    document.getElementById(
+        "itemStatusFilter"
+    );
+
+const itemStorageFilter =
+    document.getElementById(
+        "itemStorageFilter"
     );
 
 const dynamicFilters =
@@ -1572,6 +1632,55 @@ function fillCollectionStorageSelect(
     ) {
         selectElement.value =
             selectedPublicId;
+    }
+}
+
+
+function fillCollectionStorageFilter() {
+    itemStorageFilter.innerHTML = `
+        <option value="">
+            Minden tárhely
+        </option>
+    `;
+
+    const locations =
+        Array.from(
+            storageByPublicId.values()
+        );
+
+    locations.sort(
+        (left, right) =>
+            storageLocationLabel(left)
+                .localeCompare(
+                    storageLocationLabel(right),
+                    "hu"
+                )
+    );
+
+    for (const location of locations) {
+        if (
+            !location.is_active
+            || location.location_type !== "slot"
+        ) {
+            continue;
+        }
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value =
+            location.public_id;
+
+        option.textContent =
+            storageLocationLabel(
+                location
+            );
+
+        itemStorageFilter.appendChild(
+            option
+        );
     }
 }
 
@@ -2025,6 +2134,71 @@ function renderDynamicFilters(fields) {
             wrapper
         );
     }
+}
+
+
+function readDynamicFilters() {
+    const result = {};
+
+    const controls =
+        dynamicFilters.querySelectorAll(
+            "[data-filter-field-key]"
+        );
+
+    for (const control of controls) {
+        const fieldKey =
+            control.dataset.filterFieldKey;
+
+        const kind =
+            control.dataset.filterKind;
+
+        if (!fieldKey || !kind) {
+            continue;
+        }
+
+        let value =
+            control.value;
+
+        if (
+            value === null
+            || value === undefined
+            || value === ""
+        ) {
+            continue;
+        }
+
+        if (!result[fieldKey]) {
+            result[fieldKey] = {};
+        }
+
+        if (kind === "value") {
+            if (
+                control.tagName === "SELECT"
+                && (
+                    value === "true"
+                    || value === "false"
+                )
+            ) {
+                result[fieldKey].value =
+                    value === "true";
+            } else {
+                result[fieldKey].value =
+                    value;
+            }
+
+            continue;
+        }
+
+        if (
+            kind === "min"
+            || kind === "max"
+        ) {
+            result[fieldKey][kind] =
+                value;
+        }
+    }
+
+    return result;
 }
 
 
@@ -3790,6 +3964,42 @@ if (currentItemSearch) {
     );
 }
 
+const selectedStatus =
+    itemStatusFilter.value;
+
+if (selectedStatus) {
+    parameters.set(
+        "item_status",
+        selectedStatus
+    );
+}
+
+const selectedStoragePublicId =
+    itemStorageFilter.value;
+
+if (selectedStoragePublicId) {
+    parameters.set(
+        "storage_public_id",
+        selectedStoragePublicId
+    );
+}
+
+const fieldFilters =
+    readDynamicFilters();
+
+if (
+    Object.keys(
+        fieldFilters
+    ).length
+) {
+    parameters.set(
+        "field_filters",
+        JSON.stringify(
+            fieldFilters
+        )
+    );
+}
+
 const response =
     await fetch(
         `/items?${parameters.toString()}`
@@ -4960,6 +5170,10 @@ activeHousehold = household;
 activeCategory = category;
 activeFields = fields;
 
+await loadCollectionStorageTree();
+
+fillCollectionStorageFilter();
+
 renderDynamicFilters(
     activeFields
 );
@@ -4971,7 +5185,6 @@ collectionHomeLink.href =
         )
     }`;
 
-await loadCollectionStorageTree();
 
             document.title =
                 `FamilyCollection – ${
@@ -5109,6 +5322,105 @@ itemSort.addEventListener(
     }
 );
 
+itemStatusFilter.addEventListener(
+    "change",
+    async () => {
+        currentItemPage = 1;
+
+        if (
+            activeHousehold
+            && activeCategory
+        ) {
+            await loadCollectionItems(
+                activeHousehold,
+                activeCategory,
+                activeFields
+            );
+        }
+    }
+);
+
+itemStorageFilter.addEventListener(
+    "change",
+    async () => {
+        currentItemPage = 1;
+
+        if (
+            activeHousehold
+            && activeCategory
+        ) {
+            await loadCollectionItems(
+                activeHousehold,
+                activeCategory,
+                activeFields
+            );
+        }
+    }
+);
+
+dynamicFilters.addEventListener(
+    "change",
+    async event => {
+        if (
+            !event.target.matches(
+                "[data-filter-field-key]"
+            )
+        ) {
+            return;
+        }
+
+        currentItemPage = 1;
+
+        if (
+            activeHousehold
+            && activeCategory
+        ) {
+            await loadCollectionItems(
+                activeHousehold,
+                activeCategory,
+                activeFields
+            );
+        }
+    }
+);
+
+let dynamicFilterTimer = null;
+
+dynamicFilters.addEventListener(
+    "input",
+    event => {
+        if (
+            !event.target.matches(
+                "[data-filter-field-key]"
+            )
+        ) {
+            return;
+        }
+
+        clearTimeout(
+            dynamicFilterTimer
+        );
+
+        dynamicFilterTimer =
+            setTimeout(
+                async () => {
+                    currentItemPage = 1;
+
+                    if (
+                        activeHousehold
+                        && activeCategory
+                    ) {
+                        await loadCollectionItems(
+                            activeHousehold,
+                            activeCategory,
+                            activeFields
+                        );
+                    }
+                },
+                350
+            );
+    }
+);
 
 previousPageButton.addEventListener(
     "click",
