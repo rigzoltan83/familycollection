@@ -13,6 +13,7 @@ from PIL import Image
 from app.models import (
     Category,
     CategoryField,
+    CategoryFieldOption,
     Household,
     User,
 )
@@ -2752,3 +2753,379 @@ def test_delete_item_image_succeeds_when_file_is_missing(
         ItemImage,
         image_id,
     ) is None
+
+
+def test_list_items_filters_by_year_range(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    for title, publish_year in [
+        ("Régi könyv", 1980),
+        ("Középső könyv", 2005),
+        ("Új könyv", 2022),
+    ]:
+        response = test_client.post(
+            "/items",
+            json={
+                "household_id":
+                    household.id,
+                "category_id":
+                    category.id,
+                "title":
+                    title,
+                "field_values": {
+                    "publish_year":
+                        publish_year,
+                },
+            },
+        )
+
+        assert response.status_code == 201
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id":
+                household.id,
+            "category_id":
+                category.id,
+            "field_filters": (
+                '{"publish_year":'
+                '{"min":2000,"max":2010}}'
+            ),
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+    assert (
+        data["items"][0]["title"]
+        == "Középső könyv"
+    )
+
+
+def test_list_items_rejects_non_filterable_field(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id":
+                household.id,
+            "category_id":
+                category.id,
+            "field_filters": (
+                '{"author":{"value":"King"}}'
+            ),
+        },
+    )
+
+    assert response.status_code == 400
+
+    assert (
+        response.json()["detail"]
+        == (
+            "Ismeretlen vagy nem szűrhető mező: "
+            "author"
+        )
+    )
+
+
+def test_list_items_rejects_invalid_field_filters_json(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id":
+                household.id,
+            "category_id":
+                category.id,
+            "field_filters":
+                "{invalid-json",
+        },
+    )
+
+    assert response.status_code == 400
+
+    assert (
+        response.json()["detail"]
+        == "A field_filters nem érvényes JSON."
+    )
+
+
+def test_list_items_requires_category_for_field_filters(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session
+    )
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id":
+                household.id,
+            "field_filters": (
+                '{"publish_year":{"min":2000}}'
+            ),
+        },
+    )
+
+    assert response.status_code == 400
+
+    assert (
+        response.json()["detail"]
+        == (
+            "A field_filters használatához "
+            "category_id szükséges."
+        )
+    )
+
+def test_list_items_filters_by_single_select(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    field = CategoryField(
+        category_id=category.id,
+        name="Típus",
+        field_key="game_type",
+        field_type="single_select",
+        is_required=False,
+        is_searchable=False,
+        is_filterable=True,
+        is_visible_in_list=True,
+        is_active=True,
+        sort_order=30,
+        validation_rules={},
+        default_value={},
+    )
+
+    db_session.add(field)
+    db_session.flush()
+
+    db_session.add_all(
+        [
+            CategoryFieldOption(
+                field_id=field.id,
+                value="strategy",
+                label="Stratégiai",
+                sort_order=10,
+                is_active=True,
+            ),
+            CategoryFieldOption(
+                field_id=field.id,
+                value="family",
+                label="Családi",
+                sort_order=20,
+                is_active=True,
+            ),
+        ]
+    )
+
+    db_session.flush()
+
+    for title, game_type in [
+        ("Stratégiai játék", "strategy"),
+        ("Családi játék", "family"),
+    ]:
+        response = test_client.post(
+            "/items",
+            json={
+                "household_id":
+                    household.id,
+                "category_id":
+                    category.id,
+                "title":
+                    title,
+                "field_values": {
+                    "game_type":
+                        game_type,
+                },
+            },
+        )
+
+        assert response.status_code == 201
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id":
+                household.id,
+            "category_id":
+                category.id,
+            "field_filters": (
+                '{"game_type":'
+                '{"value":"strategy"}}'
+            ),
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+    assert (
+        data["items"][0]["title"]
+        == "Stratégiai játék"
+    )
+
+
+def test_list_items_filters_by_multi_select(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session
+    )
+
+    category = create_test_book_category(
+        db_session
+    )
+
+    field = CategoryField(
+        category_id=category.id,
+        name="Jellemzők",
+        field_key="features",
+        field_type="multi_select",
+        is_required=False,
+        is_searchable=False,
+        is_filterable=True,
+        is_visible_in_list=True,
+        is_active=True,
+        sort_order=30,
+        validation_rules={},
+        default_value={},
+    )
+
+    db_session.add(field)
+    db_session.flush()
+
+    db_session.add_all(
+        [
+            CategoryFieldOption(
+                field_id=field.id,
+                value="cooperative",
+                label="Kooperatív",
+                sort_order=10,
+                is_active=True,
+            ),
+            CategoryFieldOption(
+                field_id=field.id,
+                value="competitive",
+                label="Versengő",
+                sort_order=20,
+                is_active=True,
+            ),
+            CategoryFieldOption(
+                field_id=field.id,
+                value="campaign",
+                label="Kampány",
+                sort_order=30,
+                is_active=True,
+            ),
+        ]
+    )
+
+    db_session.flush()
+
+    test_data = [
+        (
+            "Kooperatív kampány",
+            [
+                "cooperative",
+                "campaign",
+            ],
+        ),
+        (
+            "Versengő játék",
+            [
+                "competitive",
+            ],
+        ),
+    ]
+
+    for title, features in test_data:
+        response = test_client.post(
+            "/items",
+            json={
+                "household_id":
+                    household.id,
+                "category_id":
+                    category.id,
+                "title":
+                    title,
+                "field_values": {
+                    "features":
+                        features,
+                },
+            },
+        )
+
+        assert response.status_code == 201
+
+    response = test_client.get(
+        "/items",
+        params={
+            "household_id":
+                household.id,
+            "category_id":
+                category.id,
+            "field_filters": (
+                '{"features":'
+                '{"value":"cooperative"}}'
+            ),
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+    assert (
+        data["items"][0]["title"]
+        == "Kooperatív kampány"
+    )

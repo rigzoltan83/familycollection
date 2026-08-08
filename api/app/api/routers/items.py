@@ -2,6 +2,10 @@
 CollectionItem HTTP-végpontok.
 """
 
+import json
+from datetime import date
+from decimal import Decimal, InvalidOperation
+
 from fastapi import (
     APIRouter,
     Depends,
@@ -16,8 +20,9 @@ from app.api.dependencies import (
     require_household_viewer_by_id,
     require_household_editor_by_id,
 )
-from sqlalchemy import exists, func, select
+from sqlalchemy import String, cast, exists, func, select
 from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.dialects.postgresql import JSONB
 
 from app.core.database import get_db_session
 from app.models import (
@@ -176,6 +181,7 @@ def list_items(
     item_status: str | None = None,
     query: str | None = None,
     identifier: str | None = None,
+    field_filters: str | None = None,
     sort_by: str = "title",
     sort_direction: str = "asc",
     limit: int = 50,
@@ -339,6 +345,401 @@ def list_items(
         filters.append(
             CollectionItem.status == item_status
         )
+
+    if field_filters is not None:
+        if category_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "A field_filters használatához "
+                    "category_id szükséges."
+                ),
+            )
+
+        try:
+            parsed_field_filters = json.loads(
+                field_filters
+            )
+        except json.JSONDecodeError as error:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "A field_filters nem érvényes JSON."
+                ),
+            ) from error
+
+        if not isinstance(
+            parsed_field_filters,
+            dict,
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "A field_filters JSON objektum "
+                    "kell legyen."
+                ),
+            )
+
+        filterable_fields = session.scalars(
+            select(CategoryField).where(
+                CategoryField.category_id
+                == category_id,
+                CategoryField.is_active.is_(True),
+                CategoryField.is_filterable.is_(True),
+            )
+        ).all()
+
+        filterable_fields_by_key = {
+            field.field_key: field
+            for field in filterable_fields
+        }
+
+        for field_key, filter_definition in (
+            parsed_field_filters.items()
+        ):
+            field = filterable_fields_by_key.get(
+                field_key
+            )
+
+            if field is None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        "Ismeretlen vagy nem szűrhető mező: "
+                        f"{field_key}"
+                    ),
+                )
+
+            if not isinstance(
+                filter_definition,
+                dict,
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        "A mezőszűrő objektum kell legyen: "
+                        f"{field_key}"
+                    ),
+                )
+
+            field_conditions = [
+                ItemFieldValue.item_id
+                == CollectionItem.id,
+                ItemFieldValue.field_id
+                == field.id,
+            ]
+
+            if field.field_type in {
+                "text",
+                "long_text",
+                "url",
+                "email",
+                "barcode",
+            }:
+                value = filter_definition.get(
+                    "value"
+                )
+
+                if (
+                    value is None
+                    or not isinstance(value, str)
+                ):
+                    raise HTTPException(
+                        status_code=(
+                            status.HTTP_400_BAD_REQUEST
+                        ),
+                        detail=(
+                            "Szöveges szűrőhöz value "
+                            "szükséges: "
+                            f"{field_key}"
+                        ),
+                    )
+
+                normalized_value = value.strip()
+
+                if not normalized_value:
+                    continue
+
+                field_conditions.append(
+                    ItemFieldValue.value_text.ilike(
+                        f"%{normalized_value}%"
+                    )
+                )
+
+            elif field.field_type == "single_select":
+                value = filter_definition.get(
+                    "value"
+                )
+
+                if (
+                    value is None
+                    or not isinstance(value, str)
+                    or not value.strip()
+                ):
+                    continue
+
+                normalized_value = value.strip()
+
+                field_conditions.append(
+                    cast(
+                        ItemFieldValue.value_json,
+                        String,
+                    )
+                    == json.dumps(
+                        normalized_value
+                    )
+                )
+
+            elif field.field_type in {
+                "integer",
+                "year",
+            }:
+                minimum = filter_definition.get(
+                    "min"
+                )
+                maximum = filter_definition.get(
+                    "max"
+                )
+
+                try:
+                    if minimum is not None:
+                        minimum = int(minimum)
+
+                    if maximum is not None:
+                        maximum = int(maximum)
+
+                except (TypeError, ValueError) as error:
+                    raise HTTPException(
+                        status_code=(
+                            status.HTTP_400_BAD_REQUEST
+                        ),
+                        detail=(
+                            "Egész számos szűrő hibás: "
+                            f"{field_key}"
+                        ),
+                    ) from error
+
+                if minimum is None and maximum is None:
+                    continue
+
+                if (
+                    minimum is not None
+                    and maximum is not None
+                    and minimum > maximum
+                ):
+                    raise HTTPException(
+                        status_code=(
+                            status.HTTP_400_BAD_REQUEST
+                        ),
+                        detail=(
+                            "A minimum nem lehet nagyobb "
+                            "a maximumnál: "
+                            f"{field_key}"
+                        ),
+                    )
+
+                if minimum is not None:
+                    field_conditions.append(
+                        ItemFieldValue.value_integer
+                        >= minimum
+                    )
+
+                if maximum is not None:
+                    field_conditions.append(
+                        ItemFieldValue.value_integer
+                        <= maximum
+                    )
+
+            elif field.field_type == "decimal":
+                minimum = filter_definition.get(
+                    "min"
+                )
+                maximum = filter_definition.get(
+                    "max"
+                )
+
+                try:
+                    if minimum is not None:
+                        minimum = Decimal(
+                            str(minimum)
+                        )
+
+                    if maximum is not None:
+                        maximum = Decimal(
+                            str(maximum)
+                        )
+
+                except (
+                    InvalidOperation,
+                    TypeError,
+                    ValueError,
+                ) as error:
+                    raise HTTPException(
+                        status_code=(
+                            status.HTTP_400_BAD_REQUEST
+                        ),
+                        detail=(
+                            "Tizedes szűrő hibás: "
+                            f"{field_key}"
+                        ),
+                    ) from error
+
+                if minimum is None and maximum is None:
+                    continue
+
+                if (
+                    minimum is not None
+                    and maximum is not None
+                    and minimum > maximum
+                ):
+                    raise HTTPException(
+                        status_code=(
+                            status.HTTP_400_BAD_REQUEST
+                        ),
+                        detail=(
+                            "A minimum nem lehet nagyobb "
+                            "a maximumnál: "
+                            f"{field_key}"
+                        ),
+                    )
+
+                if minimum is not None:
+                    field_conditions.append(
+                        ItemFieldValue.value_decimal
+                        >= minimum
+                    )
+
+                if maximum is not None:
+                    field_conditions.append(
+                        ItemFieldValue.value_decimal
+                        <= maximum
+                    )
+
+            elif field.field_type == "boolean":
+                value = filter_definition.get(
+                    "value"
+                )
+
+                if not isinstance(value, bool):
+                    raise HTTPException(
+                        status_code=(
+                            status.HTTP_400_BAD_REQUEST
+                        ),
+                        detail=(
+                            "Logikai szűrőhöz true vagy "
+                            "false szükséges: "
+                            f"{field_key}"
+                        ),
+                    )
+
+                field_conditions.append(
+                    ItemFieldValue.value_boolean
+                    == value
+                )
+
+            elif field.field_type == "date":
+                minimum = filter_definition.get(
+                    "min"
+                )
+                maximum = filter_definition.get(
+                    "max"
+                )
+
+                try:
+                    if minimum is not None:
+                        minimum = date.fromisoformat(
+                            str(minimum)
+                        )
+
+                    if maximum is not None:
+                        maximum = date.fromisoformat(
+                            str(maximum)
+                        )
+
+                except ValueError as error:
+                    raise HTTPException(
+                        status_code=(
+                            status.HTTP_400_BAD_REQUEST
+                        ),
+                        detail=(
+                            "A dátumszűrő YYYY-MM-DD "
+                            "formátumú legyen: "
+                            f"{field_key}"
+                        ),
+                    ) from error
+
+                if minimum is None and maximum is None:
+                    continue
+
+                if (
+                    minimum is not None
+                    and maximum is not None
+                    and minimum > maximum
+                ):
+                    raise HTTPException(
+                        status_code=(
+                            status.HTTP_400_BAD_REQUEST
+                        ),
+                        detail=(
+                            "A kezdődátum nem lehet későbbi "
+                            "a záródátumnál: "
+                            f"{field_key}"
+                        ),
+                    )
+
+                if minimum is not None:
+                    field_conditions.append(
+                        ItemFieldValue.value_date
+                        >= minimum
+                    )
+
+                if maximum is not None:
+                    field_conditions.append(
+                        ItemFieldValue.value_date
+                        <= maximum
+                    )
+
+            elif field.field_type == "multi_select":
+                value = filter_definition.get(
+                    "value"
+                )
+
+                if (
+                    value is None
+                    or not isinstance(value, str)
+                    or not value.strip()
+                ):
+                    continue
+
+                normalized_value = value.strip()
+
+                field_conditions.append(
+                    func.jsonb_exists(
+                        cast(
+                            ItemFieldValue.value_json,
+                            JSONB,
+                        ),
+                        normalized_value,
+                    )
+                )
+
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        "Ez a mezőtípus nem szűrhető: "
+                        f"{field.field_type}"
+                    ),
+                )
+
+            filters.append(
+                exists(
+                    select(ItemFieldValue.id).where(
+                        *field_conditions
+                    )
+                )
+            )
+
 
     total = session.scalar(
         select(func.count(CollectionItem.id)).where(*filters)
