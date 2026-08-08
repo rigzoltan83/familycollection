@@ -6,6 +6,13 @@ from app.schemas.auth import (
     LoginResponse,
 )
 
+from app.schemas.category_storage_locations import (
+    CategoryStorageLocationRuleRequest,
+    CategoryStorageLocationRuleResponse,
+    CategoryStorageLocationRulesResponse,
+    CategoryStorageLocationRulesUpdateRequest,
+)
+
 from app.schemas.admin_users import (
     AssignableHouseholdRole,
     HouseholdUserCreateRequest,
@@ -95,4 +102,8 @@ __all__ = [
     "CategoryFieldOptionAdminResponse",
     "CategoryFieldOptionCreateRequest",
     "CategoryFieldOptionUpdateRequest",
+    "CategoryStorageLocationRuleRequest",
+    "CategoryStorageLocationRuleResponse",
+    "CategoryStorageLocationRulesResponse",
+    "CategoryStorageLocationRulesUpdateRequest",
 ]

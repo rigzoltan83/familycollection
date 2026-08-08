@@ -153,3 +153,136 @@ def is_storage_location_allowed(
             category_id=category_id,
         )
     )
+
+def list_category_storage_rules(
+    session: Session,
+    *,
+    household_id: int,
+    category_id: int,
+) -> list[CategoryStorageLocation]:
+    """
+    Visszaadja az adott household + category
+    explicit tárhelyszabályait.
+    """
+
+    return session.scalars(
+        select(CategoryStorageLocation)
+        .where(
+            CategoryStorageLocation.household_id
+            == household_id,
+            CategoryStorageLocation.category_id
+            == category_id,
+        )
+        .order_by(
+            CategoryStorageLocation.id.asc()
+        )
+    ).all()
+
+
+def replace_category_storage_rules(
+    session: Session,
+    *,
+    household_id: int,
+    category_id: int,
+    rules: list[
+        tuple[int, bool]
+    ],
+) -> list[CategoryStorageLocation]:
+    """
+    Lecseréli az adott kategória teljes
+    tárhelyszabály-listáját.
+
+    A rules elemei:
+    (
+        storage_location_id,
+        include_descendants,
+    )
+
+    Üres lista = nincs korlátozás.
+    """
+
+    existing_rules = (
+        list_category_storage_rules(
+            session=session,
+            household_id=household_id,
+            category_id=category_id,
+        )
+    )
+
+    for existing_rule in existing_rules:
+        session.delete(
+            existing_rule
+        )
+
+    seen_location_ids: set[int] = set()
+
+    new_rules: list[
+        CategoryStorageLocation
+    ] = []
+
+    for (
+        storage_location_id,
+        include_descendants,
+    ) in rules:
+        if storage_location_id <= 0:
+            raise ValueError(
+                "A storage_location_id "
+                "csak pozitív egész szám lehet."
+            )
+
+        if (
+            storage_location_id
+            in seen_location_ids
+        ):
+            raise ValueError(
+                "Ugyanaz a tárhely csak egyszer "
+                "szerepelhet a szabályok között."
+            )
+
+        seen_location_ids.add(
+            storage_location_id
+        )
+
+        location = session.scalar(
+            select(StorageLocation).where(
+                StorageLocation.id
+                == storage_location_id,
+                StorageLocation.household_id
+                == household_id,
+            )
+        )
+
+        if location is None:
+            raise ValueError(
+                "A megadott tárhely nem létezik "
+                "ebben a háztartásban."
+            )
+
+        if not location.is_active:
+            raise ValueError(
+                "Inaktív tárhely nem rendelhető "
+                "kategóriához."
+            )
+
+        rule = CategoryStorageLocation(
+            household_id=household_id,
+            category_id=category_id,
+            storage_location_id=(
+                location.id
+            ),
+            include_descendants=(
+                include_descendants
+            ),
+        )
+
+        session.add(
+            rule
+        )
+
+        new_rules.append(
+            rule
+        )
+
+    session.flush()
+
+    return new_rules

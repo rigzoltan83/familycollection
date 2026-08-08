@@ -6,6 +6,7 @@ from app.models import (
     Category,
     Household,
     HouseholdMember,
+    StorageLocation,
     User,
 )
 
@@ -501,5 +502,361 @@ def test_empty_patch_is_rejected(
         "detail": (
             "Legalább egy módosítandó mezőt "
             "meg kell adni."
+        )
+    }
+
+
+def test_admin_can_get_empty_category_storage_rules(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session,
+        name="Storage rules GET household",
+        slug="storage-rules-get",
+    )
+
+    category = create_system_category(
+        db_session
+    )
+
+    admin = create_test_user(
+        db_session,
+        household=household,
+        email="storage-rules-get@example.com",
+        username="storage-rules-get",
+        role="admin",
+    )
+
+    login(
+        test_client,
+        user=admin,
+    )
+
+    response = test_client.get(
+        f"/admin/households/"
+        f"{household.id}/categories/"
+        f"{category.id}/storage-rules"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["category_id"] == category.id
+    assert data["restricted"] is False
+    assert data["rules"] == []
+
+
+def test_admin_can_replace_and_read_category_storage_rules(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session,
+        name="Storage rules PUT household",
+        slug="storage-rules-put",
+    )
+
+    category = create_system_category(
+        db_session
+    )
+
+    admin = create_test_user(
+        db_session,
+        household=household,
+        email="storage-rules-put@example.com",
+        username="storage-rules-put",
+        role="admin",
+    )
+
+    location = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Teszt tárhely",
+        slug="teszt-tarhely",
+        location_type="slot",
+        sort_order=0,
+        is_active=True,
+    )
+
+    db_session.add(location)
+    db_session.flush()
+
+    login(
+        test_client,
+        user=admin,
+    )
+
+    response = test_client.put(
+        f"/admin/households/"
+        f"{household.id}/categories/"
+        f"{category.id}/storage-rules",
+        json={
+            "rules": [
+                {
+                    "storage_location_id":
+                        location.id,
+                    "include_descendants":
+                        True,
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["category_id"] == category.id
+    assert data["restricted"] is True
+    assert len(data["rules"]) == 1
+    assert (
+        data["rules"][0]["storage_location_id"]
+        == location.id
+    )
+    assert (
+        data["rules"][0]["include_descendants"]
+        is True
+    )
+
+    get_response = test_client.get(
+        f"/admin/households/"
+        f"{household.id}/categories/"
+        f"{category.id}/storage-rules"
+    )
+
+    assert get_response.status_code == 200
+
+    get_data = get_response.json()
+
+    assert get_data["restricted"] is True
+    assert len(get_data["rules"]) == 1
+    assert (
+        get_data["rules"][0]["storage_location_id"]
+        == location.id
+    )
+
+
+def test_admin_can_remove_category_storage_restriction(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session,
+        name="Storage rules clear household",
+        slug="storage-rules-clear",
+    )
+
+    category = create_system_category(
+        db_session
+    )
+
+    admin = create_test_user(
+        db_session,
+        household=household,
+        email="storage-rules-clear@example.com",
+        username="storage-rules-clear",
+        role="admin",
+    )
+
+    location = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Törlendő tárhely",
+        slug="torlendo-tarhely",
+        location_type="slot",
+        sort_order=0,
+        is_active=True,
+    )
+
+    db_session.add(location)
+    db_session.flush()
+
+    login(
+        test_client,
+        user=admin,
+    )
+
+    first_response = test_client.put(
+        f"/admin/households/"
+        f"{household.id}/categories/"
+        f"{category.id}/storage-rules",
+        json={
+            "rules": [
+                {
+                    "storage_location_id":
+                        location.id,
+                    "include_descendants":
+                        False,
+                }
+            ]
+        },
+    )
+
+    assert first_response.status_code == 200
+    assert (
+        first_response.json()["restricted"]
+        is True
+    )
+
+    clear_response = test_client.put(
+        f"/admin/households/"
+        f"{household.id}/categories/"
+        f"{category.id}/storage-rules",
+        json={
+            "rules": []
+        },
+    )
+
+    assert clear_response.status_code == 200
+
+    data = clear_response.json()
+
+    assert data["category_id"] == category.id
+    assert data["restricted"] is False
+    assert data["rules"] == []
+
+
+def test_admin_category_storage_rules_reject_other_household_location(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session,
+        name="Storage rules own household",
+        slug="storage-rules-own",
+    )
+
+    other_household = create_test_household(
+        db_session,
+        name="Storage rules other household",
+        slug="storage-rules-other",
+    )
+
+    category = create_system_category(
+        db_session
+    )
+
+    admin = create_test_user(
+        db_session,
+        household=household,
+        email="storage-rules-other@example.com",
+        username="storage-rules-other",
+        role="admin",
+    )
+
+    foreign_location = StorageLocation(
+        household_id=other_household.id,
+        parent_id=None,
+        name="Másik household tárhely",
+        slug="foreign-storage",
+        location_type="slot",
+        sort_order=0,
+        is_active=True,
+    )
+
+    db_session.add(foreign_location)
+    db_session.flush()
+
+    login(
+        test_client,
+        user=admin,
+    )
+
+    response = test_client.put(
+        f"/admin/households/"
+        f"{household.id}/categories/"
+        f"{category.id}/storage-rules",
+        json={
+            "rules": [
+                {
+                    "storage_location_id":
+                        foreign_location.id,
+                    "include_descendants":
+                        False,
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 400
+
+    assert response.json() == {
+        "detail": (
+            "A megadott tárhely nem létezik "
+            "ebben a háztartásban."
+        )
+    }
+
+
+def test_admin_category_storage_rules_reject_duplicate_location(
+    test_client: TestClient,
+    db_session: Session,
+) -> None:
+    household = create_test_household(
+        db_session,
+        name="Storage rules duplicate household",
+        slug="storage-rules-duplicate",
+    )
+
+    category = create_system_category(
+        db_session
+    )
+
+    admin = create_test_user(
+        db_session,
+        household=household,
+        email="storage-rules-duplicate@example.com",
+        username="storage-rules-duplicate",
+        role="admin",
+    )
+
+    location = StorageLocation(
+        household_id=household.id,
+        parent_id=None,
+        name="Duplikált tárhely",
+        slug="duplicate-storage",
+        location_type="slot",
+        sort_order=0,
+        is_active=True,
+    )
+
+    db_session.add(location)
+    db_session.flush()
+
+    login(
+        test_client,
+        user=admin,
+    )
+
+    response = test_client.put(
+        f"/admin/households/"
+        f"{household.id}/categories/"
+        f"{category.id}/storage-rules",
+        json={
+            "rules": [
+                {
+                    "storage_location_id":
+                        location.id,
+                    "include_descendants":
+                        False,
+                },
+                {
+                    "storage_location_id":
+                        location.id,
+                    "include_descendants":
+                        True,
+                },
+            ]
+        },
+    )
+
+    assert response.status_code == 400
+
+    assert response.json() == {
+        "detail": (
+            "Ugyanaz a tárhely csak egyszer "
+            "szerepelhet a szabályok között."
         )
     }

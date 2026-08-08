@@ -9,8 +9,9 @@ from app.models import (
 from app.services import (
     get_allowed_storage_location_ids,
     is_storage_location_allowed,
+    list_category_storage_rules,
+    replace_category_storage_rules,
 )
-
 
 def create_household(
     session: Session,
@@ -333,3 +334,270 @@ def test_inactive_locations_are_not_allowed(
     assert shelf.id in allowed_ids
     assert first_slot.id in allowed_ids
     assert second_slot.id not in allowed_ids
+
+
+def test_replace_category_storage_rules_replaces_all_rules(
+    db_session: Session,
+) -> None:
+    household = create_household(
+        db_session
+    )
+
+    category = create_category(
+        db_session,
+        household,
+    )
+
+    (
+        room,
+        shelf,
+        first_slot,
+        second_slot,
+    ) = create_storage_tree(
+        db_session,
+        household,
+    )
+
+    db_session.add(
+        CategoryStorageLocation(
+            household_id=household.id,
+            category_id=category.id,
+            storage_location_id=room.id,
+            include_descendants=True,
+        )
+    )
+
+    db_session.flush()
+
+    rules = replace_category_storage_rules(
+        session=db_session,
+        household_id=household.id,
+        category_id=category.id,
+        rules=[
+            (
+                first_slot.id,
+                False,
+            ),
+            (
+                second_slot.id,
+                True,
+            ),
+        ],
+    )
+
+    assert len(rules) == 2
+
+    stored_rules = list_category_storage_rules(
+        session=db_session,
+        household_id=household.id,
+        category_id=category.id,
+    )
+
+    assert len(stored_rules) == 2
+
+    stored_by_location_id = {
+        rule.storage_location_id: rule
+        for rule in stored_rules
+    }
+
+    assert room.id not in stored_by_location_id
+
+    assert (
+        stored_by_location_id[
+            first_slot.id
+        ].include_descendants
+        is False
+    )
+
+    assert (
+        stored_by_location_id[
+            second_slot.id
+        ].include_descendants
+        is True
+    )
+
+
+def test_replace_category_storage_rules_empty_list_removes_restriction(
+    db_session: Session,
+) -> None:
+    household = create_household(
+        db_session
+    )
+
+    category = create_category(
+        db_session,
+        household,
+    )
+
+    (
+        room,
+        shelf,
+        first_slot,
+        second_slot,
+    ) = create_storage_tree(
+        db_session,
+        household,
+    )
+
+    db_session.add(
+        CategoryStorageLocation(
+            household_id=household.id,
+            category_id=category.id,
+            storage_location_id=shelf.id,
+            include_descendants=True,
+        )
+    )
+
+    db_session.flush()
+
+    rules = replace_category_storage_rules(
+        session=db_session,
+        household_id=household.id,
+        category_id=category.id,
+        rules=[],
+    )
+
+    assert rules == []
+
+    stored_rules = list_category_storage_rules(
+        session=db_session,
+        household_id=household.id,
+        category_id=category.id,
+    )
+
+    assert stored_rules == []
+
+    allowed_ids = (
+        get_allowed_storage_location_ids(
+            session=db_session,
+            household_id=household.id,
+            category_id=category.id,
+        )
+    )
+
+    assert allowed_ids == {
+        room.id,
+        shelf.id,
+        first_slot.id,
+        second_slot.id,
+    }
+
+
+def test_replace_category_storage_rules_rejects_duplicate_location(
+    db_session: Session,
+) -> None:
+    household = create_household(
+        db_session
+    )
+
+    category = create_category(
+        db_session,
+        household,
+    )
+
+    (
+        room,
+        shelf,
+        first_slot,
+        second_slot,
+    ) = create_storage_tree(
+        db_session,
+        household,
+    )
+
+    try:
+        replace_category_storage_rules(
+            session=db_session,
+            household_id=household.id,
+            category_id=category.id,
+            rules=[
+                (
+                    first_slot.id,
+                    False,
+                ),
+                (
+                    first_slot.id,
+                    True,
+                ),
+            ],
+        )
+    except ValueError as error:
+        assert (
+            str(error)
+            == (
+                "Ugyanaz a tárhely csak egyszer "
+                "szerepelhet a szabályok között."
+            )
+        )
+    else:
+        raise AssertionError(
+            "Duplikált tárhelyszabály "
+            "nem okozott hibát."
+        )
+
+
+def test_replace_category_storage_rules_rejects_other_household_location(
+    db_session: Session,
+) -> None:
+    household = create_household(
+        db_session
+    )
+
+    category = create_category(
+        db_session,
+        household,
+    )
+
+    other_household = Household(
+        name="Másik háztartás",
+        slug="masik-haztartas",
+        is_active=True,
+    )
+
+    db_session.add(
+        other_household
+    )
+
+    db_session.flush()
+
+    foreign_location = StorageLocation(
+        household_id=other_household.id,
+        parent_id=None,
+        name="Másik háztartás tárhelye",
+        slug="masik-haztartas-tarhely",
+        location_type="slot",
+        sort_order=0,
+        is_active=True,
+    )
+
+    db_session.add(
+        foreign_location
+    )
+
+    db_session.flush()
+
+    try:
+        replace_category_storage_rules(
+            session=db_session,
+            household_id=household.id,
+            category_id=category.id,
+            rules=[
+                (
+                    foreign_location.id,
+                    False,
+                ),
+            ],
+        )
+    except ValueError as error:
+        assert (
+            str(error)
+            == (
+                "A megadott tárhely nem létezik "
+                "ebben a háztartásban."
+            )
+        )
+    else:
+        raise AssertionError(
+            "Másik háztartás tárhelye "
+            "nem okozott hibát."
+        )
