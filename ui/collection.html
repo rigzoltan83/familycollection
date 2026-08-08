@@ -358,6 +358,36 @@
 <section class="field-section">
     <h2>Gyűjtemény elemei</h2>
 
+<div class="collection-toolbar">
+    <input
+        id="itemSearch"
+        type="search"
+        placeholder="Keresés..."
+    >
+
+    <select id="itemSort">
+        <option value="created_at:desc">
+            Legújabb elöl
+        </option>
+
+        <option value="created_at:asc">
+            Legrégebbi elöl
+        </option>
+
+        <option value="title:asc">
+            Név A–Z
+        </option>
+
+        <option value="title:desc">
+            Név Z–A
+        </option>
+
+        <option value="updated_at:desc">
+            Legutóbb módosított
+        </option>
+    </select>
+</div>
+
     <div
         id="itemsStatus"
         class="status"
@@ -388,6 +418,14 @@
         >
             ✏️ Szerkesztés
         </button>
+
+<button
+    id="deleteItemButton"
+    type="button"
+    class="secondary-button"
+>
+    🗑️ Inaktiválás
+</button>
 
         <button
             id="closeItemDetailButton"
@@ -477,6 +515,24 @@
     </div>
 </div>
 
+<div class="pagination">
+    <button
+        id="previousPageButton"
+        type="button"
+    >
+        ← Előző
+    </button>
+
+    <span id="pageInfo"></span>
+
+    <button
+        id="nextPageButton"
+        type="button"
+    >
+        Következő →
+    </button>
+</div>
+
 </section>
 
     </div>
@@ -490,9 +546,46 @@ let activeCategory = null;
 let activeFields = [];
 let activeItem = null;
 
+const itemSearch =
+    document.getElementById(
+        "itemSearch"
+    );
+
+const itemSort =
+    document.getElementById(
+        "itemSort"
+    );
+
+const previousPageButton =
+    document.getElementById(
+        "previousPageButton"
+    );
+
+const nextPageButton =
+    document.getElementById(
+        "nextPageButton"
+    );
+
+const pageInfo =
+    document.getElementById(
+        "pageInfo"
+    );
+
+let currentItemPage = 1;
+let currentItemSearch = "";
+let currentItemSortBy = "created_at";
+let currentItemSortDirection = "desc";
+
+const itemPageSize = 20;
+
 const editItemButton =
     document.getElementById(
         "editItemButton"
+    );
+
+const deleteItemButton =
+    document.getElementById(
+        "deleteItemButton"
     );
 
 const itemEditContent =
@@ -651,6 +744,85 @@ const dynamicCreateFields =
 
         return labels[role] || role;
     }
+
+
+async function deleteActiveItem() {
+    if (!activeItem) {
+        return;
+    }
+
+    const confirmed =
+        window.confirm(
+            (
+                "Biztosan inaktiválod ezt az elemet?\n\n"
+                + activeItem.title
+            )
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    deleteItemButton.disabled = true;
+
+    try {
+        const response =
+            await fetch(
+                `/items/${
+                    encodeURIComponent(
+                        activeItem.public_id
+                    )
+                }`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+        if (!response.ok) {
+            let data = null;
+
+            try {
+                data =
+                    await response.json();
+            } catch {
+                data = null;
+            }
+
+            throw new Error(
+                data?.detail
+                || `HTTP ${response.status}`
+            );
+        }
+
+        activeItem = null;
+
+        itemDetailSection.style.display =
+            "none";
+
+        itemDetailContent.innerHTML =
+            "";
+
+        itemEditContent.style.display =
+            "none";
+
+        await loadCollectionItems(
+            activeHousehold,
+            activeCategory,
+            activeFields
+        );
+
+    } catch (error) {
+        itemDetailStatus.style.display =
+            "";
+
+        itemDetailStatus.textContent =
+            `❌ ${error.message}`;
+
+    } finally {
+        deleteItemButton.disabled =
+            false;
+    }
+}
 
 
     function fieldTypeLabel(type) {
@@ -1472,9 +1644,15 @@ async function saveItemEdit() {
     }
 }
 
+
 editItemButton.addEventListener(
     "click",
     openItemEditor
+);
+
+deleteItemButton.addEventListener(
+    "click",
+    deleteActiveItem
 );
 
 saveItemEditButton.addEventListener(
@@ -1509,21 +1687,43 @@ async function loadCollectionItems(
     itemsList.innerHTML = "";
 
     try {
-        const response =
-            await fetch(
-                "/items"
-                + "?household_id="
-                + encodeURIComponent(
-                    household.id
-                )
-                + "&category_id="
-                + encodeURIComponent(
-                    category.id
-                )
-                + "&sort_by=created_at"
-                + "&sort_direction=desc"
-                + "&limit=50"
-            );
+
+const offset =
+    (currentItemPage - 1)
+    * itemPageSize;
+
+const parameters =
+    new URLSearchParams({
+        household_id:
+            String(household.id),
+
+        category_id:
+            String(category.id),
+
+        sort_by:
+            currentItemSortBy,
+
+        sort_direction:
+            currentItemSortDirection,
+
+        limit:
+            String(itemPageSize),
+
+        offset:
+            String(offset)
+    });
+
+if (currentItemSearch) {
+    parameters.set(
+        "query",
+        currentItemSearch
+    );
+}
+
+const response =
+    await fetch(
+        `/items?${parameters.toString()}`
+    );
 
         let data = null;
 
@@ -1540,6 +1740,47 @@ async function loadCollectionItems(
                 || `HTTP ${response.status}`
             );
         }
+
+const totalItems =
+    Number(data.total) || 0;
+
+const totalPages =
+    Math.max(
+        1,
+        Math.ceil(
+            totalItems / itemPageSize
+        )
+    );
+
+if (
+    currentItemPage > totalPages
+    && totalItems > 0
+) {
+    currentItemPage =
+        totalPages;
+
+    return loadCollectionItems(
+        household,
+        category,
+        fields
+    );
+}
+
+pageInfo.textContent =
+    totalItems
+        ? (
+            `${currentItemPage}. / `
+            + `${totalPages}. oldal`
+            + ` · ${totalItems} elem`
+        )
+        : "0 elem";
+
+previousPageButton.disabled =
+    currentItemPage <= 1;
+
+nextPageButton.disabled =
+    currentItemPage >= totalPages
+    || totalItems === 0;
 
         itemsStatus.style.display =
             "none";
@@ -1669,12 +1910,21 @@ row.addEventListener(
             );
         }
 
-    } catch (error) {
-        itemsStatus.style.display = "";
+} catch (error) {
+    itemsStatus.style.display = "";
 
-        itemsStatus.textContent =
-            `❌ ${error.message}`;
-    }
+    itemsStatus.textContent =
+        `❌ ${error.message}`;
+
+    pageInfo.textContent = "";
+
+    previousPageButton.disabled =
+        true;
+
+    nextPageButton.disabled =
+        true;
+}
+
 }
 
 function readDynamicFieldValuesFrom(
@@ -1879,6 +2129,8 @@ async function createCollectionItem(
                 control.value = "";
             }
         }
+
+currentItemPage = 1;
 
 await loadCollectionItems(
     household,
@@ -2090,6 +2342,11 @@ editItemButton.style.display =
         ? ""
         : "none";
 
+deleteItemButton.style.display =
+    canEdit
+        ? ""
+        : "none";
+
 if (canEdit) {
     renderCreateFields(fields);
 
@@ -2120,6 +2377,117 @@ content.style.display =
                 `❌ ${error.message}`;
         }
     }
+
+let itemSearchTimer = null;
+
+
+itemSearch.addEventListener(
+    "input",
+    event => {
+        clearTimeout(
+            itemSearchTimer
+        );
+
+        itemSearchTimer =
+            setTimeout(
+                async () => {
+                    currentItemSearch =
+                        event.target.value.trim();
+
+                    currentItemPage = 1;
+
+                    if (
+                        activeHousehold
+                        && activeCategory
+                    ) {
+                        await loadCollectionItems(
+                            activeHousehold,
+                            activeCategory,
+                            activeFields
+                        );
+                    }
+                },
+                350
+            );
+    }
+);
+
+
+itemSort.addEventListener(
+    "change",
+    async event => {
+        const [
+            sortBy,
+            sortDirection
+        ] =
+            event.target.value.split(
+                ":"
+            );
+
+        currentItemSortBy =
+            sortBy;
+
+        currentItemSortDirection =
+            sortDirection;
+
+        currentItemPage = 1;
+
+        if (
+            activeHousehold
+            && activeCategory
+        ) {
+            await loadCollectionItems(
+                activeHousehold,
+                activeCategory,
+                activeFields
+            );
+        }
+    }
+);
+
+
+previousPageButton.addEventListener(
+    "click",
+    async () => {
+        if (
+            currentItemPage <= 1
+            || !activeHousehold
+            || !activeCategory
+        ) {
+            return;
+        }
+
+        currentItemPage -= 1;
+
+        await loadCollectionItems(
+            activeHousehold,
+            activeCategory,
+            activeFields
+        );
+    }
+);
+
+
+nextPageButton.addEventListener(
+    "click",
+    async () => {
+        if (
+            nextPageButton.disabled
+            || !activeHousehold
+            || !activeCategory
+        ) {
+            return;
+        }
+
+        currentItemPage += 1;
+
+        await loadCollectionItems(
+            activeHousehold,
+            activeCategory,
+            activeFields
+        );
+    }
+);
 
 createItemButton.addEventListener(
     "click",
