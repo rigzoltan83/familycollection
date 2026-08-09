@@ -338,6 +338,479 @@
             margin-top: 14px;
         }    
 
+        /* ===== Kompakt admin felület ===== */
+
+        .container {
+            width: min(1400px, 96vw);
+            padding-top: 16px;
+        }
+
+        .topbar {
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .topbar h1 {
+            margin-bottom: 4px;
+            font-size: 26px;
+        }
+
+        .admin-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+            padding: 5px;
+            border-radius: 10px;
+            background: #202020;
+        }
+
+        .admin-tab {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 7px;
+            background: transparent;
+            color: #bbb;
+            font-weight: bold;
+        }
+
+        .admin-tab:hover {
+            background: #303030;
+        }
+
+        .admin-tab.active {
+            background: #2e8b57;
+            color: #fff;
+        }
+
+        .admin-page {
+            display: none;
+        }
+
+        .admin-page.active {
+            display: block;
+        }
+
+        .admin-page > .panel {
+            margin-bottom: 14px;
+        }
+
+        .panel {
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .panel h2 {
+            margin-bottom: 8px;
+            font-size: 21px;
+        }
+
+        .panel h3 {
+            margin-top: 16px;
+            margin-bottom: 8px;
+        }
+
+        .panel-description {
+            margin: 0 0 12px;
+        }
+
+        .section-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .section-toolbar h2 {
+            margin: 0;
+        }
+
+        .create-box {
+            display: none;
+            margin: 0 0 14px;
+            padding: 14px;
+            border: 1px solid #444;
+            border-radius: 9px;
+            background: #181818;
+        }
+
+        .create-box.open {
+            display: block;
+        }
+
+        .create-box h3 {
+            margin-top: 0;
+        }
+
+        .categories-list {
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .category-card {
+            padding: 11px 13px;
+            border: 1px solid #444;
+            background: #292929;
+            color: #eee;
+        }
+
+        .category-card.system-category {
+            background: #252525;
+        }
+
+        .category-card-header {
+            margin-bottom: 6px;
+        }
+
+        .category-card-title {
+            color: #6dff6d;
+        }
+
+        .category-description {
+            margin: 4px 0;
+            color: #aaa;
+        }
+
+        .category-meta {
+            gap: 8px 14px;
+            margin-top: 5px;
+            color: #888;
+            font-size: 13px;
+        }
+
+        .category-badge {
+            background: #444;
+            color: #ddd;
+        }
+
+        .category-card .actions {
+            margin-top: 8px;
+        }
+
+        .category-card button {
+            padding: 7px 10px;
+            font-size: 13px;
+        }
+
+        .users-list {
+            gap: 8px;
+        }
+
+        .user-card {
+            padding: 12px;
+        }
+
+        .admin-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 14px 0 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #3a3a3a;
+            color: #ddd;
+            font-size: 16px;
+        }
+
+        @media (max-width: 650px) {
+            .admin-tabs {
+                flex-direction: column;
+            }
+
+            .section-toolbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .section-toolbar button {
+                width: 100%;
+            }
+        }
+
+        .category-settings-panel {
+            margin-top: 10px;
+            padding: 12px;
+            border-top: 1px solid #3d3d3d;
+        }
+
+        .category-settings-panel > :first-child {
+            margin-top: 0;
+        }
+
+        .category-settings-panel .category-fields-panel,
+        .category-settings-panel .category-storage-panel {
+            margin-top: 12px;
+            border: 1px solid #3d3d3d;
+            background: #1b1b1b !important;
+        }
+
+        .category-card-header .actions {
+            margin-top: 0;
+        }
+
+        .category-card-header button {
+            white-space: nowrap;
+        }
+
+        .user-header {
+            align-items: center;
+        }
+
+        .user-summary {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px 12px;
+            margin-top: 6px;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .user-settings-panel {
+            margin-top: 10px;
+            padding-top: 12px;
+            border-top: 1px solid #3d3d3d;
+        }
+
+        .user-settings-panel .actions {
+            margin-top: 10px;
+        }
+
+        .toggle-user-settings {
+            white-space: nowrap;
+        }
+
+        /* ===== Tárhely admin ===== */
+
+        .storage-admin-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            padding: 9px 11px;
+            border: 1px solid #3d3d3d;
+            border-radius: 8px;
+            background: #181818;
+        }
+
+        .storage-admin-toolbar label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+        }
+
+        .storage-admin-toolbar input {
+            width: auto;
+        }
+
+        .storage-admin-tree {
+            margin-top: 10px;
+        }
+
+        .storage-tree-list {
+            margin: 0;
+            padding-left: 22px;
+            list-style: none;
+            border-left: 1px solid #3a3a3a;
+        }
+
+        .storage-tree-root {
+            padding-left: 0;
+            border-left: 0;
+        }
+
+        .storage-tree-item {
+            margin: 6px 0;
+        }
+
+        .storage-location-card {
+            display: grid;
+            grid-template-columns:
+                minmax(180px, 1fr)
+                auto
+                auto
+                auto;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 10px;
+            border: 1px solid #3b3b3b;
+            border-left: 3px solid #58d658;
+            border-radius: 7px;
+            background: #242424;
+        }
+
+        .storage-location-card.inactive {
+            opacity: 0.62;
+            border-left-color: #d0a000;
+        }
+
+        .storage-location-main {
+            min-width: 0;
+        }
+
+        .storage-location-title-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .storage-location-name {
+            color: #6dff6d;
+            font-weight: bold;
+        }
+
+        .storage-location-meta {
+            margin-top: 3px;
+            color: #888;
+            font-size: 12px;
+        }
+
+        .storage-location-type,
+        .storage-location-state {
+            padding: 4px 7px;
+            border-radius: 999px;
+            background: #353535;
+            color: #ccc;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .storage-location-state {
+            background: #164f2d;
+            color: #9cffb9;
+        }
+
+        .storage-location-card.inactive
+        .storage-location-state {
+            background: #594600;
+            color: #ffe27a;
+        }
+
+        .storage-location-actions {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-end;
+        }
+
+        .storage-location-actions button,
+        .storage-branch-toggle {
+            padding: 5px 8px;
+            font-size: 12px;
+        }
+
+        .storage-branch-toggle {
+            min-width: 27px;
+            padding: 4px;
+        }
+
+        .storage-child-count {
+            color: #888;
+            font-size: 12px;
+            font-weight: normal;
+        }
+
+        .storage-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            overflow-y: auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.82);
+        }
+
+        .storage-modal-content {
+            width: min(620px, 100%);
+            margin: 20px auto;
+            padding: 18px;
+            border-radius: 10px;
+            background: #202020;
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .storage-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .storage-modal-header h2 {
+            margin: 0 0 12px;
+        }
+
+        .storage-modal-close {
+            padding: 2px 10px;
+            background: transparent;
+            font-size: 28px;
+        }
+
+        .storage-modal-content label {
+            margin-top: 11px;
+        }
+
+        .storage-parent-info {
+            padding: 9px;
+            border-radius: 7px;
+            background: #292929;
+            color: #bbb;
+        }
+
+        .storage-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .storage-toast {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            z-index: 300;
+            max-width: min(
+                420px,
+                calc(100vw - 40px)
+            );
+            padding: 11px 14px;
+            border-radius: 8px;
+            background: #176b39;
+            color: #d7ffe4;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(12px);
+            transition:
+                opacity 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        .storage-toast.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .storage-toast.error {
+            background: #8d1c1c;
+            color: #ffe1e1;
+        }
+
+        @media (max-width: 800px) {
+            .storage-location-card {
+                grid-template-columns: 1fr;
+            }
+
+            .storage-location-actions {
+                justify-content: flex-start;
+            }
+
+            .storage-admin-toolbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+        }
+
 </style>
 </head>
 
@@ -373,225 +846,493 @@
             </div>
         </div>
 
-        <section class="panel">
-            <h2>Új felhasználó</h2>
-
-            <div class="new-user-grid">
-                <div>
-                    <label for="newEmail">
-                        E-mail cím
-                    </label>
-
-                    <input
-                        id="newEmail"
-                        type="email"
-                    >
-                </div>
-
-                <div>
-                    <label for="newUsername">
-                        Felhasználónév
-                    </label>
-
-                    <input
-                        id="newUsername"
-                        type="text"
-                        minlength="3"
-                        maxlength="100"
-                        autocomplete="off"
-                    >
-                </div>
-
-                <div>
-                    <label for="newDisplayName">
-                        Megjelenített név
-                    </label>
-
-                    <input
-                        id="newDisplayName"
-                        type="text"
-                    >
-                </div>
-
-                <div>
-                    <label for="newPassword">
-                        Kezdeti jelszó
-                    </label>
-
-                    <input
-                        id="newPassword"
-                        type="password"
-                    >
-                </div>
-
-                <div>
-                    <label for="newRole">
-                        Szerepkör
-                    </label>
-
-                    <select id="newRole">
-                        <option value="viewer">
-                            Megtekintő
-                        </option>
-
-                        <option value="editor">
-                            Szerkesztő
-                        </option>
-
-                        <option value="admin">
-                            Adminisztrátor
-                        </option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="actions">
-                <button
-                    id="createUserButton"
-                    class="primary"
-                    type="button"
-                >
-                    Felhasználó létrehozása
-                </button>
-            </div>
-
-            <div
-                id="createStatus"
-                class="status"
-            ></div>
-        </section>
-
-        <section class="panel">
-            <h2>Felhasználók</h2>
-
-            <div
-                id="usersStatus"
-                class="status"
+        <nav class="admin-tabs">
+            <button
+                class="admin-tab active"
+                type="button"
+                data-admin-page="users"
             >
-                Betöltés...
-            </div>
+                👥 Felhasználók
+            </button>
 
-            <div
-                id="usersList"
-                class="users-list"
-            ></div>
-        </section>
-        <section class="panel">
-            <h2>Gyűjtemények</h2>
+            <button
+                class="admin-tab"
+                type="button"
+                data-admin-page="collections"
+            >
+                🗂️ Gyűjtemények
+            </button>
 
-            <p class="panel-description">
-                A rendszerkategóriák minden háztartásban
-                használhatók. Saját kategóriákat itt
-                hozhatsz létre és kezelhetsz.
-            </p>
+            <button
+                class="admin-tab"
+                type="button"
+                data-admin-page="storage"
+            >
+                🗄️ Tárhelyek
+            </button>
 
-            <h3>Új saját gyűjtemény</h3>
+        </nav>
 
-            <div class="category-form-grid">
-                <div>
-                    <label for="newCategoryName">
-                        Név
-                    </label>
 
-                    <input
-                        id="newCategoryName"
-                        type="text"
-                        maxlength="150"
+        <div
+            id="adminPageUsers"
+            class="admin-page active"
+        >
+            <section class="panel">
+                <div class="section-toolbar">
+                    <h2>Felhasználók</h2>
+
+                    <button
+                        id="toggleNewUserButton"
+                        class="primary"
+                        type="button"
                     >
+                        + Új felhasználó
+                    </button>
                 </div>
 
-                <div>
-                    <label for="newCategoryIcon">
-                        Ikon
-                    </label>
+                <div
+                    id="newUserBox"
+                    class="create-box"
+                >
+                    <h3>Új felhasználó</h3>
 
-                    <input
-                        id="newCategoryIcon"
-                        type="text"
-                        maxlength="100"
-                        placeholder="pl. game"
-                    >
+                    <div class="new-user-grid">
+                        <div>
+                            <label for="newEmail">
+                                E-mail cím
+                            </label>
+
+                            <input
+                                id="newEmail"
+                                type="email"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="newUsername">
+                                Felhasználónév
+                            </label>
+
+                            <input
+                                id="newUsername"
+                                type="text"
+                                minlength="3"
+                                maxlength="100"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="newDisplayName">
+                                Megjelenített név
+                            </label>
+
+                            <input
+                                id="newDisplayName"
+                                type="text"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="newPassword">
+                                Kezdeti jelszó
+                            </label>
+
+                            <input
+                                id="newPassword"
+                                type="password"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="newRole">
+                                Szerepkör
+                            </label>
+
+                            <select id="newRole">
+                                <option value="viewer">
+                                    Megtekintő
+                                </option>
+
+                                <option value="editor">
+                                    Szerkesztő
+                                </option>
+
+                                <option value="admin">
+                                    Adminisztrátor
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button
+                            id="createUserButton"
+                            class="primary"
+                            type="button"
+                        >
+                            Felhasználó létrehozása
+                        </button>
+                    </div>
+
+                    <div
+                        id="createStatus"
+                        class="status"
+                    ></div>
                 </div>
 
-                <div>
-                    <label for="newCategorySortOrder">
-                        Sorrend
-                    </label>
-
-                    <input
-                        id="newCategorySortOrder"
-                        type="number"
-                        min="0"
-                        value="100"
-                    >
+                <div
+                    id="usersStatus"
+                    class="status"
+                >
+                    Betöltés...
                 </div>
 
-                <div class="checkbox-field">
+                <div
+                    id="usersList"
+                    class="users-list"
+                ></div>
+            </section>
+        </div>
+
+
+        <div
+            id="adminPageCollections"
+            class="admin-page"
+        >
+            <section class="panel">
+                <div class="section-toolbar">
+                    <div>
+                        <h2>Gyűjtemények</h2>
+
+                        <div class="muted">
+                            Rendszer- és saját gyűjtemények
+                            konfigurálása.
+                        </div>
+                    </div>
+
+                    <button
+                        id="toggleNewCategoryButton"
+                        class="primary"
+                        type="button"
+                    >
+                        + Új gyűjtemény
+                    </button>
+                </div>
+
+                <div
+                    id="newCategoryBox"
+                    class="create-box"
+                >
+                    <h3>Új saját gyűjtemény</h3>
+
+                    <div class="category-form-grid">
+                        <div>
+                            <label for="newCategoryName">
+                                Név
+                            </label>
+
+                            <input
+                                id="newCategoryName"
+                                type="text"
+                                maxlength="150"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="newCategoryIcon">
+                                Ikon
+                            </label>
+
+                            <input
+                                id="newCategoryIcon"
+                                type="text"
+                                maxlength="100"
+                                placeholder="pl. game"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="newCategorySortOrder">
+                                Sorrend
+                            </label>
+
+                            <input
+                                id="newCategorySortOrder"
+                                type="number"
+                                min="0"
+                                value="100"
+                            >
+                        </div>
+
+                        <div class="checkbox-field">
+                            <label>
+                                <input
+                                    id="newCategorySupportsBarcode"
+                                    type="checkbox"
+                                >
+                                Vonalkód támogatása
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="newCategoryDescription">
+                            Leírás
+                        </label>
+
+                        <textarea
+                            id="newCategoryDescription"
+                            rows="2"
+                            maxlength="500"
+                        ></textarea>
+                    </div>
+
+                    <div class="actions">
+                        <button
+                            id="createCategoryButton"
+                            class="primary"
+                            type="button"
+                        >
+                            Gyűjtemény létrehozása
+                        </button>
+                    </div>
+
+                    <div
+                        id="createCategoryStatus"
+                        class="status"
+                    ></div>
+                </div>
+
+
+                <div class="admin-section-title">
+                    📦 Rendszergyűjtemények
+                </div>
+
+                <div
+                    id="systemCategoriesStatus"
+                    class="status"
+                >
+                    Betöltés...
+                </div>
+
+                <div
+                    id="systemCategoriesList"
+                    class="categories-list"
+                ></div>
+
+
+                <div class="admin-section-title">
+                    🧩 Saját gyűjtemények
+                </div>
+
+                <div
+                    id="householdCategoriesStatus"
+                    class="status"
+                >
+                    Betöltés...
+                </div>
+
+                <div
+                    id="householdCategoriesList"
+                    class="categories-list"
+                ></div>
+            </section>
+        </div>
+
+        <div
+            id="adminPageStorage"
+            class="admin-page"
+        >
+            <section class="panel">
+                <div class="section-toolbar">
+                    <div>
+                        <h2>Tárhelyek</h2>
+
+                        <p class="panel-description">
+                            A háztartás fizikai
+                            tárhelystruktúrájának kezelése.
+                        </p>
+                    </div>
+
+                    <button
+                        id="createRootStorageButton"
+                        class="primary"
+                        type="button"
+                    >
+                        + Új gyökérelem
+                    </button>
+                </div>
+
+                <div class="storage-admin-toolbar">
                     <label>
                         <input
-                            id="newCategorySupportsBarcode"
+                            id="storageIncludeInactive"
                             type="checkbox"
                         >
-                        Vonalkód támogatása
+                        Inaktív tárhelyek mutatása
                     </label>
-                </div>
-            </div>
 
-            <div>
-                <label for="newCategoryDescription">
+                    <button
+                        id="reloadStorageButton"
+                        type="button"
+                    >
+                        ↻ Frissítés
+                    </button>
+                </div>
+
+                <div
+                    id="storageSummary"
+                    class="category-meta"
+                ></div>
+
+                <div
+                    id="storageAdminStatus"
+                    class="status"
+                ></div>
+
+                <div
+                    id="storageAdminTree"
+                    class="storage-admin-tree"
+                ></div>
+            </section>
+        </div>
+
+        <div
+            id="storageLocationModal"
+            class="storage-modal"
+        >
+            <div class="storage-modal-content">
+                <div class="storage-modal-header">
+                    <h2 id="storageLocationModalTitle">
+                        Új tárhely
+                    </h2>
+
+                    <button
+                        id="storageLocationModalClose"
+                        type="button"
+                        class="storage-modal-close"
+                    >
+                        ×
+                    </button>
+                </div>
+
+                <input
+                    id="storageLocationParentPublicId"
+                    type="hidden"
+                >
+
+                <input
+                    id="storageLocationEditPublicId"
+                    type="hidden"
+                >
+
+                <div
+                    id="storageLocationParentInfo"
+                    class="storage-parent-info"
+                >
+                    Gyökérelem létrehozása
+                </div>
+
+                <label for="storageLocationName">
+                    Név
+                </label>
+
+                <input
+                    id="storageLocationName"
+                    type="text"
+                    maxlength="150"
+                    autocomplete="off"
+                >
+
+                <label for="storageLocationType">
+                    Típus
+                </label>
+
+                <select id="storageLocationType">
+                    <option value="room">Helyiség</option>
+                    <option value="area">Terület</option>
+                    <option value="shelf">Polc</option>
+                    <option value="cabinet">Szekrény</option>
+                    <option value="drawer">Fiók</option>
+                    <option value="box">Doboz</option>
+                    <option value="slot">Tárhely</option>
+                    <option value="other">Egyéb</option>
+                </select>
+
+                <label for="storageLocationSlug">
+                    Slug
+                </label>
+
+                <input
+                    id="storageLocationSlug"
+                    type="text"
+                    maxlength="150"
+                    placeholder="Üresen automatikusan készül"
+                    autocomplete="off"
+                >
+
+                <label for="storageLocationDescription">
                     Leírás
                 </label>
 
                 <textarea
-                    id="newCategoryDescription"
-                    rows="3"
+                    id="storageLocationDescription"
                     maxlength="500"
+                    rows="3"
                 ></textarea>
-            </div>
 
-            <div class="actions">
-                <button
-                    id="createCategoryButton"
-                    class="primary"
-                    type="button"
+                <label for="storageLocationSortOrder">
+                    Sorrend
+                </label>
+
+                <input
+                    id="storageLocationSortOrder"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value="0"
                 >
-                    Gyűjtemény létrehozása
-                </button>
+
+                <label class="checkbox-row">
+                    <input
+                        id="storageLocationIsActive"
+                        type="checkbox"
+                        checked
+                    >
+                    Aktív
+                </label>
+
+                <div
+                    id="storageLocationFormStatus"
+                    class="status"
+                ></div>
+
+                <div class="storage-modal-actions">
+                    <button
+                        id="storageLocationCancelButton"
+                        type="button"
+                    >
+                        Mégse
+                    </button>
+
+                    <button
+                        id="storageLocationSaveButton"
+                        type="button"
+                        class="primary"
+                    >
+                        Létrehozás
+                    </button>
+                </div>
             </div>
+        </div>
 
-            <div
-                id="createCategoryStatus"
-                class="status"
-            ></div>
+        <div
+            id="storageAdminToast"
+            class="storage-toast"
+        ></div>
 
-            <h3>Rendszerkategóriák</h3>
-
-            <div
-                id="systemCategoriesStatus"
-                class="status"
-            >
-                Betöltés...
-            </div>
-
-            <div
-                id="systemCategoriesList"
-                class="categories-list"
-            ></div>
-
-            <h3>Saját gyűjtemények</h3>
-
-            <div
-                id="householdCategoriesStatus"
-                class="status"
-            >
-                Betöltés...
-            </div>
-
-            <div
-                id="householdCategoriesList"
-                class="categories-list"
-            ></div>
-        </section>
     </main>
 
     <script>
@@ -599,6 +1340,1290 @@
         let activeHousehold = null;
 
         let categoryStorageTree = null;
+
+let storageAdminTreeLoaded = false;
+
+const storageAdminLocationsByPublicId =
+    new Map();
+
+let storageAdminSlugEditedManually = false;
+let storageAdminToastTimer = null;
+let storageAdminCollapsedIds = new Set();
+let storageAdminCollapsedHouseholdId = null;
+
+
+function storageAdminCollapsedKey() {
+    if (!activeHousehold) {
+        return "";
+    }
+
+    return (
+        "familycollection.storage.collapsed."
+        + String(activeHousehold.id)
+    );
+}
+
+
+function loadStorageAdminCollapsedIds() {
+    if (!activeHousehold) {
+        storageAdminCollapsedIds =
+            new Set();
+
+        return;
+    }
+
+    if (
+        storageAdminCollapsedHouseholdId
+        === activeHousehold.id
+    ) {
+        return;
+    }
+
+    storageAdminCollapsedHouseholdId =
+        activeHousehold.id;
+
+    try {
+        storageAdminCollapsedIds =
+            new Set(
+                JSON.parse(
+                    localStorage.getItem(
+                        storageAdminCollapsedKey()
+                    ) || "[]"
+                )
+            );
+    } catch {
+        storageAdminCollapsedIds =
+            new Set();
+    }
+}
+
+
+function saveStorageAdminCollapsedIds() {
+    const key =
+        storageAdminCollapsedKey();
+
+    if (!key) {
+        return;
+    }
+
+    localStorage.setItem(
+        key,
+        JSON.stringify(
+            Array.from(
+                storageAdminCollapsedIds
+            )
+        )
+    );
+}
+
+
+function storageAdminShowToast(
+    message,
+    type = "success"
+) {
+    const toast =
+        document.getElementById(
+            "storageAdminToast"
+        );
+
+    clearTimeout(
+        storageAdminToastTimer
+    );
+
+    toast.textContent = message;
+
+    toast.classList.toggle(
+        "error",
+        type === "error"
+    );
+
+    toast.classList.add(
+        "visible"
+    );
+
+    storageAdminToastTimer =
+        setTimeout(
+            () => {
+                toast.classList.remove(
+                    "visible"
+                );
+            },
+            3200
+        );
+}
+
+
+function storageAdminLocationTypeLabel(
+    type
+) {
+    const labels = {
+        room: "Helyiség",
+        area: "Terület",
+        shelf: "Polc",
+        cabinet: "Szekrény",
+        drawer: "Fiók",
+        box: "Doboz",
+        slot: "Tárhely",
+        other: "Egyéb"
+    };
+
+    return (
+        labels[type]
+        || type
+        || "Ismeretlen"
+    );
+}
+
+
+function storageAdminGenerateSlug(text) {
+    return String(text ?? "")
+        .normalize("NFD")
+        .replace(
+            /[\u0300-\u036f]/g,
+            ""
+        )
+        .toLowerCase()
+        .trim()
+        .replace(
+            /[^a-z0-9]+/g,
+            "-"
+        )
+        .replace(
+            /^-+|-+$/g,
+            ""
+        )
+        .replace(
+            /-+/g,
+            "-"
+        );
+}
+
+
+function storageAdminCountNodes(nodes) {
+    return nodes.reduce(
+        (total, node) =>
+            total
+            + 1
+            + storageAdminCountNodes(
+                node.children || []
+            ),
+        0
+    );
+}
+
+
+function storageAdminIndexLocations(
+    nodes
+) {
+    storageAdminLocationsByPublicId.clear();
+
+    function walk(node) {
+        storageAdminLocationsByPublicId.set(
+            node.public_id,
+            node
+        );
+
+        for (
+            const child
+            of node.children || []
+        ) {
+            walk(child);
+        }
+    }
+
+    for (const node of nodes) {
+        walk(node);
+    }
+}
+
+
+function storageAdminIsCollapsed(
+    publicId
+) {
+    return storageAdminCollapsedIds.has(
+        publicId
+    );
+}
+
+
+function storageAdminRenderNode(node) {
+    const children =
+        Array.isArray(node.children)
+            ? node.children
+            : [];
+
+    return `
+        <li class="storage-tree-item">
+            <div
+                class="storage-location-card ${
+                    node.is_active
+                        ? ""
+                        : "inactive"
+                }"
+            >
+                <div class="storage-location-main">
+                    <div
+                        class="storage-location-title-row"
+                    >
+                        ${
+                            children.length
+                                ? `
+                                    <button
+                                        type="button"
+                                        class="storage-branch-toggle"
+                                        data-storage-action="toggle"
+                                        data-public-id="${escapeHtml(
+                                            node.public_id
+                                        )}"
+                                    >
+                                        ${
+                                            storageAdminIsCollapsed(
+                                                node.public_id
+                                            )
+                                                ? "▶"
+                                                : "▼"
+                                        }
+                                    </button>
+                                `
+                                : `
+                                    <span
+                                        style="
+                                            display:inline-block;
+                                            width:27px;
+                                        "
+                                    ></span>
+                                `
+                        }
+
+                        <div class="storage-location-name">
+                            ${escapeHtml(
+                                node.name
+                            )}
+
+                            ${
+                                children.length
+                                    ? `
+                                        <span
+                                            class="storage-child-count"
+                                        >
+                                            (${children.length})
+                                        </span>
+                                    `
+                                    : ""
+                            }
+                        </div>
+                    </div>
+
+                    <div class="storage-location-meta">
+                        ${escapeHtml(node.slug)}
+                        · sorrend:
+                        ${escapeHtml(
+                            node.sort_order ?? 0
+                        )}
+                    </div>
+
+                    ${
+                        node.description
+                            ? `
+                                <div
+                                    class="storage-location-meta"
+                                >
+                                    ${escapeHtml(
+                                        node.description
+                                    )}
+                                </div>
+                            `
+                            : ""
+                    }
+                </div>
+
+                <div class="storage-location-type">
+                    ${escapeHtml(
+                        storageAdminLocationTypeLabel(
+                            node.location_type
+                        )
+                    )}
+                </div>
+
+                <div class="storage-location-state">
+                    ${
+                        node.is_active
+                            ? "Aktív"
+                            : "Inaktív"
+                    }
+                </div>
+
+                <div class="storage-location-actions">
+                    <button
+                        type="button"
+                        data-storage-action="add-child"
+                        data-public-id="${escapeHtml(
+                            node.public_id
+                        )}"
+                    >
+                        ＋ Alhely
+                    </button>
+
+                    <button
+                        type="button"
+                        data-storage-action="edit"
+                        data-public-id="${escapeHtml(
+                            node.public_id
+                        )}"
+                    >
+                        ✏️
+                    </button>
+
+                    <button
+                        type="button"
+                        class="danger"
+                        data-storage-action="delete"
+                        data-public-id="${escapeHtml(
+                            node.public_id
+                        )}"
+                    >
+                        🗑️
+                    </button>
+                </div>
+            </div>
+
+            ${
+                children.length
+                && !storageAdminIsCollapsed(
+                    node.public_id
+                )
+                    ? `
+                        <ul class="storage-tree-list">
+                            ${children
+                                .map(
+                                    storageAdminRenderNode
+                                )
+                                .join("")}
+                        </ul>
+                    `
+                    : ""
+            }
+        </li>
+    `;
+}
+
+
+function storageAdminRenderTree(
+    locations
+) {
+    const tree =
+        document.getElementById(
+            "storageAdminTree"
+        );
+
+    if (!locations.length) {
+        tree.innerHTML =
+            '<div class="muted">'
+            + 'Nincs megjeleníthető tárhely.'
+            + '</div>';
+
+        return;
+    }
+
+    tree.innerHTML = `
+        <ul
+            class="
+                storage-tree-list
+                storage-tree-root
+            "
+        >
+            ${locations
+                .map(
+                    storageAdminRenderNode
+                )
+                .join("")}
+        </ul>
+    `;
+}
+
+
+function storageAdminRenderCurrentRoots() {
+    const locations =
+        Array.from(
+            storageAdminLocationsByPublicId
+                .values()
+        );
+
+    const roots =
+        locations.filter(
+            location =>
+                !location.parent_public_id
+        );
+
+    storageAdminRenderTree(
+        roots
+    );
+}
+
+
+function storageAdminToggleBranch(
+    publicId
+) {
+    if (
+        storageAdminCollapsedIds.has(
+            publicId
+        )
+    ) {
+        storageAdminCollapsedIds.delete(
+            publicId
+        );
+    } else {
+        storageAdminCollapsedIds.add(
+            publicId
+        );
+    }
+
+    saveStorageAdminCollapsedIds();
+    storageAdminRenderCurrentRoots();
+}
+
+
+async function loadAdminStorageTree() {
+    const tree =
+        document.getElementById(
+            "storageAdminTree"
+        );
+
+    const summary =
+        document.getElementById(
+            "storageSummary"
+        );
+
+    const statusBox =
+        document.getElementById(
+            "storageAdminStatus"
+        );
+
+    if (!activeHousehold) {
+        statusBox.textContent =
+            "A háztartás még nincs betöltve.";
+
+        return;
+    }
+
+    loadStorageAdminCollapsedIds();
+
+    const includeInactive =
+        document.getElementById(
+            "storageIncludeInactive"
+        ).checked;
+
+    tree.innerHTML =
+        '<div class="muted">'
+        + 'Tárhelyek betöltése...'
+        + '</div>';
+
+    summary.textContent = "";
+    statusBox.textContent = "";
+
+    const params =
+        new URLSearchParams({
+            household_id:
+                String(activeHousehold.id),
+
+            include_inactive:
+                String(includeInactive)
+        });
+
+    try {
+        const response =
+            await fetch(
+                `/storage/tree?${
+                    params.toString()
+                }`
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data?.detail
+                || `HTTP ${response.status}`
+            );
+        }
+
+        if (
+            !data
+            || !Array.isArray(
+                data.locations
+            )
+        ) {
+            throw new Error(
+                "A szerver hibás "
+                + "tárhelyfa-választ adott."
+            );
+        }
+
+        storageAdminIndexLocations(
+            data.locations
+        );
+
+        summary.textContent =
+            `${
+                storageAdminCountNodes(
+                    data.locations
+                )
+            } tárhelyelem · `
+            + `${
+                data.locations.length
+            } gyökérelem`;
+
+        storageAdminRenderTree(
+            data.locations
+        );
+
+        storageAdminTreeLoaded = true;
+
+    } catch (error) {
+        console.error(
+            "Tárhelybetöltési hiba:",
+            error
+        );
+
+        statusBox.textContent =
+            `❌ ${error.message}`;
+
+        tree.innerHTML = "";
+    }
+}
+
+
+function storageAdminResetForm() {
+    document.getElementById(
+        "storageLocationParentPublicId"
+    ).value = "";
+
+    document.getElementById(
+        "storageLocationEditPublicId"
+    ).value = "";
+
+    document.getElementById(
+        "storageLocationParentInfo"
+    ).textContent =
+        "Gyökérelem létrehozása";
+
+    document.getElementById(
+        "storageLocationName"
+    ).value = "";
+
+    document.getElementById(
+        "storageLocationType"
+    ).value = "room";
+
+    document.getElementById(
+        "storageLocationSlug"
+    ).value = "";
+
+    document.getElementById(
+        "storageLocationDescription"
+    ).value = "";
+
+    document.getElementById(
+        "storageLocationSortOrder"
+    ).value = "0";
+
+    document.getElementById(
+        "storageLocationIsActive"
+    ).checked = true;
+
+    document.getElementById(
+        "storageLocationFormStatus"
+    ).textContent = "";
+
+    document.getElementById(
+        "storageLocationModalTitle"
+    ).textContent =
+        "Új gyökérelem";
+
+    document.getElementById(
+        "storageLocationSaveButton"
+    ).textContent =
+        "Létrehozás";
+
+    storageAdminSlugEditedManually =
+        false;
+}
+
+
+function storageAdminOpenModal() {
+    document.getElementById(
+        "storageLocationModal"
+    ).style.display =
+        "block";
+
+    document.getElementById(
+        "storageLocationName"
+    ).focus();
+}
+
+
+function storageAdminOpenCreateRoot() {
+    storageAdminResetForm();
+    storageAdminOpenModal();
+}
+
+
+function storageAdminOpenCreateChild(
+    publicId,
+    name
+) {
+    storageAdminResetForm();
+
+    document.getElementById(
+        "storageLocationParentPublicId"
+    ).value = publicId;
+
+    document.getElementById(
+        "storageLocationParentInfo"
+    ).textContent =
+        `Szülő: ${name}`;
+
+    document.getElementById(
+        "storageLocationModalTitle"
+    ).textContent =
+        `Új alhely: ${name}`;
+
+    document.getElementById(
+        "storageLocationType"
+    ).value =
+        "shelf";
+
+    storageAdminOpenModal();
+}
+
+
+function storageAdminOpenEdit(
+    publicId
+) {
+    const location =
+        storageAdminLocationsByPublicId.get(
+            publicId
+        );
+
+    if (!location) {
+        storageAdminShowToast(
+            "A tárhely nem található.",
+            "error"
+        );
+
+        return;
+    }
+
+    storageAdminResetForm();
+
+    document.getElementById(
+        "storageLocationEditPublicId"
+    ).value =
+        location.public_id;
+
+    document.getElementById(
+        "storageLocationParentPublicId"
+    ).value =
+        location.parent_public_id || "";
+
+    document.getElementById(
+        "storageLocationParentInfo"
+    ).textContent =
+        location.parent_public_id
+            ? (
+                "A szülőkapcsolat itt "
+                + "nem módosítható."
+            )
+            : "Gyökérelem";
+
+    document.getElementById(
+        "storageLocationName"
+    ).value =
+        location.name || "";
+
+    document.getElementById(
+        "storageLocationType"
+    ).value =
+        location.location_type || "other";
+
+    document.getElementById(
+        "storageLocationSlug"
+    ).value =
+        location.slug || "";
+
+    document.getElementById(
+        "storageLocationDescription"
+    ).value =
+        location.description || "";
+
+    document.getElementById(
+        "storageLocationSortOrder"
+    ).value =
+        String(
+            location.sort_order ?? 0
+        );
+
+    document.getElementById(
+        "storageLocationIsActive"
+    ).checked =
+        Boolean(
+            location.is_active
+        );
+
+    document.getElementById(
+        "storageLocationModalTitle"
+    ).textContent =
+        `Tárhely szerkesztése: ${
+            location.name
+        }`;
+
+    document.getElementById(
+        "storageLocationSaveButton"
+    ).textContent =
+        "Mentés";
+
+    storageAdminSlugEditedManually =
+        true;
+
+    storageAdminOpenModal();
+}
+
+
+function storageAdminCloseModal() {
+    document.getElementById(
+        "storageLocationModal"
+    ).style.display =
+        "none";
+}
+
+
+async function storageAdminSaveLocation() {
+    if (!activeHousehold) {
+        return;
+    }
+
+    const editPublicId =
+        document.getElementById(
+            "storageLocationEditPublicId"
+        ).value.trim();
+
+    const parentPublicId =
+        document.getElementById(
+            "storageLocationParentPublicId"
+        ).value.trim();
+
+    const name =
+        document.getElementById(
+            "storageLocationName"
+        ).value.trim();
+
+    const locationType =
+        document.getElementById(
+            "storageLocationType"
+        ).value;
+
+    const slug =
+        document.getElementById(
+            "storageLocationSlug"
+        ).value.trim();
+
+    const description =
+        document.getElementById(
+            "storageLocationDescription"
+        ).value.trim();
+
+    const sortOrder =
+        Number(
+            document.getElementById(
+                "storageLocationSortOrder"
+            ).value
+        );
+
+    const isActive =
+        document.getElementById(
+            "storageLocationIsActive"
+        ).checked;
+
+    const statusBox =
+        document.getElementById(
+            "storageLocationFormStatus"
+        );
+
+    const saveButton =
+        document.getElementById(
+            "storageLocationSaveButton"
+        );
+
+    if (!name) {
+        statusBox.textContent =
+            "❌ A név nem lehet üres.";
+
+        return;
+    }
+
+    if (
+        !Number.isInteger(sortOrder)
+        || sortOrder < 0
+    ) {
+        statusBox.textContent =
+            "❌ A sorrend nem lehet negatív.";
+
+        return;
+    }
+
+    saveButton.disabled = true;
+
+    statusBox.textContent =
+        editPublicId
+            ? "Mentés..."
+            : "Létrehozás...";
+
+    try {
+        const response =
+            await fetch(
+                editPublicId
+                    ? `/storage/${
+                        editPublicId
+                    }`
+                    : "/storage",
+                {
+                    method:
+                        editPublicId
+                            ? "PATCH"
+                            : "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        household_id:
+                            activeHousehold.id,
+
+                        parent_public_id:
+                            parentPublicId
+                            || null,
+
+                        name,
+                        slug:
+                            slug || null,
+
+                        location_type:
+                            locationType,
+
+                        description:
+                            description || null,
+
+                        sort_order:
+                            sortOrder,
+
+                        is_active:
+                            isActive
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data?.detail
+                || `HTTP ${response.status}`
+            );
+        }
+
+        if (parentPublicId) {
+            storageAdminCollapsedIds.delete(
+                parentPublicId
+            );
+
+            saveStorageAdminCollapsedIds();
+        }
+
+        storageAdminCloseModal();
+
+        await loadAdminStorageTree();
+
+        storageAdminShowToast(
+            editPublicId
+                ? "Tárhely módosítva."
+                : "Tárhely létrehozva."
+        );
+
+    } catch (error) {
+        statusBox.textContent =
+            `❌ ${error.message}`;
+
+    } finally {
+        saveButton.disabled = false;
+    }
+}
+
+
+async function storageAdminDeleteLocation(
+    publicId,
+    name
+) {
+    const confirmed =
+        window.confirm(
+            `"${name}" tárhely törlése?\n\n`
+            + "Csak akkor törölhető, ha "
+            + "nincs gyermeke és nem volt "
+            + "használatban."
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        const response =
+            await fetch(
+                `/storage/${publicId}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+        if (!response.ok) {
+            const data =
+                await response.json();
+
+            throw new Error(
+                data?.detail
+                || `HTTP ${response.status}`
+            );
+        }
+
+        await loadAdminStorageTree();
+
+        storageAdminShowToast(
+            `"${name}" tárhely törölve.`
+        );
+
+    } catch (error) {
+        storageAdminShowToast(
+            `Nem sikerült törölni: ${
+                error.message
+            }`,
+            "error"
+        );
+    }
+}
+
+function initializeStorageAdmin() {
+    document.getElementById(
+        "createRootStorageButton"
+    ).addEventListener(
+        "click",
+        storageAdminOpenCreateRoot
+    );
+
+    document.getElementById(
+        "reloadStorageButton"
+    ).addEventListener(
+        "click",
+        loadAdminStorageTree
+    );
+
+    document.getElementById(
+        "storageIncludeInactive"
+    ).addEventListener(
+        "change",
+        loadAdminStorageTree
+    );
+
+    document.getElementById(
+        "storageLocationModalClose"
+    ).addEventListener(
+        "click",
+        storageAdminCloseModal
+    );
+
+    document.getElementById(
+        "storageLocationCancelButton"
+    ).addEventListener(
+        "click",
+        storageAdminCloseModal
+    );
+
+    document.getElementById(
+        "storageLocationSaveButton"
+    ).addEventListener(
+        "click",
+        storageAdminSaveLocation
+    );
+
+    document.getElementById(
+        "storageLocationName"
+    ).addEventListener(
+        "input",
+        event => {
+            if (
+                storageAdminSlugEditedManually
+            ) {
+                return;
+            }
+
+            document.getElementById(
+                "storageLocationSlug"
+            ).value =
+                storageAdminGenerateSlug(
+                    event.target.value
+                );
+        }
+    );
+
+    document.getElementById(
+        "storageLocationSlug"
+    ).addEventListener(
+        "input",
+        event => {
+            storageAdminSlugEditedManually =
+                event.target.value.trim()
+                !== "";
+        }
+    );
+
+    document.getElementById(
+        "storageAdminTree"
+    ).addEventListener(
+        "click",
+        event => {
+            const button =
+                event.target.closest(
+                    "button[data-storage-action]"
+                );
+
+            if (!button) {
+                return;
+            }
+
+            const action =
+                button.dataset.storageAction;
+
+            const publicId =
+                button.dataset.publicId || "";
+
+            const card =
+                button.closest(
+                    ".storage-location-card"
+                );
+
+            const name =
+                card
+                    ?.querySelector(
+                        ".storage-location-name"
+                    )
+                    ?.childNodes[0]
+                    ?.textContent
+                    ?.trim()
+                || "";
+
+            if (action === "toggle") {
+                storageAdminToggleBranch(
+                    publicId
+                );
+
+                return;
+            }
+
+            if (action === "add-child") {
+                storageAdminOpenCreateChild(
+                    publicId,
+                    name
+                );
+
+                return;
+            }
+
+            if (action === "edit") {
+                storageAdminOpenEdit(
+                    publicId
+                );
+
+                return;
+            }
+
+            if (action === "delete") {
+                storageAdminDeleteLocation(
+                    publicId,
+                    name
+                );
+            }
+        }
+    );
+
+    document.getElementById(
+        "storageLocationModal"
+    ).addEventListener(
+        "click",
+        event => {
+            if (
+                event.target.id
+                === "storageLocationModal"
+            ) {
+                storageAdminCloseModal();
+            }
+        }
+    );
+
+    document.getElementById(
+        "storageLocationModal"
+    ).addEventListener(
+        "keydown",
+        event => {
+            if (
+                event.key === "Enter"
+                && event.target.tagName
+                !== "TEXTAREA"
+            ) {
+                event.preventDefault();
+
+                storageAdminSaveLocation();
+            }
+        }
+    );
+}
+
+
+initializeStorageAdmin();
+
+function initializeAdminLayout() {
+    const tabs =
+        document.querySelectorAll(
+            ".admin-tab"
+        );
+
+    const pages =
+        document.querySelectorAll(
+            ".admin-page"
+        );
+
+    for (const tab of tabs) {
+        tab.addEventListener(
+            "click",
+            () => {
+                const target =
+                    tab.dataset.adminPage;
+
+                for (const item of tabs) {
+                    item.classList.remove(
+                        "active"
+                    );
+                }
+
+                for (const page of pages) {
+                    page.classList.remove(
+                        "active"
+                    );
+                }
+
+                tab.classList.add(
+                    "active"
+                );
+
+                const pageIds = {
+                    users:
+                        "adminPageUsers",
+
+                    collections:
+                        "adminPageCollections",
+
+                    storage:
+                        "adminPageStorage"
+                };
+
+
+
+const targetPage =
+    document.getElementById(
+        pageIds[target]
+    );
+
+
+                if (!targetPage) {
+                    return;
+                }
+
+                targetPage.classList.add(
+                    "active"
+                );
+
+if (target === "storage") {
+    loadAdminStorageTree();
+}
+
+            }
+        );
+    }
+
+
+    const toggleNewUserButton =
+        document.getElementById(
+            "toggleNewUserButton"
+        );
+
+    const newUserBox =
+        document.getElementById(
+            "newUserBox"
+        );
+
+    toggleNewUserButton.addEventListener(
+        "click",
+        () => {
+            const opening =
+                !newUserBox.classList.contains(
+                    "open"
+                );
+
+            newUserBox.classList.toggle(
+                "open"
+            );
+
+            toggleNewUserButton.textContent =
+                opening
+                    ? "▲ Bezárás"
+                    : "+ Új felhasználó";
+        }
+    );
+
+
+    const toggleNewCategoryButton =
+        document.getElementById(
+            "toggleNewCategoryButton"
+        );
+
+    const newCategoryBox =
+        document.getElementById(
+            "newCategoryBox"
+        );
+
+    toggleNewCategoryButton.addEventListener(
+        "click",
+        () => {
+            const opening =
+                !newCategoryBox.classList.contains(
+                    "open"
+                );
+
+            newCategoryBox.classList.toggle(
+                "open"
+            );
+
+            toggleNewCategoryButton.textContent =
+                opening
+                    ? "▲ Bezárás"
+                    : "+ Új gyűjtemény";
+        }
+    );
+}
+
+
+initializeAdminLayout();
 
         const contextLine =
             document.getElementById(
@@ -1284,11 +3309,17 @@ function appendCategoryStorageControls(
         </div>
     `;
 
-    while (wrapper.firstChild) {
-        card.appendChild(
-            wrapper.firstChild
-        );
-    }
+const targetContainer =
+    card.querySelector(
+        ".category-settings-panel"
+    )
+    || card;
+
+while (wrapper.firstChild) {
+    targetContainer.appendChild(
+        wrapper.firstChild
+    );
+}
 
     const manageButton =
         card.querySelector(
@@ -1388,68 +3419,129 @@ function renderSystemCategories(categories) {
         card.className =
             "category-card system-category";
 
+        if (!category.is_active) {
+            card.style.opacity = "0.65";
+        }
+
         card.innerHTML = `
             <div class="category-card-header">
-                <div class="category-card-title">
-                    ${escapeHtml(category.name)}
+                <div>
+                    <div class="category-card-title">
+                        ${escapeHtml(category.name)}
+                    </div>
+
+                    <div class="category-meta">
+                        <span>
+                            Rendszer
+                        </span>
+
+                        <span>
+                            ${
+                                category.is_active
+                                    ? "🟢 Aktív"
+                                    : "⚫ Inaktív"
+                            }
+                        </span>
+
+                        <span>
+                            ${
+                                category.supports_barcode
+                                    ? "▥ Vonalkódos"
+                                    : "Vonalkód nélkül"
+                            }
+                        </span>
+
+                        <span>
+                            ${escapeHtml(
+                                category.metadata_lookup_type
+                            )}
+                        </span>
+                    </div>
                 </div>
 
-                <span class="category-badge">
-                    Rendszer
-                </span>
+                <button
+                    type="button"
+                    class="toggle-category-settings"
+                >
+                    ⚙️ Beállítások
+                </button>
             </div>
 
-            <div class="category-description">
-                ${escapeHtml(
-                    category.description
-                    || "Nincs leírás."
-                )}
-            </div>
-
-            <div class="category-meta">
-                <span>
-                    Slug:
-                    ${escapeHtml(category.slug)}
-                </span>
-
-                <span>
-                    Ikon:
+            <div
+                class="category-settings-panel"
+                style="display:none;"
+            >
+                <div class="category-description">
                     ${escapeHtml(
-                        category.icon || "-"
+                        category.description
+                        || "Nincs leírás."
                     )}
-                </span>
+                </div>
 
-                <span>
-                    Vonalkód:
-                    ${
-                        category.supports_barcode
-                            ? "igen"
-                            : "nem"
-                    }
-                </span>
+                <div class="category-meta">
+                    <span>
+                        Slug:
+                        ${escapeHtml(category.slug)}
+                    </span>
 
-                <span>
-                    Metaadat:
-                    ${escapeHtml(
-                        category.metadata_lookup_type
-                    )}
-                </span>
+                    <span>
+                        Ikon:
+                        ${escapeHtml(
+                            category.icon || "-"
+                        )}
+                    </span>
 
-                <span>
-                    Állapot:
-                    ${
-                        category.is_active
-                            ? "aktív"
-                            : "inaktív"
-                    }
-                </span>
+                    <span>
+                        Sorrend:
+                        ${escapeHtml(
+                            category.sort_order
+                        )}
+                    </span>
+                </div>
+
+                <div
+                    class="muted"
+                    style="margin-top:10px;"
+                >
+                    A rendszerkategória alapadatai
+                    központilag definiáltak.
+                </div>
             </div>
         `;
 
-appendCategoryStorageControls(
-    card,
-    category
-);
+        const settingsButton =
+            card.querySelector(
+                ".toggle-category-settings"
+            );
+
+        const settingsPanel =
+            card.querySelector(
+                ".category-settings-panel"
+            );
+
+        settingsButton.addEventListener(
+            "click",
+            () => {
+                const opening =
+                    settingsPanel.style.display
+                    === "none";
+
+                settingsPanel.style.display =
+                    opening
+                        ? ""
+                        : "none";
+
+                settingsButton.textContent =
+                    opening
+                        ? "▲ Bezárás"
+                        : "⚙️ Beállítások";
+            }
+        );
+
+        appendCategoryStorageControls(
+            card,
+            category
+        );
 
         systemCategoriesList.appendChild(
             card
@@ -2815,325 +4907,393 @@ function renderHouseholdCategories(categories) {
 
         card.innerHTML = `
             <div class="category-card-header">
-                <div class="category-card-title">
-                    ${escapeHtml(category.name)}
-                </div>
-
-                <span class="category-badge">
-                    Saját
-                </span>
-            </div>
-
-            <div class="category-edit-grid">
                 <div>
-                    <label>
-                        Név
-                    </label>
+                    <div class="category-card-title">
+                        ${escapeHtml(category.name)}
+                    </div>
 
-                    <input
-                        class="category-name"
-                        type="text"
-                        value="${escapeHtml(
-                            category.name
-                        )}"
-                    >
-                </div>
-
-                <div>
-                    <label>
-                        Ikon
-                    </label>
-
-                    <input
-                        class="category-icon"
-                        type="text"
-                        value="${escapeHtml(
-                            category.icon || ""
-                        )}"
-                    >
-                </div>
-
-                <div>
-                    <label>
-                        Sorrend
-                    </label>
-
-                    <input
-                        class="category-sort-order"
-                        type="number"
-                        min="0"
-                        value="${escapeHtml(
-                            category.sort_order
-                        )}"
-                    >
-                </div>
-
-                <div class="checkbox-field">
-                    <label>
-                        <input
-                            class="category-barcode"
-                            type="checkbox"
-                            ${
-                                category.supports_barcode
-                                    ? "checked"
-                                    : ""
-                            }
-                        >
-                        Vonalkód
-                    </label>
-                </div>
-
-                <div class="checkbox-field">
-                    <label>
-                        <input
-                            class="category-active"
-                            type="checkbox"
+                    <div class="category-meta">
+                        <span>
                             ${
                                 category.is_active
-                                    ? "checked"
-                                    : ""
+                                    ? "🟢 Aktív"
+                                    : "⚫ Inaktív"
                             }
-                        >
-                        Aktív
-                    </label>
+                        </span>
+
+                        <span>
+                            ${
+                                category.supports_barcode
+                                    ? "▥ Vonalkódos"
+                                    : "Vonalkód nélkül"
+                            }
+                        </span>
+
+                        <span>
+                            Sorrend:
+                            ${escapeHtml(
+                                category.sort_order
+                            )}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <span class="category-badge">
+                        Saját
+                    </span>
+
+                    <button
+                        type="button"
+                        class="toggle-category-settings"
+                    >
+                        ⚙️ Beállítások
+                    </button>
                 </div>
             </div>
 
-            <div>
-                <label>
-                    Leírás
-                </label>
-
-                <textarea
-                    class="category-description-input"
-                    rows="3"
-                >${escapeHtml(
-                    category.description || ""
-                )}</textarea>
-            </div>
-
-            <div class="category-meta">
-                <span>
-                    Slug:
-                    ${escapeHtml(category.slug)}
-                </span>
-
-                <span>
-                    Metaadat:
-                    ${escapeHtml(
-                        category.metadata_lookup_type
-                    )}
-                </span>
-            </div>
-
-            <div class="actions">
-                <button
-                    type="button"
-                    class="primary save-category"
-                >
-                    Mentés
-                </button>
-
-                <button
-                    type="button"
-                    class="manage-fields"
-                >
-                    🧩 Mezők kezelése
-                </button>
-            </div>
-
             <div
-                class="status category-row-status"
-            ></div>
-
-            <div
-                class="category-fields-panel"
-                style="display: none;"
+                class="category-settings-panel"
+                style="display:none;"
             >
-                <h4>
-                    Gyűjtemény mezői
-                </h4>
+                <div class="category-edit-grid">
+                    <div>
+                        <label>
+                            Név
+                        </label>
+
+                        <input
+                            class="category-name"
+                            type="text"
+                            value="${escapeHtml(
+                                category.name
+                            )}"
+                        >
+                    </div>
+
+                    <div>
+                        <label>
+                            Ikon
+                        </label>
+
+                        <input
+                            class="category-icon"
+                            type="text"
+                            value="${escapeHtml(
+                                category.icon || ""
+                            )}"
+                        >
+                    </div>
+
+                    <div>
+                        <label>
+                            Sorrend
+                        </label>
+
+                        <input
+                            class="category-sort-order"
+                            type="number"
+                            min="0"
+                            value="${escapeHtml(
+                                category.sort_order
+                            )}"
+                        >
+                    </div>
+
+                    <div class="checkbox-field">
+                        <label>
+                            <input
+                                class="category-barcode"
+                                type="checkbox"
+                                ${
+                                    category.supports_barcode
+                                        ? "checked"
+                                        : ""
+                                }
+                            >
+                            Vonalkód
+                        </label>
+                    </div>
+
+                    <div class="checkbox-field">
+                        <label>
+                            <input
+                                class="category-active"
+                                type="checkbox"
+                                ${
+                                    category.is_active
+                                        ? "checked"
+                                        : ""
+                                }
+                            >
+                            Aktív
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label>
+                        Leírás
+                    </label>
+
+                    <textarea
+                        class="category-description-input"
+                        rows="3"
+                    >${escapeHtml(
+                        category.description || ""
+                    )}</textarea>
+                </div>
+
+                <div class="category-meta">
+                    <span>
+                        Slug:
+                        ${escapeHtml(category.slug)}
+                    </span>
+
+                    <span>
+                        Metaadat:
+                        ${escapeHtml(
+                            category.metadata_lookup_type
+                        )}
+                    </span>
+                </div>
+
+                <div class="actions">
+                    <button
+                        type="button"
+                        class="primary save-category"
+                    >
+                        💾 Alapbeállítások mentése
+                    </button>
+
+                    <button
+                        type="button"
+                        class="manage-fields"
+                    >
+                        🧩 Mezők kezelése
+                    </button>
+                </div>
 
                 <div
-                    class="category-fields-status status"
+                    class="status category-row-status"
                 ></div>
 
                 <div
-                    class="category-field-create"
+                    class="category-fields-panel"
+                    style="display:none;"
                 >
-                    <h5>
-                        Új mező hozzáadása
-                    </h5>
+                    <h4>
+                        Gyűjtemény mezői
+                    </h4>
 
-                    <div class="category-edit-grid">
-                        <div>
-                            <label>
-                                Név
-                            </label>
+                    <div
+                        class="category-fields-status status"
+                    ></div>
 
-                            <input
-                                class="new-field-name"
-                                type="text"
-                                maxlength="150"
-                            >
-                        </div>
+                    <div
+                        class="category-field-create"
+                    >
+                        <h5>
+                            Új mező hozzáadása
+                        </h5>
 
-                        <div>
-                            <label>
-                                Mezőkulcs
-                            </label>
+                        <div class="category-edit-grid">
+                            <div>
+                                <label>
+                                    Név
+                                </label>
 
-                            <input
-                                class="new-field-key"
-                                type="text"
-                                maxlength="100"
-                                placeholder="pl. play_time"
-                            >
-                        </div>
-
-                        <div>
-                            <label>
-                                Típus
-                            </label>
-
-                            <select
-                                class="new-field-type"
-                            >
-                                <option value="text">
-                                    Szöveg
-                                </option>
-
-                                <option value="long_text">
-                                    Hosszú szöveg
-                                </option>
-
-                                <option value="integer">
-                                    Egész szám
-                                </option>
-
-                                <option value="decimal">
-                                    Decimális szám
-                                </option>
-
-                                <option value="boolean">
-                                    Igen / nem
-                                </option>
-
-                                <option value="date">
-                                    Dátum
-                                </option>
-
-                                <option value="year">
-                                    Év
-                                </option>
-
-                                <option value="url">
-                                    Webcím
-                                </option>
-
-                                <option value="email">
-                                    E-mail
-                                </option>
-
-                                <option value="single_select">
-                                    Egyszeres választás
-                                </option>
-
-                                <option value="multi_select">
-                                    Többszörös választás
-                                </option>
-
-                                <option value="barcode">
-                                    Vonalkód
-                                </option>
-
-                                <option value="image">
-                                    Kép
-                                </option>
-
-                                <option value="file">
-                                    Fájl
-                                </option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label>
-                                Sorrend
-                            </label>
-
-                            <input
-                                class="new-field-sort-order"
-                                type="number"
-                                min="0"
-                                value="100"
-                            >
-                        </div>
-                    </div>
-
-                    <div class="category-edit-grid">
-                        <div class="checkbox-field">
-                            <label>
                                 <input
-                                    class="new-field-required"
-                                    type="checkbox"
+                                    class="new-field-name"
+                                    type="text"
+                                    maxlength="150"
                                 >
-                                Kötelező
-                            </label>
-                        </div>
+                            </div>
 
-                        <div class="checkbox-field">
-                            <label>
+                            <div>
+                                <label>
+                                    Mezőkulcs
+                                </label>
+
                                 <input
-                                    class="new-field-searchable"
-                                    type="checkbox"
+                                    class="new-field-key"
+                                    type="text"
+                                    maxlength="100"
+                                    placeholder="pl. play_time"
                                 >
-                                Kereshető
-                            </label>
-                        </div>
+                            </div>
 
-                        <div class="checkbox-field">
-                            <label>
+                            <div>
+                                <label>
+                                    Típus
+                                </label>
+
+                                <select
+                                    class="new-field-type"
+                                >
+                                    <option value="text">
+                                        Szöveg
+                                    </option>
+
+                                    <option value="long_text">
+                                        Hosszú szöveg
+                                    </option>
+
+                                    <option value="integer">
+                                        Egész szám
+                                    </option>
+
+                                    <option value="decimal">
+                                        Decimális szám
+                                    </option>
+
+                                    <option value="boolean">
+                                        Igen / nem
+                                    </option>
+
+                                    <option value="date">
+                                        Dátum
+                                    </option>
+
+                                    <option value="year">
+                                        Év
+                                    </option>
+
+                                    <option value="url">
+                                        Webcím
+                                    </option>
+
+                                    <option value="email">
+                                        E-mail
+                                    </option>
+
+                                    <option value="single_select">
+                                        Egyszeres választás
+                                    </option>
+
+                                    <option value="multi_select">
+                                        Többszörös választás
+                                    </option>
+
+                                    <option value="barcode">
+                                        Vonalkód
+                                    </option>
+
+                                    <option value="image">
+                                        Kép
+                                    </option>
+
+                                    <option value="file">
+                                        Fájl
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>
+                                    Sorrend
+                                </label>
+
                                 <input
-                                    class="new-field-filterable"
-                                    type="checkbox"
+                                    class="new-field-sort-order"
+                                    type="number"
+                                    min="0"
+                                    value="100"
                                 >
-                                Szűrhető
-                            </label>
+                            </div>
                         </div>
 
-                        <div class="checkbox-field">
-                            <label>
-                                <input
-                                    class="new-field-visible-list"
-                                    type="checkbox"
-                                >
-                                Listában látható
-                            </label>
-                        </div>
-                    </div>
+                        <div class="category-edit-grid">
+                            <div class="checkbox-field">
+                                <label>
+                                    <input
+                                        class="new-field-required"
+                                        type="checkbox"
+                                    >
+                                    Kötelező
+                                </label>
+                            </div>
 
-                    <div class="actions">
-                        <button
-                            type="button"
-                            class="primary create-field"
-                        >
-                            ➕ Mező létrehozása
-                        </button>
+                            <div class="checkbox-field">
+                                <label>
+                                    <input
+                                        class="new-field-searchable"
+                                        type="checkbox"
+                                    >
+                                    Kereshető
+                                </label>
+                            </div>
+
+                            <div class="checkbox-field">
+                                <label>
+                                    <input
+                                        class="new-field-filterable"
+                                        type="checkbox"
+                                    >
+                                    Szűrhető
+                                </label>
+                            </div>
+
+                            <div class="checkbox-field">
+                                <label>
+                                    <input
+                                        class="new-field-visible-list"
+                                        type="checkbox"
+                                    >
+                                    Listában látható
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="actions">
+                            <button
+                                type="button"
+                                class="primary create-field"
+                            >
+                                ➕ Mező létrehozása
+                            </button>
+                        </div>
+
+                        <div
+                            class="status create-field-status"
+                        ></div>
                     </div>
 
                     <div
-                        class="status create-field-status"
+                        class="category-fields-list"
                     ></div>
                 </div>
-
-                <div
-                    class="category-fields-list"
-                ></div>
-
             </div>
-
         `;
+
+        const settingsButton =
+            card.querySelector(
+                ".toggle-category-settings"
+            );
+
+        const settingsPanel =
+            card.querySelector(
+                ".category-settings-panel"
+            );
+
+        settingsButton.addEventListener(
+            "click",
+            () => {
+                const opening =
+                    settingsPanel.style.display
+                    === "none";
+
+                settingsPanel.style.display =
+                    opening
+                        ? ""
+                        : "none";
+
+                settingsButton.textContent =
+                    opening
+                        ? "▲ Bezárás"
+                        : "⚙️ Beállítások";
+            }
+        );
 
         card
             .querySelector(
@@ -3692,150 +5852,210 @@ async function saveCategory(
                                 )}
                             </div>
 
-<div class="user-email">
-    @${escapeHtml(
-        user.username
-    )}
-    ·
-    ${escapeHtml(
-        user.email
-    )}
-</div>
-
-                        </div>
-
-                        <div>
-                            <span class="badge">
-                                ${escapeHtml(
-                                    roleLabel(
-                                        user.role
-                                    )
+                            <div class="user-email">
+                                @${escapeHtml(
+                                    user.username
                                 )}
-                            </span>
-                        </div>
-                    </div>
+                                ·
+                                ${escapeHtml(
+                                    user.email
+                                )}
+                            </div>
 
-                    <div class="user-grid">
-
-                        <div>
-                            <label>
-                                Megjelenített név
-                            </label>
-
-                            <input
-                                class="edit-name"
-                                type="text"
-                                value="${escapeHtml(
-                                    user.display_name
-                                )}"
-                                ${isOwner ? "disabled" : ""}
-                            >
-                        </div>
-
-                        <div>
-                            <label>
-                                Szerepkör
-                            </label>
-
-                            <select
-                                class="edit-role"
-                                ${
-                                    roleSelectDisabled
-                                        ? "disabled"
-                                        : ""
-                                }
-                            >
-                                <option
-                                    value="viewer"
-                                    ${
-                                        user.role === "viewer"
-                                            ? "selected"
-                                            : ""
-                                    }
-                                >
-                                    Megtekintő
-                                </option>
-
-                                <option
-                                    value="editor"
-                                    ${
-                                        user.role === "editor"
-                                            ? "selected"
-                                            : ""
-                                    }
-                                >
-                                    Szerkesztő
-                                </option>
-
-                                <option
-                                    value="admin"
-                                    ${
-                                        user.role === "admin"
-                                            ? "selected"
-                                            : ""
-                                    }
-                                >
-                                    Adminisztrátor
-                                </option>
-
-                                ${
-                                    isOwner
-                                        ? `
-                                            <option
-                                                value="owner"
-                                                selected
-                                            >
-                                                Tulajdonos
-                                            </option>
-                                        `
-                                        : ""
-                                }
-                            </select>
-                        </div>
-
-                        <div>
-                            <label>
-                                Tagság
-                            </label>
-
-                            <div class="checkbox-row">
-                                <input
-                                    class="edit-active"
-                                    type="checkbox"
-                                    ${
-                                        user.membership_is_active
-                                            ? "checked"
-                                            : ""
-                                    }
-                                    ${
-                                        activeDisabled
-                                            ? "disabled"
-                                            : ""
-                                    }
-                                >
+                            <div class="user-summary">
+                                <span class="badge">
+                                    ${escapeHtml(
+                                        roleLabel(
+                                            user.role
+                                        )
+                                    )}
+                                </span>
 
                                 <span>
-                                    Aktív
+                                    ${
+                                        user.membership_is_active
+                                            ? "🟢 Aktív"
+                                            : "⚫ Inaktív"
+                                    }
                                 </span>
+
+                                ${
+                                    isSelf
+                                        ? "<span>Saját fiók</span>"
+                                        : ""
+                                }
                             </div>
                         </div>
 
-                    </div>
-
-                    <div class="actions">
                         <button
                             type="button"
-                            class="primary save-user"
-                            ${isOwner ? "disabled" : ""}
+                            class="toggle-user-settings"
                         >
-                            Mentés
+                            ⚙️ Kezelés
                         </button>
                     </div>
 
                     <div
-                        class="status row-status"
-                    ></div>
+                        class="user-settings-panel"
+                        style="display:none;"
+                    >
+                        <div class="user-grid">
+                            <div>
+                                <label>
+                                    Megjelenített név
+                                </label>
+
+                                <input
+                                    class="edit-name"
+                                    type="text"
+                                    value="${escapeHtml(
+                                        user.display_name
+                                    )}"
+                                    ${
+                                        isOwner
+                                            ? "disabled"
+                                            : ""
+                                    }
+                                >
+                            </div>
+
+                            <div>
+                                <label>
+                                    Szerepkör
+                                </label>
+
+                                <select
+                                    class="edit-role"
+                                    ${
+                                        roleSelectDisabled
+                                            ? "disabled"
+                                            : ""
+                                    }
+                                >
+                                    <option
+                                        value="viewer"
+                                        ${
+                                            user.role === "viewer"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Megtekintő
+                                    </option>
+
+                                    <option
+                                        value="editor"
+                                        ${
+                                            user.role === "editor"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Szerkesztő
+                                    </option>
+
+                                    <option
+                                        value="admin"
+                                        ${
+                                            user.role === "admin"
+                                                ? "selected"
+                                                : ""
+                                        }
+                                    >
+                                        Adminisztrátor
+                                    </option>
+
+                                    ${
+                                        isOwner
+                                            ? `
+                                                <option
+                                                    value="owner"
+                                                    selected
+                                                >
+                                                    Tulajdonos
+                                                </option>
+                                            `
+                                            : ""
+                                    }
+                                </select>
+                            </div>
+
+                            <div>
+                                <label>
+                                    Tagság
+                                </label>
+
+                                <div class="checkbox-row">
+                                    <input
+                                        class="edit-active"
+                                        type="checkbox"
+                                        ${
+                                            user.membership_is_active
+                                                ? "checked"
+                                                : ""
+                                        }
+                                        ${
+                                            activeDisabled
+                                                ? "disabled"
+                                                : ""
+                                        }
+                                    >
+
+                                    <span>
+                                        Aktív
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="actions">
+                            <button
+                                type="button"
+                                class="primary save-user"
+                                ${
+                                    isOwner
+                                        ? "disabled"
+                                        : ""
+                                }
+                            >
+                                💾 Mentés
+                            </button>
+                        </div>
+
+                        <div
+                            class="status row-status"
+                        ></div>
+                    </div>
                 `;
+
+                const settingsButton =
+                    card.querySelector(
+                        ".toggle-user-settings"
+                    );
+
+                const settingsPanel =
+                    card.querySelector(
+                        ".user-settings-panel"
+                    );
+
+                settingsButton.addEventListener(
+                    "click",
+                    () => {
+                        const opening =
+                            settingsPanel.style.display
+                            === "none";
+
+                        settingsPanel.style.display =
+                            opening
+                                ? ""
+                                : "none";
+
+                        settingsButton.textContent =
+                            opening
+                                ? "▲ Bezárás"
+                                : "⚙️ Kezelés";
+                    }
+                );
 
                 const saveButton =
                     card.querySelector(
