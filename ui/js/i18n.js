@@ -7,6 +7,282 @@
 
     const translations = {
         en: {
+"collection.page_title":
+    "FamilyCollection – Collection",
+
+"collection.not_loaded":
+    "❌ The collection has not loaded yet.",
+
+"collection.init.no_household":
+    "No active household membership.",
+
+"collection.init.categories_error":
+    "Failed to load collections.",
+
+"collection.init.category_unavailable":
+    "The selected collection is not available.",
+
+"collection.init.fields_error":
+    "Failed to load field definitions.",
+
+"collection.no_description":
+    "No description.",
+
+"collection.permission":
+    "Permission: {role}",
+
+"collection.init.error":
+    "❌ Collection page initialization error: {message}",
+
+"collection.create.upload_start":
+    "Item created. Uploading images...",
+
+"collection.create.upload_progress":
+    "Uploading images: {current} / {total}",
+
+"collection.create.success_with_images":
+    "✅ Item created successfully, {count} images uploaded.",
+
+"collection.create.success":
+    "✅ Item created successfully.",
+
+"collection.create.error":
+    "❌ Item creation error: {message}",
+
+"collection.init.invalid_category":
+    "Missing or invalid category identifier.",
+
+"collection.init.permissions_error":
+    "Failed to load permissions.",
+
+"collection.images.upload_http_error":
+    "Image upload error: HTTP {status}",
+
+"collection.images.selected_alt":
+    "Selected image",
+
+"collection.images.primary_prefix":
+    "⭐ Primary · ",
+
+"collection.images.resize_error":
+    "Image resizing failed.",
+
+"collection.images.compress_error":
+    "Image compression failed.",
+
+"collection.images.missing_item_id":
+    "The created item identifier is missing.",
+
+"collection.items.empty":
+    "There are no items in this collection yet.",
+
+"collection.items.image_alt":
+    "{title} image",
+
+"collection.items.default_name":
+    "Collection item",
+
+"collection.items.load_error":
+    "❌ Failed to load items: {message}",
+
+"collection.images.selected_count":
+    "{count} images selected",
+
+"collection.item.save_error":
+    "❌ Save error: {message}",
+
+"collection.items.page_info":
+    "{current} / {totalPages} page · {totalItems} items",
+
+"collection.items.zero":
+    "0 items",
+
+"collection.images.deleting":
+    "Deleting image...",
+
+"collection.images.deleted":
+    "✅ Image deleted.",
+
+"collection.images.delete_error":
+    "❌ Image deletion error: {message}",
+
+"collection.images.order_saving":
+    "Saving image order...",
+
+"collection.images.order_saved":
+    "✅ Image order saved.",
+
+"collection.images.order_error":
+    "❌ Image order save error: {message}",
+
+"collection.images.editor_load_error":
+    "❌ Failed to load editor images: {message}",
+
+"collection.item.title_required":
+    "❌ Name / title is required.",
+
+"collection.images.delete_button":
+    "🗑️ Delete",
+
+"collection.images.upload_progress":
+    "Uploading: {current} / {total}",
+
+"collection.images.upload_success_one":
+    "✅ Image uploaded.",
+
+"collection.images.upload_success_many":
+    "✅ {count} images uploaded.",
+
+"collection.images.upload_error":
+    "❌ Image upload error: {message}",
+
+"collection.images.setting_primary":
+    "Setting primary image...",
+
+"collection.images.primary_set":
+    "✅ Primary image set.",
+
+"collection.images.primary_error":
+    "❌ Primary image error: {message}",
+
+"collection.images.delete_confirm":
+    "Are you sure you want to delete this image?",
+
+"collection.images.default_alt":
+    "Collection image",
+
+"collection.images.primary":
+    "⭐ Primary",
+
+"collection.images.loading":
+    "Loading images...",
+
+"collection.images.load_error":
+    "Failed to load images: HTTP {status}",
+
+"collection.images.unavailable":
+    "Images could not be loaded.",
+
+"collection.images.default_name":
+    "Image {index}",
+
+"common.no": "No",
+
+"collection.item.created":
+    "Added:",
+
+"collection.item.updated":
+    "Updated:",
+
+"collection.images.count":
+    "{count} images",
+
+"collection.fields.multi_select_help":
+    "Use Ctrl or Shift to select multiple values.",
+
+"common.select": "-- select --",
+
+"collection.field_type.text":
+    "Text",
+
+"collection.field_type.long_text":
+    "Long text",
+
+"collection.field_type.integer":
+    "Integer",
+
+"collection.field_type.decimal":
+    "Number",
+
+"collection.field_type.boolean":
+    "Yes / no",
+
+"collection.field_type.date":
+    "Date",
+
+"collection.field_type.year":
+    "Year",
+
+"collection.field_type.url":
+    "URL",
+
+"collection.field_type.email":
+    "Email",
+
+"collection.field_type.single_select":
+    "Single choice",
+
+"collection.field_type.multi_select":
+    "Multiple choice",
+
+"collection.field_type.barcode":
+    "Barcode",
+
+"collection.field_type.image":
+    "Image",
+
+"collection.field_type.file":
+    "File",
+
+"collection.fields.empty":
+    "No fields have been defined for this collection yet.",
+
+"collection.fields.required_suffix":
+    " · required",
+
+"collection.storage.load_error":
+    "Failed to load storage locations.",
+
+"collection.storage.invalid_tree":
+    "The storage tree returned an invalid response.",
+
+"collection.item.deactivate_confirm":
+    "Are you sure you want to deactivate this item?\n\n{title}",
+
+"collection.storage.allowed_load_error":
+    "Failed to load the storage locations allowed for this collection.",
+
+"collection.storage.allowed_invalid_response":
+    "The allowed storage location request returned an invalid response.",
+
+"collection.images.count_zero":
+    "0 images",
+
+"collection.images.item_empty":
+    "🖼️ No images for this item yet.",
+
+"collection.images.resize_help":
+    "Large images are automatically resized to a maximum of 2000 pixels before upload.",
+
+"collection.storage.move_help":
+    "Selecting another location will create a storage movement history entry.",
+"collection.fields.title": "Fields",
+"collection.items.latest": "Recently added items",
+"collection.items.all": "All items →",
+"collection.sort.newest": "Newest first",
+"collection.sort.oldest": "Oldest first",
+"collection.sort.name_asc": "Name A–Z",
+"collection.sort.name_desc": "Name Z–A",
+"collection.sort.updated": "Recently updated",
+"collection.item.details": "Item details",
+"collection.item.deactivate": "🗑️ Deactivate",
+
+"collection.storage.none":
+    "-- no storage location --",
+
+"collection.storage.help":
+    "Storage locations can be selected from the active slots configured in administration.",
+
+"collection.images.empty":
+    "No images selected yet.",
+
+"collection.images.help":
+    "Large images are automatically resized to a maximum of 2000 pixels before upload. The first image will be the primary image.",
+"collection.title": "Collection",
+"collection.create.title": "Add new item",
+"collection.field.title_required": "Name / title *",
+"collection.field.subtitle": "Subtitle",
+
 "books.list.images.close_preview":
     "Close image",
 
@@ -538,6 +814,283 @@
         },
 
         hu: {
+"collection.page_title":
+    "FamilyCollection – Gyűjtemény",
+
+"collection.not_loaded":
+    "❌ A gyűjtemény még nem töltődött be.",
+
+"collection.init.no_household":
+    "Nincs aktív háztartási tagság.",
+
+"collection.init.categories_error":
+    "A gyűjtemények betöltése sikertelen.",
+
+"collection.init.category_unavailable":
+    "A kiválasztott gyűjtemény nem érhető el.",
+
+"collection.init.fields_error":
+    "A meződefiníciók betöltése sikertelen.",
+
+"collection.no_description":
+    "Nincs leírás.",
+
+"collection.permission":
+    "Jogosultság: {role}",
+
+"collection.init.error":
+    "❌ Gyűjteményoldal inicializálási hiba: {message}",
+
+"collection.create.upload_start":
+    "Elem létrehozva. Képek feltöltése...",
+
+"collection.create.upload_progress":
+    "Képek feltöltése: {current} / {total}",
+
+"collection.create.success_with_images":
+    "✅ Elem sikeresen létrehozva, {count} kép feltöltve.",
+
+"collection.create.success":
+    "✅ Elem sikeresen létrehozva.",
+
+"collection.create.error":
+    "❌ Elem létrehozási hiba: {message}",
+
+"collection.init.invalid_category":
+    "Hiányzó vagy hibás kategóriaazonosító.",
+
+"collection.init.permissions_error":
+    "A jogosultságok betöltése sikertelen.",
+
+"collection.images.upload_http_error":
+    "Képfeltöltési hiba: HTTP {status}",
+
+"collection.images.selected_alt":
+    "Kiválasztott kép",
+
+"collection.images.primary_prefix":
+    "⭐ Elsődleges · ",
+
+"collection.images.resize_error":
+    "A kép átméretezése nem sikerült.",
+
+"collection.images.compress_error":
+    "A kép tömörítése nem sikerült.",
+
+"collection.images.missing_item_id":
+    "Hiányzik a létrehozott elem azonosítója.",
+
+"collection.items.empty":
+    "Ebben a gyűjteményben még nincs elem.",
+
+"collection.items.image_alt":
+    "{title} képe",
+
+"collection.items.default_name":
+    "Gyűjteményi elem",
+
+"collection.items.load_error":
+    "❌ Az elemek betöltése sikertelen: {message}",
+
+"collection.images.selected_count":
+    "{count} kép kiválasztva",
+
+"collection.item.save_error":
+    "❌ Mentési hiba: {message}",
+
+"collection.items.page_info":
+    "{current}. / {totalPages}. oldal · {totalItems} elem",
+
+"collection.items.zero":
+    "0 elem",
+
+"collection.images.deleting":
+    "Kép törlése...",
+
+"collection.images.deleted":
+    "✅ A kép törölve.",
+
+"collection.images.delete_error":
+    "❌ Képtörlési hiba: {message}",
+
+"collection.images.order_saving":
+    "Képsorrend mentése...",
+
+"collection.images.order_saved":
+    "✅ Képsorrend elmentve.",
+
+"collection.images.order_error":
+    "❌ Képsorrend-mentési hiba: {message}",
+
+"collection.images.editor_load_error":
+    "❌ Szerkesztői képek betöltési hiba: {message}",
+
+"collection.item.title_required":
+    "❌ A név / cím kötelező.",
+
+"collection.images.delete_button":
+    "🗑️ Törlés",
+
+"collection.images.upload_progress":
+    "Feltöltés: {current} / {total}",
+
+"collection.images.upload_success_one":
+    "✅ A kép feltöltve.",
+
+"collection.images.upload_success_many":
+    "✅ {count} kép feltöltve.",
+
+"collection.images.upload_error":
+    "❌ Képfeltöltési hiba: {message}",
+
+"collection.images.setting_primary":
+    "Elsődleges kép beállítása...",
+
+"collection.images.primary_set":
+    "✅ Elsődleges kép beállítva.",
+
+"collection.images.primary_error":
+    "❌ Elsődleges kép beállítási hiba: {message}",
+
+"collection.images.delete_confirm":
+    "Biztosan törlöd ezt a képet?",
+
+"collection.images.default_alt":
+    "Gyűjteményi kép",
+
+"collection.images.primary":
+    "⭐ Elsődleges",
+
+"collection.images.loading":
+    "Képek betöltése...",
+
+"collection.images.load_error":
+    "A képek betöltése sikertelen: HTTP {status}",
+
+"collection.images.unavailable":
+    "A képek nem tölthetők be.",
+
+"collection.images.default_name":
+    "Kép {index}",
+
+"common.no": "Nem",
+
+"collection.item.created":
+    "Felvéve:",
+
+"collection.item.updated":
+    "Módosítva:",
+
+"collection.images.count":
+    "{count} kép",
+
+"collection.fields.multi_select_help":
+    "Több érték kijelöléséhez Ctrl vagy Shift használható.",
+
+"common.select": "-- válassz --",
+
+"collection.field_type.text":
+    "Szöveg",
+
+"collection.field_type.long_text":
+    "Hosszú szöveg",
+
+"collection.field_type.integer":
+    "Egész szám",
+
+"collection.field_type.decimal":
+    "Szám",
+
+"collection.field_type.boolean":
+    "Igen / nem",
+
+"collection.field_type.date":
+    "Dátum",
+
+"collection.field_type.year":
+    "Év",
+
+"collection.field_type.url":
+    "Webcím",
+
+"collection.field_type.email":
+    "E-mail",
+
+"collection.field_type.single_select":
+    "Egyszeres választás",
+
+"collection.field_type.multi_select":
+    "Többszörös választás",
+
+"collection.field_type.barcode":
+    "Vonalkód",
+
+"collection.field_type.image":
+    "Kép",
+
+"collection.field_type.file":
+    "Fájl",
+
+"collection.fields.empty":
+    "Ehhez a gyűjteményhez még nincs mező definiálva.",
+
+"collection.fields.required_suffix":
+    " · kötelező",
+
+"collection.storage.load_error":
+    "A tárhelyek betöltése sikertelen.",
+
+"collection.storage.invalid_tree":
+    "A tárhelyfa hibás választ adott.",
+
+"collection.item.deactivate_confirm":
+    "Biztosan inaktiválod ezt az elemet?\n\n{title}",
+
+"collection.storage.allowed_load_error":
+    "A gyűjteményhez engedélyezett tárhelyek betöltése sikertelen.",
+
+"collection.storage.allowed_invalid_response":
+    "Az engedélyezett tárhelyek lekérdezése hibás választ adott.",
+
+"collection.images.count_zero":
+    "0 kép",
+
+"collection.images.item_empty":
+    "🖼️ Még nincs kép ehhez az elemhez.",
+
+"collection.images.resize_help":
+    "A nagy képek feltöltés előtt automatikusan legfeljebb 2000 pixelesre lesznek átméretezve.",
+
+"collection.storage.move_help":
+    "Másik hely kiválasztásakor tárhely-áthelyezési előzmény készül.",
+
+"collection.fields.title": "Mezők",
+"collection.items.latest": "Legutóbb felvett elemek",
+"collection.items.all": "Összes elem →",
+"collection.sort.newest": "Legújabb elöl",
+"collection.sort.oldest": "Legrégebbi elöl",
+"collection.sort.name_asc": "Név A–Z",
+"collection.sort.name_desc": "Név Z–A",
+"collection.sort.updated": "Legutóbb módosított",
+"collection.item.details": "Elem adatai",
+"collection.item.deactivate": "🗑️ Inaktiválás",
+
+"collection.storage.none":
+    "-- nincs tárhely megadva --",
+
+"collection.storage.help":
+    "A tárhelyek az adminisztrációban beállított aktív rekeszekből választhatók.",
+
+"collection.images.empty":
+    "Még nincs kép kiválasztva.",
+
+"collection.images.help":
+    "A nagy képek feltöltés előtt automatikusan legfeljebb 2000 pixelesre lesznek átméretezve. Az első kép lesz az elsődleges kép.",
+"collection.title": "Gyűjtemény",
+"collection.create.title": "Új elem felvitele",
+"collection.field.title_required": "Név / cím *",
+"collection.field.subtitle": "Alcím",
+
 "books.list.images.close_preview":
     "Kép bezárása",
 
