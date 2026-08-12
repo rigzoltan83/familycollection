@@ -77,6 +77,20 @@
             color: #aaa;
         }
 
+.language-switcher {
+    margin-bottom: 8px;
+}
+
+.language-switcher select {
+    padding: 6px 10px;
+    border: 1px solid #555;
+    border-radius: 6px;
+    background: #111;
+    color: #eee;
+    font-size: 14px;
+    cursor: pointer;
+}
+
         .menu-grid {
             display: grid;
             grid-template-columns:
@@ -173,17 +187,40 @@
             </div>
 
             <div class="user-info">
-                <div id="currentUser">
-                    Betöltés...
-                </div>
 
-                <button
-                    id="logoutButton"
-                    class="logout-button"
-                    type="button"
-                >
-                    Kilépés
-                </button>
+<div class="language-switcher">
+    <select id="languageSelect">
+        <option
+            value="en"
+            data-i18n="language.english"
+        >
+            English
+        </option>
+
+        <option
+            value="hu"
+            data-i18n="language.hungarian"
+        >
+            Magyar
+        </option>
+    </select>
+</div>
+
+<div
+    id="currentUser"
+    data-i18n="common.loading"
+>
+    Loading...
+</div>
+
+<button
+    id="logoutButton"
+    class="logout-button"
+    type="button"
+    data-i18n="nav.logout"
+>
+    Log out
+</button>
             </div>
         </div>
 
@@ -203,12 +240,13 @@
             ></div>
         </div>
 
-        <div
-            id="status"
-            class="status"
-        >
-            Betöltés...
-        </div>
+<div
+    id="status"
+    class="status"
+    data-i18n="common.loading"
+>
+    Loading...
+</div>
 
         <div
             id="menuGrid"
@@ -230,17 +268,25 @@
                     ⚙️
                 </div>
 
-                <div class="menu-title">
-                    Adminisztráció
-                </div>
+<div
+    class="menu-title"
+    data-i18n="dashboard.admin.title"
+>
+    Administration
+</div>
 
-                <div class="menu-description">
-                    Felhasználók,
-                    gyűjtemények és tárhelyek.
-                </div>
+<div
+    class="menu-description"
+    data-i18n="dashboard.admin.description"
+>
+    Users, collections and storage locations.
+</div>
+
             </a>
         </div>
     </main>
+
+<script src="/ui/js/i18n.js"></script>
 
     <script>
         const currentUser =
@@ -290,13 +336,19 @@ const collectionCards =
 
 function roleLabel(role) {
     const labels = {
-        owner: "Tulajdonos",
-        admin: "Adminisztrátor",
-        editor: "Szerkesztő",
-        viewer: "Megtekintő"
+        owner: "role.owner",
+        admin: "role.admin",
+        editor: "role.editor",
+        viewer: "role.viewer"
     };
 
-    return labels[role] || role;
+    const key = labels[role];
+
+    if (!key) {
+        return role;
+    }
+
+    return FamilyCollectionI18n.t(key);
 }
 
 
@@ -382,10 +434,14 @@ function renderCategories(
             if (canEdit) {
                 collectionCards.appendChild(
                     createMenuCard({
-                        title: "Könyvek",
-                        description:
-                            "Könyvek felvitele és "
-                            + "a legutóbb rögzített példányok.",
+title:
+    FamilyCollectionI18n.t(
+        "dashboard.books.title"
+    ),
+description:
+    FamilyCollectionI18n.t(
+        "dashboard.books.description"
+    ),
                         icon: "📚",
                         href: "/ui/index.html",
                     })
@@ -394,10 +450,14 @@ function renderCategories(
 
             collectionCards.appendChild(
                 createMenuCard({
-                    title: "Könyvlista",
-                    description:
-                        "A teljes könyvgyűjtemény "
-                        + "keresése és megtekintése.",
+title:
+    FamilyCollectionI18n.t(
+        "dashboard.booklist.title"
+    ),
+description:
+    FamilyCollectionI18n.t(
+        "dashboard.booklist.description"
+    ),
                     icon: "🔎",
                     href: "/ui/books.html",
                 })
@@ -409,9 +469,11 @@ function renderCategories(
         collectionCards.appendChild(
             createMenuCard({
                 title: category.name,
-                description:
-                    category.description
-                    || "Saját gyűjtemény.",
+description:
+    category.description
+    || FamilyCollectionI18n.t(
+        "dashboard.custom_collection.description"
+    ),
                 icon: categoryIcon(category),
                 href:
                     "/ui/collection.html"
@@ -460,8 +522,10 @@ function renderCategories(
                     !context.households
                     || context.households.length === 0
                 ) {
-                    statusBox.textContent =
-                        "Nincs aktív háztartási tagság.";
+statusBox.textContent =
+    FamilyCollectionI18n.t(
+        "dashboard.no_household"
+    );
 
                     return;
                 }
@@ -482,10 +546,15 @@ const categoriesResponse =
     );
 
 if (!categoriesResponse.ok) {
-    throw new Error(
-        "A gyűjtemények betöltése sikertelen: "
-        + `HTTP ${categoriesResponse.status}`
-    );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "dashboard.categories_load_failed",
+        {
+            status:
+                categoriesResponse.status
+        }
+    )
+);
 }
 
 const categories =
@@ -499,12 +568,16 @@ renderCategories(
                 householdName.textContent =
                     household.name;
 
-                householdRole.textContent =
-                    `Jogosultság: ${
-                        roleLabel(
-                            household.role
-                        )
-                    }`;
+householdRole.textContent =
+    FamilyCollectionI18n.t(
+        "dashboard.permission",
+        {
+            role:
+                roleLabel(
+                    household.role
+                )
+        }
+    );
 
                 householdBox.style.display =
                     "";
@@ -525,10 +598,14 @@ renderCategories(
                     "grid";
 
             } catch (error) {
-                statusBox.textContent =
-                    `❌ Nem sikerült betölteni: ${
-                        error.message
-                    }`;
+statusBox.textContent =
+    "❌ "
+    + FamilyCollectionI18n.t(
+        "dashboard.load_failed",
+        {
+            message: error.message
+        }
+    );
             }
         }
 
@@ -553,5 +630,36 @@ renderCategories(
 
         loadContext();
     </script>
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+            const languageSelect =
+                document.getElementById(
+                    "languageSelect"
+                );
+
+            if (!languageSelect) {
+                return;
+            }
+
+            languageSelect.value =
+                FamilyCollectionI18n
+                    .getLanguage();
+
+            languageSelect.addEventListener(
+                "change",
+                event => {
+                    FamilyCollectionI18n
+                        .setLanguage(
+                            event.target.value
+                        );
+
+                    window.location.reload();
+                }
+            );
+        }
+    );
+</script>
 </body>
 </html>

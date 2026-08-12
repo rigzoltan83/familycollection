@@ -22,6 +22,36 @@
             "common.yes": "Yes",
             "common.no": "No",
 
+"dashboard.load_failed":
+    "Failed to load: {message}",
+"dashboard.books.title": "Books",
+"dashboard.books.description":
+    "Add books and view the most recently recorded items.",
+
+"dashboard.booklist.title": "Book list",
+"dashboard.booklist.description":
+    "Search and browse the complete book collection.",
+
+"dashboard.custom_collection.description":
+    "Custom collection.",
+
+"dashboard.no_household":
+    "No active household membership.",
+
+"dashboard.categories_load_failed":
+    "Failed to load collections: HTTP {status}",
+
+"dashboard.permission":
+    "Permission: {role}",
+"dashboard.admin.title": "Administration",
+"dashboard.admin.description":
+    "Users, collections and storage locations.",
+
+"role.owner": "Owner",
+"role.admin": "Administrator",
+"role.editor": "Editor",
+"role.viewer": "Viewer",
+
             "nav.logout": "Log out",
 
             "language.english": "English",
@@ -54,6 +84,36 @@
             "common.inactive": "Inaktív",
             "common.yes": "Igen",
             "common.no": "Nem",
+
+"dashboard.load_failed":
+    "Nem sikerült betölteni: {message}",
+"dashboard.books.title": "Könyvek",
+"dashboard.books.description":
+    "Könyvek felvitele és a legutóbb rögzített példányok.",
+
+"dashboard.booklist.title": "Könyvlista",
+"dashboard.booklist.description":
+    "A teljes könyvgyűjtemény keresése és megtekintése.",
+
+"dashboard.custom_collection.description":
+    "Saját gyűjtemény.",
+
+"dashboard.no_household":
+    "Nincs aktív háztartási tagság.",
+
+"dashboard.categories_load_failed":
+    "A gyűjtemények betöltése sikertelen: HTTP {status}",
+
+"dashboard.permission":
+    "Jogosultság: {role}",
+"dashboard.admin.title": "Adminisztráció",
+"dashboard.admin.description":
+    "Felhasználók, gyűjtemények és tárhelyek.",
+
+"role.owner": "Tulajdonos",
+"role.admin": "Adminisztrátor",
+"role.editor": "Szerkesztő",
+"role.viewer": "Megtekintő",
 
             "nav.logout": "Kilépés",
 
