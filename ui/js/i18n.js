@@ -7,6 +7,240 @@
 
     const translations = {
         en: {
+"books.list.images.close_preview":
+    "Close image",
+
+"books.list.permissions_load_failed":
+    "❌ Failed to load permission data.",
+
+"books.list.edit.save_error":
+    "❌ Save error: {message}",
+
+"books.list.edit.isbn_required":
+    "❌ ISBN cannot be empty.",
+
+"books.list.edit.title_required":
+    "❌ Title cannot be empty.",
+
+"books.list.edit.storage_required":
+    "❌ Select a storage location.",
+
+"books.list.edit.borrower_required":
+    "❌ Enter who has the book.",
+
+"books.list.images.default_caption":
+    "Image",
+
+"books.list.images.primary_badge":
+    "Primary",
+
+"books.list.images.move_left_button":
+    "← Left",
+
+"books.list.images.move_right_button":
+    "Right →",
+
+"books.list.images.current_primary":
+    "⭐ Current cover image",
+
+"books.list.images.make_primary":
+    "⭐ Set as cover image",
+
+"books.list.images.delete_button":
+    "🗑 Delete",
+
+"books.list.images.delete_confirm":
+    "Are you sure you want to delete this image?",
+
+"books.list.images.deleting":
+    "Deleting image...",
+
+"books.list.images.deleted":
+    "✅ Image deleted.",
+
+"books.list.images.delete_error":
+    "❌ Image deletion error: {message}",
+
+"books.list.images.count":
+    "{count} images",
+
+"books.list.images.invalid_list":
+    "The image list format is invalid.",
+
+"books.list.images.invalid_move_direction":
+    "Invalid move direction.",
+
+"books.list.images.move_not_found":
+    "The image to move could not be found.",
+
+"books.list.images.primary_move_forbidden":
+    "The cover image position cannot be changed.",
+
+"books.list.images.order_saving":
+    "Saving image order...",
+
+"books.list.images.order_saved":
+    "✅ Image order saved.",
+
+"books.list.images.order_error":
+    "❌ Image order save error: {message}",
+
+"books.list.images.load_failed":
+    "Images could not be loaded.",
+
+"books.list.images.missing_item_id":
+    "The collection item identifier is missing.",
+
+"books.list.images.upload_progress":
+    "Uploading: {current} / {total}",
+
+"books.list.images.upload_success_one":
+    "✅ Image uploaded.",
+
+"books.list.images.upload_success_many":
+    "✅ {count} images uploaded.",
+
+"books.list.images.upload_error":
+    "❌ Image upload error: {message}",
+
+"books.list.images.missing_image_id":
+    "The image identifier is missing.",
+
+"books.list.images.setting_primary":
+    "Setting cover image...",
+
+"books.list.images.primary_set":
+    "✅ Cover image set.",
+
+"books.list.images.primary_error":
+    "❌ Cover image error: {message}",
+
+"books.list.edit.permission_required":
+    "Editor permission is required for this action.",
+
+"books.list.edit.invalid_id":
+    "Invalid book index.",
+
+"books.list.edit.not_found":
+    "The book could not be found.",
+
+"books.list.edit.missing_public_id":
+    "The book does not have a modern collection identifier.",
+
+"books.list.images.loading":
+    "Loading images...",
+
+"books.list.edit.storage_missing":
+    "The book's current storage location is not available in the active storage tree.",
+
+"books.list.edit.error":
+    "Edit error: {message}",
+
+"books.list.storage.inactive":
+    "{name} — inactive",
+
+"books.list.storage.invalid_response":
+    "The server returned an invalid storage tree response.",
+
+"books.list.delete.unknown_error":
+    "Unknown deletion error.",
+
+"books.list.delete.not_found":
+    "The book is no longer in the database.",
+
+"books.list.delete.error":
+    "Deletion error: {message}",
+
+"books.list.page_info":
+    "{current} / {total} page",
+
+"books.list.delete.permission_required":
+    "Editor permission is required for this action.",
+
+"books.list.delete.invalid_id":
+    "Invalid book index.",
+
+"books.list.delete.confirm":
+    "Are you sure you want to delete book copy #{id}?",
+"books.list.field.publisher":
+    "Publisher:",
+
+"books.list.field.publish_year":
+    "Publication year:",
+
+"books.list.field.added":
+    "Added:",
+
+"books.list.field.location":
+    "Location:",
+"books.list.summary.search":
+    "{total} results – records {first}–{last}",
+
+"books.list.summary.all":
+    "{total} book copies – records {first}–{last}",
+
+"books.list.empty":
+    "No books match the search.",
+
+"books.list.no_cover":
+    "No cover image",
+
+"books.list.edit_button":
+    "✏️ Edit",
+
+"books.list.delete_button":
+    "🗑️ Delete",
+"books.list.status.borrowed_by":
+    "📤 Loaned to: {borrower}",
+
+"books.list.status.borrowed":
+    "📤 Loaned",
+
+"books.list.status.removed":
+    "📦 Removed from shelf",
+
+"books.list.status.on_shelf":
+    "📚 On shelf",
+
+"books.list.loading":
+    "Loading books...",
+
+"books.list.invalid_response":
+    "The server returned an invalid book list response.",
+
+"books.list.load_failed":
+    "Failed to load books: {message}",
+
+"books.list.edit.title":
+    "Edit book",
+
+"books.list.images.count_zero":
+    "0 images",
+
+"books.list.images.empty":
+    "No images for this book yet.",
+
+"books.list.images.help":
+    "On mobile, you can take a photo directly or select multiple existing images.",
+
+"books.list.field.unique_index":
+    "Unique index",
+
+"books.list.storage_search":
+    "Search storage",
+
+"books.list.storage_search_placeholder":
+    "Room, shelf or storage location...",
+
+"books.list.borrower":
+    "Who has it?",
+"common.previous": "← Previous",
+"common.next": "Next →",
+
+"books.list.page_title": "Library",
+"books.list.add": "➕ Add book",
+"books.list.search_placeholder":
+    "Search by title, ISBN, author, publisher, location or borrower...",
 "common.back_dashboard": "Dashboard",
 
 "books.metadata.save_error":
@@ -304,6 +538,240 @@
         },
 
         hu: {
+"books.list.images.close_preview":
+    "Kép bezárása",
+
+"books.list.permissions_load_failed":
+    "❌ Nem sikerült betölteni a jogosultsági adatokat.",
+
+"books.list.edit.save_error":
+    "❌ Mentési hiba: {message}",
+
+"books.list.edit.isbn_required":
+    "❌ Az ISBN nem lehet üres.",
+
+"books.list.edit.title_required":
+    "❌ A cím nem lehet üres.",
+
+"books.list.edit.storage_required":
+    "❌ Válassz tárhelyet.",
+
+"books.list.edit.borrower_required":
+    "❌ Add meg, kinél van a könyv.",
+
+"books.list.images.default_caption":
+    "Kép",
+
+"books.list.images.primary_badge":
+    "Elsődleges",
+
+"books.list.images.move_left_button":
+    "← Balra",
+
+"books.list.images.move_right_button":
+    "Jobbra →",
+
+"books.list.images.current_primary":
+    "⭐ Jelenlegi borítókép",
+
+"books.list.images.make_primary":
+    "⭐ Legyen borítókép",
+
+"books.list.images.delete_button":
+    "🗑 Törlés",
+
+"books.list.images.delete_confirm":
+    "Biztosan törlöd ezt a képet?",
+
+"books.list.images.deleting":
+    "Kép törlése...",
+
+"books.list.images.deleted":
+    "✅ A kép törölve.",
+
+"books.list.images.delete_error":
+    "❌ Képtörlési hiba: {message}",
+
+"books.list.images.count":
+    "{count} kép",
+
+"books.list.images.invalid_list":
+    "A képlista formátuma hibás.",
+
+"books.list.images.invalid_move_direction":
+    "Érvénytelen mozgatási irány.",
+
+"books.list.images.move_not_found":
+    "A mozgatandó kép nem található.",
+
+"books.list.images.primary_move_forbidden":
+    "A borítókép helye nem módosítható.",
+
+"books.list.images.order_saving":
+    "Képsorrend mentése...",
+
+"books.list.images.order_saved":
+    "✅ Képsorrend elmentve.",
+
+"books.list.images.order_error":
+    "❌ Képsorrend-mentési hiba: {message}",
+
+"books.list.images.load_failed":
+    "A képek nem tölthetők be.",
+
+"books.list.images.missing_item_id":
+    "Hiányzik a gyűjteményi elem azonosítója.",
+
+"books.list.images.upload_progress":
+    "Feltöltés: {current} / {total}",
+
+"books.list.images.upload_success_one":
+    "✅ A kép feltöltve.",
+
+"books.list.images.upload_success_many":
+    "✅ {count} kép feltöltve.",
+
+"books.list.images.upload_error":
+    "❌ Képfeltöltési hiba: {message}",
+
+"books.list.images.missing_image_id":
+    "Hiányzik a kép azonosítója.",
+
+"books.list.images.setting_primary":
+    "Borítókép beállítása...",
+
+"books.list.images.primary_set":
+    "✅ Borítókép beállítva.",
+
+"books.list.images.primary_error":
+    "❌ Borítókép-beállítási hiba: {message}",
+
+"books.list.edit.permission_required":
+    "Ehhez a művelethez szerkesztői jogosultság szükséges.",
+
+"books.list.edit.invalid_id":
+    "Hibás könyvindex.",
+
+"books.list.edit.not_found":
+    "A könyv nem található.",
+
+"books.list.edit.missing_public_id":
+    "A könyvhöz nem tartozik modern gyűjteményi azonosító.",
+
+"books.list.images.loading":
+    "Képek betöltése...",
+
+"books.list.edit.storage_missing":
+    "A könyv jelenlegi tárhelye nem található az aktív tárhelyfában.",
+
+"books.list.edit.error":
+    "Szerkesztési hiba: {message}",
+
+"books.list.storage.inactive":
+    "{name} — inaktív",
+
+"books.list.storage.invalid_response":
+    "A szerver hibás tárhelyfa-választ adott.",
+
+"books.list.delete.unknown_error":
+    "Ismeretlen törlési hiba.",
+
+"books.list.delete.not_found":
+    "A könyv már nem található az adatbázisban.",
+
+"books.list.delete.error":
+    "Törlési hiba: {message}",
+
+"books.list.page_info":
+    "{current} / {total}. oldal",
+
+"books.list.delete.permission_required":
+    "Ehhez a művelethez szerkesztői jogosultság szükséges.",
+
+"books.list.delete.invalid_id":
+    "Hibás könyvindex.",
+
+"books.list.delete.confirm":
+    "Biztosan törlöd a(z) {id}. indexű könyvpéldányt?",
+"books.list.field.publisher":
+    "Kiadó:",
+
+"books.list.field.publish_year":
+    "Kiadás éve:",
+
+"books.list.field.added":
+    "Felvéve:",
+
+"books.list.field.location":
+    "Hely:",
+"books.list.summary.search":
+    "{total} találat – {first}–{last}. rekord",
+
+"books.list.summary.all":
+    "{total} könyvpéldány – {first}–{last}. rekord",
+
+"books.list.empty":
+    "Nincs a keresésnek megfelelő könyv.",
+
+"books.list.no_cover":
+    "Nincs borítókép",
+
+"books.list.edit_button":
+    "✏️ Szerkesztés",
+
+"books.list.delete_button":
+    "🗑️ Törlés",
+"books.list.status.borrowed_by":
+    "📤 Kölcsönadva: {borrower}",
+
+"books.list.status.borrowed":
+    "📤 Kölcsönadva",
+
+"books.list.status.removed":
+    "📦 Polcról levéve",
+
+"books.list.status.on_shelf":
+    "📚 Polcon",
+
+"books.list.loading":
+    "Könyvek betöltése...",
+
+"books.list.invalid_response":
+    "A szerver hibás könyvlista-választ adott.",
+
+"books.list.load_failed":
+    "Nem sikerült betölteni a könyveket: {message}",
+
+"books.list.edit.title":
+    "Könyv szerkesztése",
+
+"books.list.images.count_zero":
+    "0 kép",
+
+"books.list.images.empty":
+    "Még nincs kép ehhez a könyvhöz.",
+
+"books.list.images.help":
+    "Telefonon közvetlenül fotózhatsz, vagy több meglévő képet is kiválaszthatsz.",
+
+"books.list.field.unique_index":
+    "Egyedi index",
+
+"books.list.storage_search":
+    "Tárhely keresése",
+
+"books.list.storage_search_placeholder":
+    "Helyiség, polc vagy tárhely...",
+
+"books.list.borrower":
+    "Kinél van?",
+"common.previous": "← Előző",
+"common.next": "Következő →",
+
+"books.list.page_title": "Könyvtár",
+"books.list.add": "➕ Felvitel",
+"books.list.search_placeholder":
+    "Keresés cím, ISBN, szerző, kiadó, hely vagy kölcsönző alapján...",
 "common.back_dashboard": "Vissza a főoldalra",
 
 "books.metadata.save_error":

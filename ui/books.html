@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Könyvtár</title>
+<title data-i18n="books.list.page_title">
+    Library
+</title>
 
 <style>
 * {
@@ -486,6 +488,59 @@ header input {
     object-fit: cover;
 }
 
+.edit-image-preview img {
+    cursor: zoom-in;
+}
+
+.image-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.94);
+    align-items: center;
+    justify-content: center;
+}
+
+.image-lightbox.open {
+    display: flex;
+}
+
+.image-lightbox-image {
+    max-width: 96vw;
+    max-height: 92vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow:
+        0 10px 40px
+        rgba(0, 0, 0, 0.8);
+}
+
+.image-lightbox-close {
+    position: fixed;
+    top: 14px;
+    right: 18px;
+    z-index: 301;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(32, 32, 32, 0.9);
+    color: #fff;
+    font-size: 32px;
+    line-height: 46px;
+    cursor: pointer;
+}
+
+.image-lightbox-close:hover {
+    background: #333;
+    color: #6dff6d;
+}
+
 .edit-image-primary {
     position: absolute;
     top: 7px;
@@ -683,7 +738,10 @@ header input {
 
 <header>
 
-<a href="/ui/dashboard.html">
+<a
+    href="/ui/dashboard.html"
+    data-i18n="common.back_dashboard"
+>
     ⬅ Dashboard
 </a>
 
@@ -691,35 +749,47 @@ header input {
     id="addBookLink"
     href="/ui/index.html"
     style="display:none"
+    data-i18n="books.list.add"
 >
-    ➕ Felvitel
+    ➕ Add book
 </a>
 
-    <input
-        id="search"
-        type="search"
-        placeholder="Keresés cím, ISBN, szerző, kiadó, hely vagy kölcsönző alapján...">
+<input
+    id="search"
+    type="search"
+    data-i18n-placeholder="books.list.search_placeholder"
+    placeholder="Search by title, ISBN, author, publisher, location or borrower..."
+>
 </header>
 
 <div id="summary"></div>
-<div id="list">Betöltés...</div>
+<div
+    id="list"
+    data-i18n="common.loading"
+>
+    Loading...
+</div>
 
 <div id="pagination">
-    <button
-        id="previousPage"
-        type="button">
-        ← Előző
-    </button>
+<button
+    id="previousPage"
+    type="button"
+    data-i18n="common.previous"
+>
+    ← Previous
+</button>
 
-    <span id="pageInfo">
-        1 / 1. oldal
-    </span>
+<span id="pageInfo">
+    1 / 1 page
+</span>
 
-    <button
-        id="nextPage"
-        type="button">
-        Következő →
-    </button>
+<button
+    id="nextPage"
+    type="button"
+    data-i18n="common.next"
+>
+    Next →
+</button>
 </div>
 
 <!-- -----------------------
@@ -730,7 +800,9 @@ header input {
     <div class="modal-content">
 
         <div class="modal-header">
-            <h2>Könyv szerkesztése</h2>
+<h2 data-i18n="books.list.edit.title">
+    Edit book
+</h2>
 
             <button
                 type="button"
@@ -756,11 +828,16 @@ header input {
             class="edit-image-section"
         >
             <div class="edit-image-header">
-                <h3>Képek</h3>
+<h3 data-i18n="books.images.title">
+    Images
+</h3>
 
-                <span id="editImageCount">
-                    0 kép
-                </span>
+<span
+    id="editImageCount"
+    data-i18n="books.list.images.count_zero"
+>
+    0 images
+</span>
             </div>
 
             <div
@@ -775,28 +852,30 @@ header input {
                         🖼️
                     </div>
 
-                    <div>
-                        Még nincs kép ehhez a könyvhöz.
-                    </div>
+<div data-i18n="books.list.images.empty">
+    No images for this book yet.
+</div>
                 </div>
             </div>
 
             <div class="edit-image-upload-actions">
-                <button
-                    id="editImageCameraButton"
-                    type="button"
-                    class="edit-image-button"
-                >
-                    📷 Fotó készítése
-                </button>
+<button
+    id="editImageCameraButton"
+    type="button"
+    class="edit-image-button"
+    data-i18n="books.images.take_photo"
+>
+    📷 Take photo
+</button>
 
-                <button
-                    id="editImageFilesButton"
-                    type="button"
-                    class="edit-image-button"
-                >
-                    🖼️ Képek kiválasztása
-                </button>
+<button
+    id="editImageFilesButton"
+    type="button"
+    class="edit-image-button"
+    data-i18n="books.images.select"
+>
+    🖼️ Select images
+</button>
             </div>
 
             <input
@@ -815,10 +894,13 @@ header input {
                 hidden
             >
 
-            <div class="edit-image-help">
-                Telefonon közvetlenül fotózhatsz,
-                vagy több meglévő képet is kiválaszthatsz.
-            </div>
+<div
+    class="edit-image-help"
+    data-i18n="books.list.images.help"
+>
+    On mobile, you can take a photo directly
+    or select multiple existing images.
+</div>
 
             <div
                 id="editImageStatus"
@@ -826,66 +908,219 @@ header input {
             ></div>
         </section>
 
-        <label for="editIndex">Egyedi index</label>
-        <input id="editIndex" type="text" disabled>
+<label
+    for="editIndex"
+    data-i18n="books.list.field.unique_index"
+>
+    Unique index
+</label>
 
-        <label for="editIsbn">ISBN</label>
-        <input id="editIsbn" type="text" disabled>
+<input
+    id="editIndex"
+    type="text"
+    disabled
+>
 
-        <label for="editTitle">Cím</label>
-        <input id="editTitle" type="text">
+<label for="editIsbn">
+    ISBN
+</label>
 
-        <label for="editAuthor">Szerző</label>
-        <input id="editAuthor" type="text">
+<input
+    id="editIsbn"
+    type="text"
+    disabled
+>
 
-        <label for="editPublisher">Kiadó</label>
-        <input id="editPublisher" type="text">
+<label
+    for="editTitle"
+    data-i18n="books.field.title"
+>
+    Title
+</label>
 
-        <label for="editYear">Kiadás éve</label>
-        <input id="editYear" type="text">
+<input
+    id="editTitle"
+    type="text"
+>
 
-<label for="editLocationSearch">
-    Tárhely keresése
+<label
+    for="editAuthor"
+    data-i18n="books.field.author"
+>
+    Author
+</label>
+
+<input
+    id="editAuthor"
+    type="text"
+>
+
+<label
+    for="editPublisher"
+    data-i18n="books.field.publisher"
+>
+    Publisher
+</label>
+
+<input
+    id="editPublisher"
+    type="text"
+>
+
+<label
+    for="editYear"
+    data-i18n="books.field.publish_year"
+>
+    Publication year
+</label>
+
+<input
+    id="editYear"
+    type="text"
+>
+
+<label
+    for="editLocationSearch"
+    data-i18n="books.list.storage_search"
+>
+    Search storage
 </label>
 
 <input
     id="editLocationSearch"
     type="search"
-    placeholder="Helyiség, polc vagy tárhely..."
+    data-i18n-placeholder="books.list.storage_search_placeholder"
+    placeholder="Room, shelf or storage location..."
     autocomplete="off"
 >
 
-<label for="editLocation">Tárhely</label>
+<label
+    for="editLocation"
+    data-i18n="books.field.storage"
+>
+    Storage location
+</label>
 <select id="editLocation"></select>
 
         <div id="editBorrowBox" style="display:none;">
-            <label for="editBorrower">Kinél van?</label>
+<label
+    for="editBorrower"
+    data-i18n="books.list.borrower"
+>
+    Who has it?
+</label>
             <input id="editBorrower" type="text">
         </div>
 
         <div id="editStatus"></div>
 
         <div class="modal-actions">
-            <button
-                type="button"
-                class="cancel"
-                onclick="closeEditor()">
-                Mégse
-            </button>
+<button
+    type="button"
+    class="cancel"
+    onclick="closeEditor()"
+    data-i18n="common.cancel"
+>
+    Cancel
+</button>
 
-            <button
-                type="button"
-                class="save"
-                onclick="saveEditor()">
-                Mentés
-            </button>
+<button
+    type="button"
+    class="save"
+    onclick="saveEditor()"
+    data-i18n="common.save"
+>
+    Save
+</button>
         </div>
 
     </div>
 </div>
 
+<div
+    id="imageLightbox"
+    class="image-lightbox"
+>
+    <button
+        id="imageLightboxClose"
+        type="button"
+        class="image-lightbox-close"
+        aria-label="Close image"
+        data-i18n-aria-label="books.list.images.close_preview"
+    >
+        ×
+    </button>
+
+    <img
+        id="imageLightboxImage"
+        class="image-lightbox-image"
+        src=""
+        alt=""
+    >
+</div>
+
+<script src="/ui/js/i18n.js"></script>
+
 <script>
 "use strict";
+
+const imageLightbox =
+    document.getElementById(
+        "imageLightbox"
+    );
+
+const imageLightboxImage =
+    document.getElementById(
+        "imageLightboxImage"
+    );
+
+const imageLightboxClose =
+    document.getElementById(
+        "imageLightboxClose"
+    );
+
+function openImageLightbox(
+    imageUrl,
+    altText = ""
+) {
+    if (
+        !imageLightbox
+        || !imageLightboxImage
+    ) {
+        return;
+    }
+
+    imageLightboxImage.src =
+        imageUrl || "";
+
+    imageLightboxImage.alt =
+        altText || "";
+
+    imageLightbox.classList.add(
+        "open"
+    );
+
+    document.body.style.overflow =
+        "hidden";
+}
+
+function closeImageLightbox() {
+    if (
+        !imageLightbox
+        || !imageLightboxImage
+    ) {
+        return;
+    }
+
+    imageLightbox.classList.remove(
+        "open"
+    );
+
+    imageLightboxImage.src = "";
+    imageLightboxImage.alt = "";
+
+    document.body.style.overflow = "";
+}
 
 let allBooks = [];
 
@@ -955,9 +1190,11 @@ async function loadBookPagePermissions() {
         || null;
 
     if (!household) {
-        throw new Error(
-            "Nincs aktív háztartási tagság."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "dashboard.no_household"
+    )
+);
     }
 
     localStorage.setItem(
@@ -1002,7 +1239,13 @@ function formatDate(value) {
         return value;
     }
 
-    return date.toLocaleString("hu-HU");
+    const locale =
+        FamilyCollectionI18n.getLanguage()
+        === "hu"
+            ? "hu-HU"
+            : "en-GB";
+
+    return date.toLocaleString(locale);
 }
 
 function isRemoved(book) {
@@ -1025,8 +1268,16 @@ function getStatus(book) {
             cardClass: "borrowed",
             textClass: "status-borrowed",
             text: book.borrower
-                ? `📤 Kölcsönadva: ${book.borrower}`
-                : "📤 Kölcsönadva"
+                ? FamilyCollectionI18n.t(
+                    "books.list.status.borrowed_by",
+                    {
+                        borrower:
+                            book.borrower
+                    }
+                )
+                : FamilyCollectionI18n.t(
+                    "books.list.status.borrowed"
+                )
         };
     }
 
@@ -1034,26 +1285,42 @@ function getStatus(book) {
         return {
             cardClass: "removed",
             textClass: "status-removed",
-            text: "📦 Polcról levéve"
+            text:
+                FamilyCollectionI18n.t(
+                    "books.list.status.removed"
+                )
         };
     }
 
     return {
         cardClass: "",
         textClass: "status-normal",
-        text: "📚 Polcon"
+        text:
+            FamilyCollectionI18n.t(
+                "books.list.status.on_shelf"
+            )
     };
 }
 
 function getLocation(book) {
     if (isBorrowed(book)) {
         return book.borrower
-            ? `Kölcsönadva: ${book.borrower}`
-            : "Kölcsönadva";
+            ? FamilyCollectionI18n.t(
+                "books.latest.borrowed_by",
+                {
+                    borrower:
+                        book.borrower
+                }
+            )
+            : FamilyCollectionI18n.t(
+                "books.status.borrowed"
+            );
     }
 
     if (isRemoved(book)) {
-        return "Polcról levéve";
+        return FamilyCollectionI18n.t(
+            "books.status.removed"
+        );
     }
 
     const parts = [];
@@ -1062,21 +1329,33 @@ function getLocation(book) {
         parts.push(book.room);
     }
 
-    if (book.shelf && book.shelf !== "-") {
+    if (
+        book.shelf
+        && book.shelf !== "-"
+    ) {
         parts.push(book.shelf);
     }
 
-if (
-    book.slot !== null &&
-    book.slot !== undefined &&
-    book.slot !== ""
-) {
-    parts.push(`${book.slot}. hely`);
-}
+    if (
+        book.slot !== null
+        && book.slot !== undefined
+        && book.slot !== ""
+    ) {
+        parts.push(
+            FamilyCollectionI18n.t(
+                "books.latest.slot",
+                {
+                    slot: book.slot
+                }
+            )
+        );
+    }
 
     return parts.length
         ? parts.join(" / ")
-        : "Nincs megadva";
+        : FamilyCollectionI18n.t(
+            "books.latest.location_missing"
+        );
 }
 
 async function loadAuthorizationContext() {
@@ -1158,11 +1437,15 @@ async function loadBooks(page = currentPage) {
         );
     }
 
-    list.innerHTML = `
-        <div class="empty">
-            Könyvek betöltése...
-        </div>
-    `;
+list.innerHTML = `
+    <div class="empty">
+        ${escapeHtml(
+            FamilyCollectionI18n.t(
+                "books.list.loading"
+            )
+        )}
+    </div>
+`;
 
     try {
         const response = await fetch(
@@ -1181,9 +1464,11 @@ async function loadBooks(page = currentPage) {
             !data ||
             !Array.isArray(data.books)
         ) {
-            throw new Error(
-                "A szerver hibás könyvlista-választ adott."
-            );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.invalid_response"
+    )
+);
         }
 
         allBooks = data.books;
@@ -1219,17 +1504,24 @@ async function loadBooks(page = currentPage) {
         renderPagination();
 
     } catch (error) {
-        console.error(
-            "Betöltési hiba:",
-            error
-        );
+console.error(
+    "Book list load error:",
+    error
+);
 
-        list.innerHTML = `
-            <div class="error">
-                Nem sikerült betölteni a könyveket:
-                ${escapeHtml(error.message)}
-            </div>
-        `;
+list.innerHTML = `
+    <div class="error">
+        ${escapeHtml(
+            FamilyCollectionI18n.t(
+                "books.list.load_failed",
+                {
+                    message:
+                        error.message
+                }
+            )
+        )}
+    </div>
+`;
 
         totalBooks = 0;
         totalPages = 1;
@@ -1258,19 +1550,37 @@ const lastRecord =
 
 if (currentSearch.trim()) {
     summary.textContent =
-        `${totalBooks} találat – ` +
-        `${firstRecord}–${lastRecord}. rekord`;
+        FamilyCollectionI18n.t(
+            "books.list.summary.search",
+            {
+                total: totalBooks,
+                first: firstRecord,
+                last: lastRecord
+            }
+        );
 } else {
     summary.textContent =
-        `${totalBooks} könyvpéldány – ` +
-        `${firstRecord}–${lastRecord}. rekord`;
+        FamilyCollectionI18n.t(
+            "books.list.summary.all",
+            {
+                total: totalBooks,
+                first: firstRecord,
+                last: lastRecord
+            }
+        );
 }
 
     list.innerHTML = "";
 
     if (!books.length) {
-        list.innerHTML =
-            '<div class="empty">Nincs a keresésnek megfelelő könyv.</div>';
+list.innerHTML =
+    '<div class="empty">'
+    + escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.empty"
+        )
+    )
+    + '</div>';
 
         return;
     }
@@ -1299,12 +1609,17 @@ if (currentSearch.trim()) {
                                 primaryThumbnailUrl
                             )}"
                             alt="${escapeHtml(
-                                (
-                                    book.title
-                                    || book.isbn
-                                    || "Könyv"
-                                )
-                                + " borítóképe"
+FamilyCollectionI18n.t(
+    "books.latest.cover_alt",
+    {
+        title:
+            book.title
+            || book.isbn
+            || FamilyCollectionI18n.t(
+                "books.common.book"
+            )
+    }
+)
                             )}"
                             loading="lazy"
                         >
@@ -1323,9 +1638,13 @@ if (currentSearch.trim()) {
                                 📕
                             </div>
 
-                            <div>
-                                Nincs borítókép
-                            </div>
+<div>
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.no_cover"
+        )
+    )}
+</div>
                         </div>
                     </div>
                 `;
@@ -1339,21 +1658,29 @@ if (currentSearch.trim()) {
         const actionButtonsHtml =
             canEditBooks
                 ? `
-                    <button
-                        type="button"
-                        class="edit"
-                        onclick="editBook(${bookId})"
-                    >
-                        ✏️ Szerkesztés
-                    </button>
+<button
+    type="button"
+    class="edit"
+    onclick="editBook(${bookId})"
+>
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.edit_button"
+        )
+    )}
+</button>
 
-                    <button
-                        type="button"
-                        class="del"
-                        onclick="deleteBook(${bookId})"
-                    >
-                        🗑️ Törlés
-                    </button>
+<button
+    type="button"
+    class="del"
+    onclick="deleteBook(${bookId})"
+>
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.delete_button"
+        )
+    )}
+</button>
                 `
                 : "";
 
@@ -1366,9 +1693,11 @@ if (currentSearch.trim()) {
                     <div class="title-row">
                         <div class="title">
                             ${escapeHtml(
-                                book.title ||
-                                book.isbn ||
-                                "Névtelen könyv"
+book.title
+|| book.isbn
+|| FamilyCollectionI18n.t(
+    "books.latest.untitled"
+)
                             )}
                         </div>
 
@@ -1381,9 +1710,13 @@ if (currentSearch.trim()) {
 
                     <div class="grid">
                         <div>
-                            <span class="label">
-                                Egyedi index:
-                            </span>
+<span class="label">
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.field.unique_index"
+        )
+    )}
+</span>
                             ${escapeHtml(
                                 book.id ?? "-"
                             )}
@@ -1399,27 +1732,39 @@ if (currentSearch.trim()) {
                         </div>
 
                         <div>
-                            <span class="label">
-                                Kiadó:
-                            </span>
+<span class="label">
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.field.publisher"
+        )
+    )}
+</span>
                             ${escapeHtml(
                                 book.publisher || "-"
                             )}
                         </div>
 
                         <div>
-                            <span class="label">
-                                Kiadás éve:
-                            </span>
+<span class="label">
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.field.publish_year"
+        )
+    )}
+</span>
                             ${escapeHtml(
                                 book.year || "-"
                             )}
                         </div>
 
                         <div>
-                            <span class="label">
-                                Felvéve:
-                            </span>
+<span class="label">
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.field.added"
+        )
+    )}
+</span>
                             ${escapeHtml(
                                 formatDate(
                                     book.added
@@ -1431,9 +1776,13 @@ if (currentSearch.trim()) {
                     <div class="book-card-mobile-bottom">
                         <div class="location">
                             <div>
-                                <span class="label">
-                                    Hely:
-                                </span>
+<span class="label">
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.field.location"
+        )
+    )}
+</span>
                                 ${escapeHtml(
                                     getLocation(book)
                                 )}
@@ -1449,21 +1798,29 @@ if (currentSearch.trim()) {
                         </div>
 
                         <div class="actions">
-                            <button
-                                type="button"
-                                class="edit"
-                                onclick="editBook(${bookId})"
-                            >
-                                ✏️ Szerkesztés
-                            </button>
+<button
+    type="button"
+    class="edit"
+    onclick="editBook(${bookId})"
+>
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.edit_button"
+        )
+    )}
+</button>
 
-                            <button
-                                type="button"
-                                class="del"
-                                onclick="deleteBook(${bookId})"
-                            >
-                                🗑️ Törlés
-                            </button>
+<button
+    type="button"
+    class="del"
+    onclick="deleteBook(${bookId})"
+>
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.delete_button"
+        )
+    )}
+</button>
                         </div>
                     </div>
 
@@ -1498,8 +1855,14 @@ function renderPagination() {
         currentPage >= totalPages ||
         totalBooks === 0;
 
-    pageInfo.textContent =
-        `${currentPage} / ${totalPages}. oldal`;
+pageInfo.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.page_info",
+        {
+            current: currentPage,
+            total: totalPages
+        }
+    );
 }
 
 /* -----------------------
@@ -1508,21 +1871,32 @@ function renderPagination() {
 
 async function deleteBook(id) {
     if (!canEditBooks) {
-        alert(
-            "Ehhez a művelethez szerkesztői jogosultság szükséges."
-        );
+alert(
+    FamilyCollectionI18n.t(
+        "books.list.delete.permission_required"
+    )
+);
 
         return;
     }
 
     if (!Number.isInteger(id) || id <= 0) {
-        alert("Hibás könyvindex.");
+alert(
+    FamilyCollectionI18n.t(
+        "books.list.delete.invalid_id"
+    )
+);
         return;
     }
 
-    if (!confirm(
-        `Biztosan törlöd a(z) ${id}. indexű könyvpéldányt?`
-    )) {
+if (!confirm(
+    FamilyCollectionI18n.t(
+        "books.list.delete.confirm",
+        {
+            id: id
+        }
+    )
+)) {
         return;
     }
 
@@ -1539,24 +1913,40 @@ async function deleteBook(id) {
             );
         }
 
-        if (data.status === "error") {
-            throw new Error(
-                data.message || "Ismeretlen törlési hiba."
-            );
-        }
+if (data.status === "error") {
+    throw new Error(
+        data.message
+        || FamilyCollectionI18n.t(
+            "books.list.delete.unknown_error"
+        )
+    );
+}
 
-        if (data.status === "not_found") {
-            throw new Error(
-                "A könyv már nem található az adatbázisban."
-            );
-        }
+if (data.status === "not_found") {
+    throw new Error(
+        FamilyCollectionI18n.t(
+            "books.list.delete.not_found"
+        )
+    );
+}
 
         await loadBooks();
 
-    } catch (error) {
-        console.error("Törlési hiba:", error);
-        alert(`Törlési hiba: ${error.message}`);
-    }
+} catch (error) {
+    console.error(
+        "Book deletion error:",
+        error
+    );
+
+    alert(
+        FamilyCollectionI18n.t(
+            "books.list.delete.error",
+            {
+                message: error.message
+            }
+        )
+    );
+}
 }
 
 /* -----------------------
@@ -1628,9 +2018,11 @@ const response = await fetch(
         !data
         || !Array.isArray(data.locations)
     ) {
-        throw new Error(
-            "A szerver hibás tárhelyfa-választ adott."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.storage.invalid_response"
+    )
+);
     }
 
 editorStorageLocations =
@@ -1702,8 +2094,11 @@ function filterEditorStorageOptions() {
             continue;
         }
 
-        const rootName =
-            location.root_name || "Egyéb";
+const rootName =
+    location.root_name
+    || FamilyCollectionI18n.t(
+        "common.other"
+    );
 
         if (!locationsByRoot.has(rootName)) {
             locationsByRoot.set(
@@ -1750,16 +2145,20 @@ function filterEditorStorageOptions() {
                     )
                     .join(" / ");
 
-            option.textContent =
-                location.is_active
-                    ? (
-                        relativePath
-                        || location.name
-                    )
-                    : (
-                        `${relativePath || location.name}`
-                        + " — inaktív"
-                    );
+option.textContent =
+    location.is_active
+        ? (
+            relativePath
+            || location.name
+        )
+        : FamilyCollectionI18n.t(
+            "books.list.storage.inactive",
+            {
+                name:
+                    relativePath
+                    || location.name
+            }
+        );
 
             option.disabled =
                 !location.is_active;
@@ -1831,6 +2230,19 @@ const editImageGallery =
 editImageGallery.addEventListener(
     "click",
     async event => {
+const previewImage =
+    event.target.closest(
+        ".edit-image-preview img"
+    );
+
+if (previewImage) {
+    openImageLightbox(
+        previewImage.src,
+        previewImage.alt
+    );
+
+    return;
+}
         const button =
             event.target.closest(
                 "[data-image-id][data-action]"
@@ -1902,6 +2314,22 @@ editImageGallery.addEventListener(
     }
 );
 
+imageLightboxClose.addEventListener(
+    "click",
+    closeImageLightbox
+);
+
+imageLightbox.addEventListener(
+    "click",
+    event => {
+        if (
+            event.target === imageLightbox
+        ) {
+            closeImageLightbox();
+        }
+    }
+);
+
 const editImageCameraButton =
     document.getElementById(
         "editImageCameraButton"
@@ -1964,15 +2392,21 @@ editImageFilesInput.addEventListener(
 
 async function editBook(id) {
     if (!canEditBooks) {
-        alert(
-            "Ehhez a művelethez szerkesztői jogosultság szükséges."
-        );
+alert(
+    FamilyCollectionI18n.t(
+        "books.list.edit.permission_required"
+    )
+);
 
         return;
     }
 
     if (!Number.isInteger(id) || id <= 0) {
-        alert("Hibás könyvindex.");
+alert(
+    FamilyCollectionI18n.t(
+        "books.list.edit.invalid_id"
+    )
+);
         return;
     }
 
@@ -2002,17 +2436,20 @@ filterEditorStorageOptions();
             book.status === "error" ||
             book.status === "not_found"
         ) {
-            throw new Error(
-                book.message ||
-                "A könyv nem található."
-            );
+throw new Error(
+    book.message
+    || FamilyCollectionI18n.t(
+        "books.list.edit.not_found"
+    )
+);
         }
 
         if (!book.public_id) {
-            throw new Error(
-                "A könyvhöz nem tartozik modern "
-                + "gyűjteményi azonosító."
-            );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.edit.missing_public_id"
+    )
+);
         }
 
         document.getElementById("editId").value =
@@ -2023,10 +2460,12 @@ filterEditorStorageOptions();
             .value =
                 book.public_id || "";
 
-        document
-            .getElementById("editImageStatus")
-            .textContent =
-                "Képek betöltése...";
+document
+    .getElementById("editImageStatus")
+    .textContent =
+        FamilyCollectionI18n.t(
+            "books.list.images.loading"
+        );
 
         await refreshEditorImages();
 
@@ -2060,10 +2499,11 @@ filterEditorStorageOptions();
         .getElementById("editLocation")
         .value
 ) {
-    throw new Error(
-        "A könyv jelenlegi tárhelye "
-        + "nem található az aktív tárhelyfában."
-    );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.edit.storage_missing"
+    )
+);
 }
 
 
@@ -2080,14 +2520,19 @@ filterEditorStorageOptions();
             .style.display = "block";
 
     } catch (error) {
-        console.error(
-            "Szerkesztési hiba:",
-            error
-        );
+console.error(
+    "Book edit error:",
+    error
+);
 
-        alert(
-            `Szerkesztési hiba: ${error.message}`
-        );
+alert(
+    FamilyCollectionI18n.t(
+        "books.list.edit.error",
+        {
+            message: error.message
+        }
+    )
+);
     }
 }
 
@@ -2104,9 +2549,11 @@ async function loadEditorImages(
         );
 
     if (!response.ok) {
-        throw new Error(
-            "A képek nem tölthetők be."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.images.load_failed"
+    )
+);
     }
 
     return await response.json();
@@ -2120,9 +2567,11 @@ async function refreshEditorImages() {
             .trim();
 
     if (!itemPublicId) {
-        throw new Error(
-            "Hiányzik a gyűjteményi elem azonosítója."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.images.missing_item_id"
+    )
+);
     }
 
     const images =
@@ -2159,9 +2608,11 @@ async function uploadEditorImageFiles(
             .trim();
 
     if (!itemPublicId) {
-        throw new Error(
-            "Hiányzik a gyűjteményi elem azonosítója."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.images.missing_item_id"
+    )
+);
     }
 
     const statusElement =
@@ -2186,9 +2637,14 @@ async function uploadEditorImageFiles(
 
     try {
         for (const file of files) {
-            statusElement.textContent =
-                `Feltöltés: ${uploadedCount + 1}`
-                + ` / ${files.length}`;
+statusElement.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.upload_progress",
+        {
+            current: uploadedCount + 1,
+            total: files.length
+        }
+    );
 
             const formData =
                 new FormData();
@@ -2226,25 +2682,33 @@ async function uploadEditorImageFiles(
             uploadedCount += 1;
         }
 
-        statusElement.textContent =
-            uploadedCount === 1
-                ? "✅ A kép feltöltve."
-                : (
-                    `✅ ${uploadedCount} kép `
-                    + "feltöltve."
-                );
+statusElement.textContent =
+    uploadedCount === 1
+        ? FamilyCollectionI18n.t(
+            "books.list.images.upload_success_one"
+        )
+        : FamilyCollectionI18n.t(
+            "books.list.images.upload_success_many",
+            {
+                count: uploadedCount
+            }
+        );
 
         await refreshEditorImages();
 
     } catch (error) {
-        console.error(
-            "Képfeltöltési hiba:",
-            error
-        );
+console.error(
+    "Image upload error:",
+    error
+);
 
-        statusElement.textContent =
-            `❌ Képfeltöltési hiba: `
-            + error.message;
+statusElement.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.upload_error",
+        {
+            message: error.message
+        }
+    );
 
     } finally {
         cameraButton.disabled = false;
@@ -2256,9 +2720,11 @@ async function setEditorPrimaryImage(
     imagePublicId
 ) {
     if (!imagePublicId) {
-        throw new Error(
-            "Hiányzik a kép azonosítója."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.images.missing_image_id"
+    )
+);
     }
 
     const statusElement =
@@ -2266,8 +2732,10 @@ async function setEditorPrimaryImage(
             "editImageStatus"
         );
 
-    statusElement.textContent =
-        "Borítókép beállítása...";
+statusElement.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.setting_primary"
+    );
 
     try {
         const response =
@@ -2302,18 +2770,24 @@ async function setEditorPrimaryImage(
 
         await refreshEditorImages();
 
-        statusElement.textContent =
-            "✅ Borítókép beállítva.";
+statusElement.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.primary_set"
+    );
 
     } catch (error) {
-        console.error(
-            "Borítókép-beállítási hiba:",
-            error
-        );
+console.error(
+    "Primary image update error:",
+    error
+);
 
-        statusElement.textContent =
-            "❌ Borítókép-beállítási hiba: "
-            + error.message;
+statusElement.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.primary_error",
+        {
+            message: error.message
+        }
+    );
     }
 }
 
@@ -2322,18 +2796,22 @@ async function moveEditorImage(
     direction
 ) {
     if (!imagePublicId) {
-        throw new Error(
-            "Hiányzik a kép azonosítója."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.images.missing_image_id"
+    )
+);
     }
 
     if (
         direction !== "left"
         && direction !== "right"
     ) {
-        throw new Error(
-            "Érvénytelen mozgatási irány."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.images.invalid_move_direction"
+    )
+);
     }
 
     const currentIndex =
@@ -2344,18 +2822,22 @@ async function moveEditorImage(
         );
 
     if (currentIndex < 0) {
-        throw new Error(
-            "A mozgatandó kép nem található."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.images.move_not_found"
+    )
+);
     }
 
     const currentImage =
         editorImages[currentIndex];
 
     if (currentImage.is_primary) {
-        throw new Error(
-            "A borítókép helye nem módosítható."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.images.primary_move_forbidden"
+    )
+);
     }
 
     const firstMovableIndex =
@@ -2393,8 +2875,10 @@ async function moveEditorImage(
             "editImageStatus"
         );
 
-    statusElement.textContent =
-        "Képsorrend mentése...";
+statusElement.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.order_saving"
+    );
 
     try {
         for (
@@ -2450,20 +2934,26 @@ async function moveEditorImage(
 
         await refreshEditorImages();
 
-        statusElement.textContent =
-            "✅ Képsorrend elmentve.";
+statusElement.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.order_saved"
+    );
 
         return true;
 
     } catch (error) {
-        console.error(
-            "Képsorrend-mentési hiba:",
-            error
-        );
+console.error(
+    "Image order save error:",
+    error
+);
 
-        statusElement.textContent =
-            "❌ Képsorrend-mentési hiba: "
-            + error.message;
+statusElement.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.order_error",
+        {
+            message: error.message
+        }
+    );
 
         /*
          * Hiba esetén visszatöltjük a szerveren
@@ -2472,10 +2962,10 @@ async function moveEditorImage(
         try {
             await refreshEditorImages();
         } catch (refreshError) {
-            console.error(
-                "Galériafrissítési hiba:",
-                refreshError
-            );
+console.error(
+    "Gallery refresh error:",
+    refreshError
+);
         }
 
         return false;
@@ -2486,14 +2976,18 @@ async function deleteEditorImage(
     imagePublicId
 ) {
     if (!imagePublicId) {
-        throw new Error(
-            "Hiányzik a kép azonosítója."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.images.missing_image_id"
+    )
+);
     }
 
-    const confirmed = window.confirm(
-        "Biztosan törlöd ezt a képet?"
-    );
+const confirmed = window.confirm(
+    FamilyCollectionI18n.t(
+        "books.list.images.delete_confirm"
+    )
+);
 
     if (!confirmed) {
         return false;
@@ -2504,8 +2998,10 @@ async function deleteEditorImage(
             "editImageStatus"
         );
 
-    statusElement.textContent =
-        "Kép törlése...";
+statusElement.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.deleting"
+    );
 
     try {
         const response =
@@ -2536,19 +3032,25 @@ async function deleteEditorImage(
 
         await refreshEditorImages();
 
-        statusElement.textContent =
-            "✅ A kép törölve.";
+statusElement.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.deleted"
+    );
         return true;
 
     } catch (error) {
-        console.error(
-            "Képtörlési hiba:",
-            error
-        );
+console.error(
+    "Image deletion error:",
+    error
+);
 
-        statusElement.textContent =
-            "❌ Képtörlési hiba: "
-            + error.message;
+statusElement.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.delete_error",
+        {
+            message: error.message
+        }
+    );
         return false;
     }
 }
@@ -2565,9 +3067,13 @@ function showEditorImageEmptyState() {
                     🖼️
                 </div>
 
-                <div>
-                    Még nincs kép ehhez a könyvhöz.
-                </div>
+<div>
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.images.empty"
+        )
+    )}
+</div>
             </div>
         `;
 }
@@ -2578,8 +3084,13 @@ function updateEditorImageCount(
 ) {
     document
         .getElementById("editImageCount")
-        .textContent =
-            `${imageCount} kép`;
+.textContent =
+    FamilyCollectionI18n.t(
+        "books.list.images.count",
+        {
+            count: imageCount
+        }
+    );
 }
 
 function renderEditorImages(
@@ -2591,9 +3102,11 @@ function renderEditorImages(
         );
 
     if (!Array.isArray(images)) {
-        throw new Error(
-            "A képlista formátuma hibás."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.list.images.invalid_list"
+    )
+);
     }
 
     editorImages = [
@@ -2621,18 +3134,24 @@ function renderEditorImages(
                 !image.is_primary
                 && imageIndex
                     < images.length - 1;
-            const caption =
-                image.caption?.trim()
-                || "Kép";
+const caption =
+    image.caption?.trim()
+    || FamilyCollectionI18n.t(
+        "books.list.images.default_caption"
+    );
 
-            const primaryBadge =
-                image.is_primary
-                ? `
-                    <div class="edit-image-primary">
-                        Elsődleges
-                    </div>
-                `
-                : "";
+const primaryBadge =
+    image.is_primary
+        ? `
+            <div class="edit-image-primary">
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "books.list.images.primary_badge"
+                    )
+                )}
+            </div>
+        `
+        : "";
 
             return `
                 <article class="edit-image-card">
@@ -2671,9 +3190,17 @@ function renderEditorImages(
         )}"
         data-action="move-left"
         ${canMoveLeft ? "" : "disabled"}
-        title="Mozgatás balra"
-    >
-        ← Balra
+title="${escapeHtml(
+    FamilyCollectionI18n.t(
+        "books.images.move_left"
+    )
+)}"
+>
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.images.move_left_button"
+        )
+    )}
     </button>
 
     <button
@@ -2684,9 +3211,17 @@ function renderEditorImages(
         )}"
         data-action="move-right"
         ${canMoveRight ? "" : "disabled"}
-        title="Mozgatás jobbra"
-    >
-        Jobbra →
+title="${escapeHtml(
+    FamilyCollectionI18n.t(
+        "books.images.move_right"
+    )
+)}"
+>
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.list.images.move_right_button"
+        )
+    )}
     </button>
 <button
     type="button"
@@ -2697,11 +3232,17 @@ function renderEditorImages(
     data-action="primary"
     ${image.is_primary ? "disabled" : ""}
 >
-    ${
+${
+    escapeHtml(
         image.is_primary
-            ? "⭐ Jelenlegi borítókép"
-            : "⭐ Legyen borítókép"
-    }
+            ? FamilyCollectionI18n.t(
+                "books.list.images.current_primary"
+            )
+            : FamilyCollectionI18n.t(
+                "books.list.images.make_primary"
+            )
+    )
+}
 </button>
 
     <button
@@ -2710,7 +3251,11 @@ function renderEditorImages(
         data-image-id="${image.public_id}"
         data-action="delete"
     >
-        🗑 Törlés
+${escapeHtml(
+    FamilyCollectionI18n.t(
+        "books.list.images.delete_button"
+    )
+)}
     </button>
 </div>
                 </article>
@@ -2769,21 +3314,27 @@ const isBorrowed =
             .value
             .trim();
 
-    if (!isbn) {
-        editStatus.textContent =
-            "❌ Az ISBN nem lehet üres.";
-        return;
-    }
+if (!isbn) {
+    editStatus.textContent =
+        FamilyCollectionI18n.t(
+            "books.list.edit.isbn_required"
+        );
+    return;
+}
 
-    if (!title) {
-        editStatus.textContent =
-            "❌ A cím nem lehet üres.";
-        return;
-    }
+if (!title) {
+    editStatus.textContent =
+        FamilyCollectionI18n.t(
+            "books.list.edit.title_required"
+        );
+    return;
+}
 
 if (!storagePublicId) {
     editStatus.textContent =
-        "❌ Válassz tárhelyet.";
+        FamilyCollectionI18n.t(
+            "books.list.edit.storage_required"
+        );
     return;
 }
 
@@ -2793,13 +3344,18 @@ if (!storagePublicId) {
             .value
             .trim();
 
-    if (isBorrowed && !borrower) {
-        editStatus.textContent =
-            "❌ Add meg, kinél van a könyv.";
-        return;
-    }
+if (isBorrowed && !borrower) {
+    editStatus.textContent =
+        FamilyCollectionI18n.t(
+            "books.list.edit.borrower_required"
+        );
+    return;
+}
 
-    editStatus.textContent = "Mentés...";
+editStatus.textContent =
+    FamilyCollectionI18n.t(
+        "common.saving"
+    );
 
     try {
         const response =
@@ -2862,22 +3418,32 @@ storage_public_id:
             );
         }
 
-        if (data.status === "not_found") {
-            throw new Error(
-                "A könyv nem található."
-            );
-        }
+if (data.status === "not_found") {
+    throw new Error(
+        FamilyCollectionI18n.t(
+            "books.list.edit.not_found"
+        )
+    );
+}
 
         closeEditor();
 
         await loadBooks();
 
-    } catch (error) {
-        console.error("Mentési hiba:", error);
+} catch (error) {
+    console.error(
+        "Book save error:",
+        error
+    );
 
-        editStatus.textContent =
-            `❌ ${error.message}`;
-    }
+    editStatus.textContent =
+        FamilyCollectionI18n.t(
+            "books.list.edit.save_error",
+            {
+                message: error.message
+            }
+        );
+}
 }
 
 /* -----------------------
@@ -2901,9 +3467,20 @@ document
 document.addEventListener(
     "keydown",
     event => {
-        if (event.key === "Escape") {
-            closeEditor();
+        if (event.key !== "Escape") {
+            return;
         }
+
+        if (
+            imageLightbox.classList.contains(
+                "open"
+            )
+        ) {
+            closeImageLightbox();
+            return;
+        }
+
+        closeEditor();
     }
 );
 
@@ -2972,10 +3549,10 @@ async function initializeBooksPage() {
         await loadBooks();
 
     } catch (error) {
-        console.error(
-            "Könyvlista inicializálási hiba:",
-            error
-        );
+console.error(
+    "Book list initialization error:",
+    error
+);
 
         const list =
             document.getElementById(
@@ -2983,12 +3560,15 @@ async function initializeBooksPage() {
             );
 
         if (list) {
-            list.innerHTML = `
-                <div class="empty">
-                    ❌ Nem sikerült betölteni
-                    a jogosultsági adatokat.
-                </div>
-            `;
+list.innerHTML = `
+    <div class="empty">
+        ${escapeHtml(
+            FamilyCollectionI18n.t(
+                "books.list.permissions_load_failed"
+            )
+        )}
+    </div>
+`;
         }
     }
 }
