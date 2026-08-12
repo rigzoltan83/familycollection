@@ -238,21 +238,31 @@ function renderPendingBookImages() {
         return;
     }
 
-    pendingBookImageCount.textContent =
-        `${pendingBookImages.length} kép kiválasztva`;
+pendingBookImageCount.textContent =
+    FamilyCollectionI18n.t(
+        "books.images.count",
+        {
+            count:
+                pendingBookImages.length
+        }
+    );
 
     pendingBookImagesClearButton.disabled =
         pendingBookImages.length === 0;
 
     if (pendingBookImages.length === 0) {
-        pendingBookImagePreview.innerHTML = `
-            <div
-                id="pendingBookImageEmpty"
-                class="pending-book-image-empty"
-            >
-                A könyvhöz még nincs kép kiválasztva.
-            </div>
-        `;
+pendingBookImagePreview.innerHTML = `
+    <div
+        id="pendingBookImageEmpty"
+        class="pending-book-image-empty"
+    >
+        ${escapeHtml(
+            FamilyCollectionI18n.t(
+                "books.images.empty"
+            )
+        )}
+    </div>
+`;
 
         return;
     }
@@ -273,9 +283,14 @@ function renderPendingBookImages() {
                     >
                         <img
                             src="${escapeHtml(previewUrl)}"
-                            alt="Kiválasztott kép ${
-                                index + 1
-                            }"
+alt="${escapeHtml(
+    FamilyCollectionI18n.t(
+        "books.images.selected_alt",
+        {
+            number: index + 1
+        }
+    )
+)}"
                         >
 
 <div class="pending-book-image-order-actions">
@@ -285,7 +300,11 @@ function renderPendingBookImages() {
         data-pending-image-index="${index}"
         data-pending-image-action="left"
         ${index === 0 ? "disabled" : ""}
-        title="Mozgatás balra"
+title="${escapeHtml(
+    FamilyCollectionI18n.t(
+        "books.images.move_left"
+    )
+)}"
     >
         ←
     </button>
@@ -300,7 +319,11 @@ function renderPendingBookImages() {
                 ? "disabled"
                 : ""
         }
-        title="Mozgatás jobbra"
+title="${escapeHtml(
+    FamilyCollectionI18n.t(
+        "books.images.move_right"
+    )
+)}"
     >
         →
     </button>
@@ -312,10 +335,19 @@ function renderPendingBookImages() {
                                 pending-book-image-remove
                             "
                             data-pending-image-index="${index}"
-                            aria-label="${
-                                index + 1
-                            }. kép eltávolítása"
-                            title="Kép eltávolítása"
+aria-label="${escapeHtml(
+    FamilyCollectionI18n.t(
+        "books.images.remove_number",
+        {
+            number: index + 1
+        }
+    )
+)}"
+title="${escapeHtml(
+    FamilyCollectionI18n.t(
+        "books.images.remove"
+    )
+)}"
                         >
                             ×
                         </button>
@@ -540,9 +572,11 @@ async function prepareBookImageForUpload(
     if (!context) {
         imageBitmap.close();
 
-        throw new Error(
-            "A kép átméretezése nem sikerült."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.images.resize_failed"
+    )
+);
     }
 
     context.drawImage(
@@ -562,9 +596,11 @@ async function prepareBookImageForUpload(
                     result => {
                         if (!result) {
                             reject(
-                                new Error(
-                                    "A kép tömörítése nem sikerült."
-                                )
+new Error(
+    FamilyCollectionI18n.t(
+        "books.images.compress_failed"
+    )
+)
                             );
 
                             return;
@@ -606,9 +642,11 @@ async function uploadPendingBookImages(
         String(itemPublicId || "").trim();
 
     if (!normalizedItemPublicId) {
-        throw new Error(
-            "Hiányzik a létrehozott gyűjteményi elem azonosítója."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.images.missing_item_id"
+    )
+);
     }
 
     if (pendingBookImages.length === 0) {
@@ -709,17 +747,21 @@ async function uploadPendingBookImages(
 
             renderPendingBookImages();
 
-            throw new Error(
-                (
-                    data?.detail
-                    || data?.message
-                    || `HTTP ${response.status}`
-                )
-                + ` Feltöltve: ${uploadedCount}`
-                + ` / ${totalCount}.`
-                + ` Hátralévő: `
-                + `${pendingBookImages.length}.`
-            );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.images.upload_failed",
+        {
+            message:
+                data?.detail
+                || data?.message
+                || `HTTP ${response.status}`,
+            uploaded: uploadedCount,
+            total: totalCount,
+            remaining:
+                pendingBookImages.length
+        }
+    )
+);
         }
 
         uploadedCount += 1;
@@ -743,10 +785,11 @@ async function finishCreatedBookImages(
         ).trim();
 
     if (!itemPublicId) {
-        throw new Error(
-            "A könyv létrejött, de a szerver "
-            + "nem adott vissza public_id értéket."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.create.missing_public_id"
+    )
+);
     }
 
     const selectedImageCount =
@@ -761,11 +804,15 @@ async function finishCreatedBookImages(
 
     if (selectedImageCount > 0) {
         if (typeof updateStatus === "function") {
-            updateStatus(
-                `✅ Könyv felvéve. `
-                + `Képek feltöltése: 1`
-                + ` / ${selectedImageCount}...`
-            );
+updateStatus(
+    FamilyCollectionI18n.t(
+        "books.create.upload_progress",
+        {
+            current: 1,
+            total: selectedImageCount
+        }
+    )
+);
         }
 
         imageUploadResult =
@@ -779,12 +826,15 @@ async function finishCreatedBookImages(
                         typeof updateStatus
                         === "function"
                     ) {
-                        updateStatus(
-                            `✅ Könyv felvéve. `
-                            + `Képek feltöltése: `
-                            + `${currentIndex}`
-                            + ` / ${totalCount}...`
-                        );
+updateStatus(
+    FamilyCollectionI18n.t(
+        "books.create.upload_progress",
+        {
+            current: currentIndex,
+            total: totalCount
+        }
+    )
+);
                     }
                 }
             );
@@ -793,26 +843,33 @@ async function finishCreatedBookImages(
     const legacyBookId =
         data?.id;
 
-    const finalMessage =
-        imageUploadResult.uploadedCount > 0
-            ? (
-                `✅ Könyv felvéve. `
-                + `Egyedi index: ${legacyBookId}. `
-                + `${imageUploadResult.uploadedCount} `
-                + `kép feltöltve. `
-                + `Eredeti méret: `
-                + `${formatFileSize(
-                    imageUploadResult.originalBytes
-                )} → `
-                + `feltöltve: `
-                + `${formatFileSize(
-                    imageUploadResult.uploadedBytes
-                )}.`
-            )
-            : (
-                `✅ Könyv felvéve. `
-                + `Egyedi index: ${legacyBookId}`
-            );
+const finalMessage =
+    imageUploadResult.uploadedCount > 0
+        ? FamilyCollectionI18n.t(
+            "books.create.success_with_images",
+            {
+                id: legacyBookId,
+                count:
+                    imageUploadResult
+                        .uploadedCount,
+                originalSize:
+                    formatFileSize(
+                        imageUploadResult
+                            .originalBytes
+                    ),
+                uploadedSize:
+                    formatFileSize(
+                        imageUploadResult
+                            .uploadedBytes
+                    )
+            }
+        )
+        : FamilyCollectionI18n.t(
+            "books.create.success",
+            {
+                id: legacyBookId
+            }
+        );
 
     clearPendingBookImages();
 
@@ -905,10 +962,14 @@ function fillStorageSelect(selectElement) {
     const currentValue =
         selectElement.value;
 
-    selectElement.innerHTML =
-        '<option value="">'
-        + '-- válassz tárhelyet --'
-        + '</option>';
+selectElement.innerHTML =
+    '<option value="">'
+    + escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.storage.select"
+        )
+    )
+    + '</option>';
 
     const locationsByRoot = new Map();
 
@@ -917,8 +978,11 @@ function fillStorageSelect(selectElement) {
             continue;
         }
 
-        const rootName =
-            location.root_name || "Egyéb";
+const rootName =
+    location.root_name
+    || FamilyCollectionI18n.t(
+        "common.other"
+    );
 
         if (!locationsByRoot.has(rootName)) {
             locationsByRoot.set(
@@ -1026,18 +1090,26 @@ function isRemovedPlace(item) {
 }
 
 function getPlaceLabel(item) {
-    if (isBorrowedPlace(item)) {
-        return "Kölcsönadva";
-    }
-
-    if (isRemovedPlace(item)) {
-        return "Polcról levéve";
-    }
-
-    return (
-        `${item.room} / ${item.shelf} / ` +
-        `Tárhely ${item.slot}`
+if (isBorrowedPlace(item)) {
+    return FamilyCollectionI18n.t(
+        "books.status.borrowed"
     );
+}
+
+if (isRemovedPlace(item)) {
+    return FamilyCollectionI18n.t(
+        "books.status.removed"
+    );
+}
+
+return FamilyCollectionI18n.t(
+    "books.storage.location_label",
+    {
+        room: item.room,
+        shelf: item.shelf,
+        slot: item.slot
+    }
+);
 }
 
 
@@ -1060,9 +1132,11 @@ async function loadStorageTree() {
         !data ||
         !Array.isArray(data.locations)
     ) {
-        throw new Error(
-            "A storage/tree hibás választ adott."
-        );
+throw new Error(
+    FamilyCollectionI18n.t(
+        "books.storage.invalid_response"
+    )
+);
     }
 
     storageLocations =
@@ -1400,30 +1474,36 @@ const selected =
     selectedStorage(place);
 
 if (!storagePublicId || !selected) {
-        showStatus(
-            "❌ Először válassz tárhelyet.",
-            "error"
-        );
+showStatus(
+    FamilyCollectionI18n.t(
+        "books.validation.select_storage_first"
+    ),
+    "error"
+);
 
         place?.focus();
         return;
     }
 
     if (!cleanIsbn) {
-        showStatus(
-            "❌ Add meg az ISBN-t.",
-            "error"
-        );
+showStatus(
+    FamilyCollectionI18n.t(
+        "books.validation.isbn_required"
+    ),
+    "error"
+);
 
         isbn?.focus();
         return;
     }
 
     if (!/^\d{10}$|^\d{13}$/.test(cleanIsbn)) {
-        showStatus(
-            "❌ Az ISBN 10 vagy 13 számjegyből álljon.",
-            "error"
-        );
+showStatus(
+    FamilyCollectionI18n.t(
+        "books.validation.isbn_length"
+    ),
+    "error"
+);
 
         isbn?.focus();
         return;
@@ -1433,16 +1513,22 @@ if (!storagePublicId || !selected) {
         isBorrowedPlace(selected) &&
         !borrower?.value.trim()
     ) {
-        showStatus(
-            "❌ Add meg, kinél van a könyv.",
-            "error"
-        );
+showStatus(
+    FamilyCollectionI18n.t(
+        "books.validation.borrower_required"
+    ),
+    "error"
+);
 
         borrower?.focus();
         return;
     }
 
-    showStatus("Mentés...");
+showStatus(
+    FamilyCollectionI18n.t(
+        "common.saving"
+    )
+);
 
     if (saveButton) {
         saveButton.disabled = true;
@@ -1487,11 +1573,12 @@ openMissingMetadataModal({
                 )
             });
 
-            showStatus(
-                "⚠️ Nem találtam könyvadatokat. " +
-                "Add meg őket kézzel.",
-                "error"
-            );
+showStatus(
+    FamilyCollectionI18n.t(
+        "books.metadata.not_found"
+    ),
+    "error"
+);
 
             return;
         }
@@ -1533,15 +1620,21 @@ openMissingMetadataModal({
         await loadLatest();
 
     } catch (error) {
-        console.error(
-            "Mentési hiba:",
-            error
-        );
 
-        showStatus(
-            `❌ Mentési hiba: ${error.message}`,
-            "error"
-        );
+console.error(
+    "Book save error:",
+    error
+);
+
+showStatus(
+    FamilyCollectionI18n.t(
+        "books.save.error",
+        {
+            message: error.message
+        }
+    ),
+    "error"
+);
 
     } finally {
         if (saveButton) {
@@ -1595,10 +1688,14 @@ async function loadLatest() {
         latest.innerHTML = "";
 
         if (!books.length) {
-            latest.innerHTML =
-                '<div class="book">' +
-                'Még nincs felvett könyv.' +
-                '</div>';
+latest.innerHTML =
+    '<div class="book">'
+    + escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.latest.empty"
+        )
+    )
+    + '</div>';
 
             return;
         }
@@ -1624,12 +1721,17 @@ async function loadLatest() {
                                     primaryThumbnailUrl
                                 )}"
                                 alt="${escapeHtml(
-                                    (
-                                        book.title
-                                        || book.isbn
-                                        || "Könyv"
-                                    )
-                                    + " borítóképe"
+FamilyCollectionI18n.t(
+    "books.latest.cover_alt",
+    {
+        title:
+            book.title
+            || book.isbn
+            || FamilyCollectionI18n.t(
+                "books.common.book"
+            )
+    }
+)
                                 )}"
                                 loading="lazy"
                             >
@@ -1646,12 +1748,19 @@ async function loadLatest() {
                         </div>
                     `;
 
-            let locationText =
-                "Nincs megadva";
+let locationText =
+    FamilyCollectionI18n.t(
+        "books.latest.location_missing"
+    );
 
             if (book.borrower) {
-                locationText =
-                    `Kölcsönadva: ${book.borrower}`;
+locationText =
+    FamilyCollectionI18n.t(
+        "books.latest.borrowed_by",
+        {
+            borrower: book.borrower
+        }
+    );
 
             } else if (
                 normalizeText(book.room) ===
@@ -1659,8 +1768,10 @@ async function loadLatest() {
                 normalizeText(book.room) ===
                     normalizeText("Levéve")
             ) {
-                locationText =
-                    "Polcról levéve";
+locationText =
+    FamilyCollectionI18n.t(
+        "books.status.removed"
+    );
 
             } else {
                 const parts = [];
@@ -1678,7 +1789,12 @@ async function loadLatest() {
                     book.slot !== undefined
                 ) {
 parts.push(
-    `${book.slot}. hely`
+    FamilyCollectionI18n.t(
+        "books.latest.slot",
+        {
+            slot: book.slot
+        }
+    )
 );
                 }
 
@@ -1697,9 +1813,11 @@ parts.push(
 
                         <div class="book-title">
                             ${escapeHtml(
-                                book.title ||
-                                book.isbn ||
-                                "Névtelen könyv"
+book.title
+|| book.isbn
+|| FamilyCollectionI18n.t(
+    "books.latest.untitled"
+)
                             )}
                         </div>
 
@@ -1721,10 +1839,16 @@ parts.push(
                             ${escapeHtml(locationText)}
                         </div>
 
-                        <div class="book-date">
-                            Egyedi index:
-                            ${escapeHtml(book.id)}
-                        </div>
+<div class="book-date">
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.latest.unique_index",
+            {
+                id: book.id
+            }
+        )
+    )}
+</div>
 
                     </div>
 
@@ -1734,15 +1858,19 @@ parts.push(
         });
 
     } catch (error) {
-        console.error(
-            "Lista betöltési hiba:",
-            error
-        );
+console.error(
+    "Book list load error:",
+    error
+);
 
-        latest.innerHTML =
-            '<div class="book">' +
-            '❌ Nem sikerült betölteni a listát.' +
-            '</div>';
+latest.innerHTML =
+    '<div class="book">'
+    + escapeHtml(
+        FamilyCollectionI18n.t(
+            "books.latest.load_failed"
+        )
+    )
+    + '</div>';
     }
 }
 
@@ -1753,9 +1881,9 @@ parts.push(
 
 function openManualModal() {
     if (!manualModal) {
-        console.error(
-            "A manualModal elem hiányzik az index.html-ből."
-        );
+console.error(
+    "manualModal element is missing from index.html."
+);
         return;
     }
 
@@ -1808,31 +1936,39 @@ const selected =
     selectedStorage(manualLocation);
 
     if (!identifier) {
-        manualStatus.textContent =
-            "❌ Adj meg azonosítót vagy jelzetet.";
+manualStatus.textContent =
+    FamilyCollectionI18n.t(
+        "books.manual.identifier_required"
+    );
 
         manualIdentifier.focus();
         return;
     }
 
     if (!title) {
-        manualStatus.textContent =
-            "❌ Add meg a könyv címét.";
+manualStatus.textContent =
+    FamilyCollectionI18n.t(
+        "books.manual.title_required"
+    );
 
         manualTitle.focus();
         return;
     }
 
 if (!storagePublicId || !selected) {
-        manualStatus.textContent =
-            "❌ Válassz tárhelyet.";
-
-        manualLocation.focus();
-        return;
-    }
-
     manualStatus.textContent =
-        "Mentés...";
+        FamilyCollectionI18n.t(
+            "books.manual.storage_required"
+        );
+
+    manualLocation.focus();
+    return;
+}
+
+manualStatus.textContent =
+    FamilyCollectionI18n.t(
+        "common.saving"
+    );
 
     manualSaveButton.disabled =
         true;
@@ -1912,13 +2048,18 @@ storage_public_id:
         await loadLatest();
 
     } catch (error) {
-        console.error(
-            "Kézi könyvfelviteli hiba:",
-            error
-        );
+console.error(
+    "Manual book creation error:",
+    error
+);
 
-        manualStatus.textContent =
-            `❌ ${error.message}`;
+manualStatus.textContent =
+    FamilyCollectionI18n.t(
+        "books.manual.save_error",
+        {
+            message: error.message
+        }
+    );
 
     } finally {
         manualSaveButton.disabled =
@@ -2050,9 +2191,9 @@ async function configureScannerCamera() {
             Quagga.CameraAccess.getActiveTrack();
 
         if (!track) {
-            console.warn(
-                "Nem található aktív kameratrack."
-            );
+console.warn(
+    "No active camera track found."
+);
             return;
         }
 
@@ -2061,10 +2202,10 @@ async function configureScannerCamera() {
                 ? track.getCapabilities()
                 : {};
 
-        console.log(
-            "Kamera képességek:",
-            capabilities
-        );
+console.log(
+    "Camera capabilities:",
+    capabilities
+);
 
         const advancedConstraints = {};
 
@@ -2107,20 +2248,20 @@ async function configureScannerCamera() {
             });
         }
 
-        console.log(
-            "Kamera beállítások alkalmazva:",
-            advancedConstraints
-        );
+console.log(
+    "Camera settings applied:",
+    advancedConstraints
+);
 
     } catch (error) {
         /*
          * Nem állítjuk le a scannert, ha a telefon
          * nem támogatja valamelyik extra beállítást.
          */
-        console.warn(
-            "Kamera finomhangolás nem sikerült:",
-            error
-        );
+console.warn(
+    "Camera fine-tuning failed:",
+    error
+);
     }
 }
 
@@ -2130,10 +2271,12 @@ async function startLiveScanner() {
     }
 
     if (!window.Quagga) {
-        showStatus(
-            "❌ A Quagga2 könyvtár nem töltődött be.",
-            "error"
-        );
+showStatus(
+    FamilyCollectionI18n.t(
+        "books.scanner.library_missing"
+    ),
+    "error"
+);
 
         return;
     }
@@ -2179,7 +2322,9 @@ Object.assign(scannerModal.style, {
 scannerModal.scrollTop = 0;
 
 scannerStatus.textContent =
-    "Kamera indítása...";
+    FamilyCollectionI18n.t(
+        "books.scanner.starting"
+    );
 
     try {
         await new Promise((resolve, reject) => {
@@ -2257,22 +2402,32 @@ scannerStatus.textContent =
 
         scannerRunning = true;
 
-        scannerStatus.textContent =
-            "Kamera beállítása...";
+scannerStatus.textContent =
+    FamilyCollectionI18n.t(
+        "books.scanner.configuring"
+    );
 
         await configureScannerCamera();
 
-        scannerStatus.textContent =
-            "Keresem a könyv ISBN-vonalkódját...";
+scannerStatus.textContent =
+    FamilyCollectionI18n.t(
+        "books.scanner.searching_isbn"
+    );
 
     } catch (error) {
-        console.error(
-            "Kameraindítási hiba:",
-            error
-        );
+console.error(
+    "Camera startup error:",
+    error
+);
 
-        scannerStatus.textContent =
-            `❌ Kamerahiba: ${error.message || error}`;
+scannerStatus.textContent =
+    FamilyCollectionI18n.t(
+        "books.scanner.camera_error",
+        {
+            message:
+                error.message || error
+        }
+    );
 
         stopLiveScanner(false);
     }
@@ -2295,10 +2450,17 @@ function handleBarcodeDetected(result) {
         .trim();
 
     if (!isBookIsbn(code)) {
-        scannerStatus.textContent =
-            code
-                ? `Nem könyv-ISBN: ${code}`
-                : "Keresem a vonalkódot...";
+scannerStatus.textContent =
+    code
+        ? FamilyCollectionI18n.t(
+            "books.scanner.not_book_isbn",
+            {
+                code: code
+            }
+        )
+        : FamilyCollectionI18n.t(
+            "books.scanner.searching_barcode"
+        );
 
         return;
     }
@@ -2314,9 +2476,15 @@ function handleBarcodeDetected(result) {
         repeatedDetectionCount = 1;
     }
 
-    scannerStatus.textContent =
-        `Felismert ISBN: ${code} ` +
-        `(${repeatedDetectionCount}/2)`;
+scannerStatus.textContent =
+    FamilyCollectionI18n.t(
+        "books.scanner.detected_progress",
+        {
+            code: code,
+            count:
+                repeatedDetectionCount
+        }
+    );
 
     if (repeatedDetectionCount < 2) {
         return;
@@ -2326,10 +2494,15 @@ function handleBarcodeDetected(result) {
 
     isbn.value = code;
 
-    showStatus(
-        `✅ Felismert ISBN: ${code}`,
-        "success"
-    );
+showStatus(
+    FamilyCollectionI18n.t(
+        "books.scanner.detected",
+        {
+            code: code
+        }
+    ),
+    "success"
+);
 
     stopLiveScanner();
 
@@ -2358,10 +2531,10 @@ function stopLiveScanner(hideModal = true) {
         }
 
     } catch (error) {
-        console.warn(
-            "Scannerleállítási figyelmeztetés:",
-            error
-        );
+console.warn(
+    "Scanner shutdown warning:",
+    error
+);
     }
 
     scannerRunning = false;
@@ -2483,23 +2656,29 @@ const selected =
     );
 
     if (!title) {
-        missingMetadataStatus.textContent =
-            "❌ Add meg a könyv címét.";
+missingMetadataStatus.textContent =
+    FamilyCollectionI18n.t(
+        "books.manual.title_required"
+    );
 
         missingMetadataTitle.focus();
         return;
     }
 
 if (!storagePublicId || !selected) {
-        missingMetadataStatus.textContent =
-            "❌ Válassz tárhelyet.";
+missingMetadataStatus.textContent =
+    FamilyCollectionI18n.t(
+        "books.manual.storage_required"
+    );
 
         missingMetadataLocation.focus();
         return;
     }
 
-    missingMetadataStatus.textContent =
-        "Mentés...";
+missingMetadataStatus.textContent =
+    FamilyCollectionI18n.t(
+        "common.saving"
+    );
 
     missingMetadataSaveButton.disabled =
         true;
@@ -2599,13 +2778,18 @@ if (
         isbn.focus();
 
     } catch (error) {
-        console.error(
-            "Kézi metaadatmentési hiba:",
-            error
-        );
+console.error(
+    "Manual metadata save error:",
+    error
+);
 
-        missingMetadataStatus.textContent =
-            `❌ ${error.message}`;
+missingMetadataStatus.textContent =
+    FamilyCollectionI18n.t(
+        "books.metadata.save_error",
+        {
+            message: error.message
+        }
+    );
 
     } finally {
         missingMetadataSaveButton.disabled =
@@ -2715,10 +2899,10 @@ if (household.role === "viewer") {
         }
 
     } catch (error) {
-        console.error(
-            "Indítási jogosultsági hiba:",
-            error
-        );
+console.error(
+    "Startup authorization error:",
+    error
+);
 
         window.location.href =
             "/ui/dashboard.html";

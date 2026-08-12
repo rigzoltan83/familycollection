@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>A Rigó család könyvtára</title>
+<title data-i18n="books.page_title">
+    FamilyCollection – Books
+</title>
 
     <link rel="stylesheet" href="/ui/css/style.css">
 </head>
@@ -17,7 +19,9 @@
 
         <div class="modal-header">
 
-            <h2>Könyvadatok megadása</h2>
+<h2 data-i18n="books.metadata.title">
+    Enter book details
+</h2>
 
             <button
                 type="button"
@@ -28,10 +32,10 @@
 
         </div>
 
-        <p>
-            Ehhez az ISBN-hez nem találtam használható
-            könyvadatokat. Add meg kézzel:
-        </p>
+<p data-i18n="books.metadata.description">
+    No usable book metadata was found for this ISBN.
+    Enter the details manually:
+</p>
 
         <label for="missingMetadataIsbn">
             ISBN
@@ -42,36 +46,51 @@
             type="text"
             readonly>
 
-        <label for="missingMetadataTitle">
-            Cím
-        </label>
+<label
+    for="missingMetadataTitle"
+    data-i18n="books.field.title"
+>
+    Title
+</label>
 
-        <input
-            id="missingMetadataTitle"
-            type="text"
-            placeholder="Könyv címe">
+<input
+    id="missingMetadataTitle"
+    type="text"
+    data-i18n-placeholder="books.placeholder.title"
+    placeholder="Book title">
 
-        <label for="missingMetadataAuthor">
-            Szerző
-        </label>
+<label
+    for="missingMetadataAuthor"
+    data-i18n="books.field.author"
+>
+    Author
+</label>
 
-        <input
-            id="missingMetadataAuthor"
-            type="text"
-            placeholder="Szerző neve">
+<input
+    id="missingMetadataAuthor"
+    type="text"
+    data-i18n-placeholder="books.placeholder.author"
+    placeholder="Author name">
 
-        <label for="missingMetadataPublisher">
-            Kiadó
-        </label>
+<label
+    for="missingMetadataPublisher"
+    data-i18n="books.field.publisher"
+>
+    Publisher
+</label>
 
-        <input
-            id="missingMetadataPublisher"
-            type="text"
-            placeholder="Kiadó">
+<input
+    id="missingMetadataPublisher"
+    type="text"
+    data-i18n-placeholder="books.placeholder.publisher"
+    placeholder="Publisher">
 
-        <label for="missingMetadataYear">
-            Kiadás éve
-        </label>
+<label
+    for="missingMetadataYear"
+    data-i18n="books.field.publish_year"
+>
+    Publication year
+</label>
 
         <input
             id="missingMetadataYear"
@@ -79,44 +98,57 @@
             inputmode="numeric"
             placeholder="Pl. 1987">
 
-        <label for="missingMetadataLocation">
-            Tárhely
-        </label>
+<label
+    for="missingMetadataLocation"
+    data-i18n="books.field.storage"
+>
+    Storage location
+</label>
 
-        <select id="missingMetadataLocation">
-            <option value="">
-                -- válassz tárhelyet --
-            </option>
-        </select>
+<select id="missingMetadataLocation">
+    <option
+        value=""
+        data-i18n="books.storage.select"
+    >
+        -- select storage location --
+    </option>
+</select>
 
-        <div id="missingMetadataBorrowBox">
-            <label for="missingMetadataBorrower">
-                Kölcsönző neve
-            </label>
+<label
+    for="missingMetadataBorrower"
+    data-i18n="books.field.borrower"
+>
+    Borrower
+</label>
 
-            <input
-                id="missingMetadataBorrower"
-                type="text"
-                placeholder="Csak kölcsönadás esetén">
+<input
+    id="missingMetadataBorrower"
+    type="text"
+    data-i18n-placeholder="books.placeholder.borrower"
+    placeholder="Only when the book is loaned">
         </div>
 
         <div id="missingMetadataStatus"></div>
 
         <div class="modal-actions">
 
-            <button
-                type="button"
-                class="cancel-button"
-                id="missingMetadataCancelButton">
-                Mégse
-            </button>
+<button
+    type="button"
+    class="cancel-button"
+    id="missingMetadataCancelButton"
+    data-i18n="common.cancel"
+>
+    Cancel
+</button>
 
-            <button
-                type="button"
-                class="save-button"
-                id="missingMetadataSaveButton">
-                Mentés
-            </button>
+<button
+    type="button"
+    class="save-button"
+    id="missingMetadataSaveButton"
+    data-i18n="common.save"
+>
+    Save
+</button>
 
         </div>
 
@@ -135,13 +167,16 @@
 
         <div class="scanner-header">
 
-            <h2>📷 ISBN beolvasása</h2>
+<h2 data-i18n="books.scanner.title">
+    📷 Scan ISBN
+</h2>
 
             <button
                 id="closeScannerButton"
                 type="button"
                 class="scanner-close"
-                aria-label="Kamera bezárása">
+data-i18n-aria-label="books.scanner.close"
+aria-label="Close camera"
                 ×
             </button>
 
@@ -151,21 +186,29 @@
 
             <div id="scannerViewport"></div>
 
-            <div class="scanner-guide">
-                Tartsd a könyv EAN-13 vonalkódját vízszintesen
-                a piros keret közepére.
-            </div>
+<div
+    class="scanner-guide"
+    data-i18n="books.scanner.guide"
+>
+    Hold the book's EAN-13 barcode horizontally
+    in the center of the red frame.
+</div>
 
-            <div id="scannerStatus">
-                Kamera indítása...
-            </div>
+<div
+    id="scannerStatus"
+    data-i18n="books.scanner.starting"
+>
+    Starting camera...
+</div>
 
-            <button
-                id="stopScannerButton"
-                type="button"
-                class="scanner-stop">
-                Kamera bezárása
-            </button>
+<button
+    id="stopScannerButton"
+    type="button"
+    class="scanner-stop"
+    data-i18n="books.scanner.close"
+>
+    Close camera
+</button>
 
         </div>
 
@@ -184,98 +227,131 @@
 
         <div class="modal-header">
 
-            <h2>ISBN nélküli könyv felvitele</h2>
+<h2 data-i18n="books.manual.title">
+    Add book without ISBN
+</h2>
 
             <button
                 type="button"
                 class="modal-close"
                 id="manualCloseButton"
-                aria-label="Ablak bezárása">
+data-i18n-aria-label="common.close"
+aria-label="Close"
                 ×
             </button>
 
         </div>
 
-        <label for="manualIdentifier">
-            Azonosító / jelzet
-        </label>
+<label
+    for="manualIdentifier"
+    data-i18n="books.field.identifier"
+>
+    Identifier / call number
+</label>
 
-        <input
-            id="manualIdentifier"
-            type="text"
-            placeholder="Pl. MSZ 1234, leltári szám..."
-            autocomplete="off">
+<input
+    id="manualIdentifier"
+    type="text"
+    data-i18n-placeholder="books.placeholder.identifier"
+    placeholder="e.g. MSZ 1234, inventory number..."
+    autocomplete="off">
 
-        <label for="manualTitle">
-            Cím
-        </label>
+<label
+    for="manualTitle"
+    data-i18n="books.field.title"
+>
+    Title
+</label>
 
-        <input
-            id="manualTitle"
-            type="text"
-            placeholder="Könyv címe"
-            autocomplete="off">
+<input
+    id="manualTitle"
+    type="text"
+    data-i18n-placeholder="books.placeholder.title"
+    placeholder="Book title"
+    autocomplete="off">
 
-        <label for="manualAuthor">
-            Szerző
-        </label>
+<label
+    for="manualAuthor"
+    data-i18n="books.field.author"
+>
+    Author
+</label>
 
-        <input
-            id="manualAuthor"
-            type="text"
-            placeholder="Szerző neve"
-            autocomplete="off">
+<input
+    id="manualAuthor"
+    type="text"
+    data-i18n-placeholder="books.placeholder.author"
+    placeholder="Author name"
+    autocomplete="off">
 
-        <label for="manualPublisher">
-            Kiadó
-        </label>
+<label
+    for="manualPublisher"
+    data-i18n="books.field.publisher"
+>
+    Publisher
+</label>
 
-        <input
-            id="manualPublisher"
-            type="text"
-            placeholder="Kiadó"
-            autocomplete="off">
+<input
+    id="manualPublisher"
+    type="text"
+    data-i18n-placeholder="books.placeholder.publisher"
+    placeholder="Publisher"
+    autocomplete="off">
 
-        <label for="manualYear">
-            Kiadás éve
-        </label>
+<label
+    for="manualYear"
+    data-i18n="books.field.publish_year"
+>
+    Publication year
+</label>
 
-        <input
-            id="manualYear"
-            type="text"
-            inputmode="numeric"
-            placeholder="Pl. 1956"
-            autocomplete="off">
+<input
+    id="manualYear"
+    type="text"
+    inputmode="numeric"
+    data-i18n-placeholder="books.placeholder.year"
+    placeholder="e.g. 1956"
+    autocomplete="off">
 
-        <label for="manualLocation">
-            Tárhely
-        </label>
+<label
+    for="manualLocation"
+    data-i18n="books.field.storage"
+>
+    Storage location
+</label>
 
-        <select id="manualLocation">
-            <option value="">
-                -- válassz tárhelyet --
-            </option>
-        </select>
+<select id="manualLocation">
+    <option
+        value=""
+        data-i18n="books.storage.select"
+    >
+        -- select storage location --
+    </option>
+</select>
 
-        <div id="manualStatus"></div>
+<div id="manualStatus"></div>
 
-        <div class="modal-actions">
+<div class="modal-actions">
 
-            <button
-                type="button"
-                class="cancel-button"
-                id="manualCancelButton">
-                Mégse
-            </button>
+    <button
+        type="button"
+        class="cancel-button"
+        id="manualCancelButton"
+        data-i18n="common.cancel"
+    >
+        Cancel
+    </button>
 
-            <button
-                type="button"
-                class="save-button"
-                id="manualSaveButton">
-                Mentés
-            </button>
+    <button
+        type="button"
+        class="save-button"
+        id="manualSaveButton"
+        data-i18n="common.save"
+    >
+        Save
+    </button>
 
-        </div>
+</div>
 
     </div>
 
@@ -288,51 +364,79 @@
 
 <div class="container">
 
-    <h1>📚 A Rigó család könyvtára</h1>
+<div class="page-navigation">
+    <a
+        href="/ui/dashboard.html"
+        class="dashboard-back-button"
+        data-i18n="common.back_dashboard"
+    >
+        ← Dashboard
+    </a>
+</div>
+
+<h1 data-i18n="books.main.title">
+    📚 FamilyCollection Library
+</h1>
 
     <div class="menu">
 
-        <a href="/ui/books.html">
-            📖 Könyvek listája
-        </a>
+<a
+    href="/ui/books.html"
+    data-i18n="books.main.book_list"
+>
+    📖 Book list
+</a>
 
-        <a href="/export/books.csv">
-            ⬇️ Teljes adatbázis letöltése CSV-ben
-        </a>
+<a
+    href="/export/books.csv"
+    data-i18n="books.main.export_csv"
+>
+    ⬇️ Download complete database as CSV
+</a>
 
     </div>
 
 
     <div class="card">
 
-        <label for="place">
-            1. Könyv tárhelye
-        </label>
+<label
+    for="place"
+    data-i18n="books.main.storage"
+>
+    1. Book storage location
+</label>
 
         <select id="place">
-            <option value="">
-                -- válassz tárhelyet --
-            </option>
+<option
+    value=""
+    data-i18n="books.storage.select"
+>
+    -- select storage location --
+</option>
         </select>
 
 
         <div class="special-options">
 
-            <label class="check-label">
-                <input
-                    type="checkbox"
-                    id="removed">
+<label class="check-label">
+    <input
+        type="checkbox"
+        id="removed">
 
-                Polcról levéve
-            </label>
+    <span data-i18n="books.status.removed">
+        Removed from shelf
+    </span>
+</label>
 
-            <label class="check-label">
-                <input
-                    type="checkbox"
-                    id="borrowed">
+<label class="check-label">
+    <input
+        type="checkbox"
+        id="borrowed">
 
-                Kölcsönadva
-            </label>
+    <span data-i18n="books.status.borrowed">
+        Loaned
+    </span>
+</label>
 
         </div>
 
@@ -341,39 +445,49 @@
             id="borrowBox"
             style="display:none;">
 
-            <label for="borrower">
-                Kinek van kölcsönadva?
-            </label>
+<label
+    for="borrower"
+    data-i18n="books.main.borrower_question"
+>
+    Who has the book?
+</label>
 
-            <input
-                id="borrower"
-                type="text"
-                placeholder="Név..."
-                autocomplete="off">
+<input
+    id="borrower"
+    type="text"
+    data-i18n-placeholder="books.placeholder.borrower_name"
+    placeholder="Name..."
+    autocomplete="off">
 
         </div>
 
+<label
+    for="notes"
+    data-i18n="books.field.notes"
+>
+    Notes
+</label>
 
-        <label for="notes">
-            Megjegyzés
-        </label>
+<textarea
+    id="notes"
+    rows="2"
+    data-i18n-placeholder="books.placeholder.notes"
+    placeholder="Optional notes..."></textarea>
 
-        <textarea
-            id="notes"
-            rows="2"
-            placeholder="Opcionális megjegyzés..."></textarea>
+<label
+    for="isbn"
+    data-i18n="books.main.isbn"
+>
+    2. ISBN
+</label>
 
-
-        <label for="isbn">
-            2. ISBN
-        </label>
-
-        <input
-            id="isbn"
-            type="text"
-            inputmode="numeric"
-            placeholder="Írd be vagy olvasd be az ISBN-t..."
-            autocomplete="off">
+<input
+    id="isbn"
+    type="text"
+    inputmode="numeric"
+    data-i18n-placeholder="books.placeholder.isbn"
+    placeholder="Enter or scan the ISBN..."
+    autocomplete="off">
 
         <!-- ==================================================
              ÚJ KÖNYVHÖZ ELŐKÉSZÍTETT KÉPEK
@@ -384,53 +498,65 @@
             class="pending-book-image-section"
         >
             <div class="pending-book-image-header">
-                <strong>Képek</strong>
 
-                <span id="pendingBookImageCount">
-                    0 kép kiválasztva
-                </span>
+<strong data-i18n="books.images.title">
+    Images
+</strong>
+
+<span
+    id="pendingBookImageCount"
+    data-i18n="books.images.count_zero"
+>
+    0 images selected
+</span>
             </div>
 
             <div
                 id="pendingBookImagePreview"
                 class="pending-book-image-preview"
             >
-                <div
-                    id="pendingBookImageEmpty"
-                    class="pending-book-image-empty"
-                >
-                    A könyvhöz még nincs kép kiválasztva.
-                </div>
+<div
+    id="pendingBookImageEmpty"
+    class="pending-book-image-empty"
+    data-i18n="books.images.empty"
+>
+    No images selected for this book yet.
+</div>
             </div>
 
             <div class="pending-book-image-actions">
-                <button
-                    id="pendingBookCameraButton"
-                    type="button"
-                    class="pending-book-image-button"
-                >
-                    📷 Fotó készítése
-                </button>
 
-                <button
-                    id="pendingBookFilesButton"
-                    type="button"
-                    class="pending-book-image-button"
-                >
-                    🖼️ Képek kiválasztása
-                </button>
+<button
+    id="pendingBookCameraButton"
+    type="button"
+    class="pending-book-image-button"
+    data-i18n="books.images.take_photo"
+>
+    📷 Take photo
+</button>
 
-                <button
-                    id="pendingBookImagesClearButton"
-                    type="button"
-                    class="
-                        pending-book-image-button
-                        pending-book-image-clear
-                    "
-                    disabled
-                >
-                    🧹 Képek törlése
-                </button>
+<button
+    id="pendingBookFilesButton"
+    type="button"
+    class="pending-book-image-button"
+    data-i18n="books.images.select"
+>
+    🖼️ Select images
+</button>
+
+<button
+    id="pendingBookImagesClearButton"
+    type="button"
+    class="
+        pending-book-image-button
+        pending-book-image-clear
+    "
+    data-i18n="books.images.clear"
+    disabled
+>
+    🧹 Clear images
+</button>
+
             </div>
 
             <input
@@ -449,49 +575,61 @@
                 hidden
             >
 
-            <div class="pending-book-image-help">
-                A képek a könyv sikeres mentése után
-                automatikusan feltöltődnek.
-            </div>
+<div
+    class="pending-book-image-help"
+    data-i18n="books.images.help"
+>
+    Images are uploaded automatically
+    after the book is saved successfully.
+</div>
         </section>
 
-        <button
-            id="liveScannerButton"
-            type="button"
-            class="scanner-start-button">
-            📷 Élő ISBN-beolvasás
-        </button>
+<button
+    id="liveScannerButton"
+    type="button"
+    class="scanner-start-button"
+    data-i18n="books.scanner.live"
+>
+    📷 Live ISBN scanning
+</button>
 
+<button
+    id="saveButton"
+    type="button"
+    data-i18n="books.main.save_book"
+>
+    💾 Add book
+</button>
 
-        <button
-            id="saveButton"
-            type="button">
-            💾 Könyv felvétele
-        </button>
-
-
-        <button
-            id="manualBookButton"
-            type="button"
-            class="secondary-button">
-            📕 ISBN nélküli könyv felvitele
-        </button>
+<button
+    id="manualBookButton"
+    type="button"
+    class="secondary-button"
+    data-i18n="books.manual.open"
+>
+    📕 Add book without ISBN
+</button>
 
     </div>
 
 
     <div id="status"></div>
 
+<h2 data-i18n="books.latest.title">
+    Last 20 books
+</h2>
 
-    <h2>Utolsó 20 könyv</h2>
-
-    <div id="latest">
-        Betöltés...
-    </div>
+<div
+    id="latest"
+    data-i18n="common.loading"
+>
+    Loading...
+</div>
 
 </div>
 
 
+<script src="/ui/js/i18n.js"></script>
 <script src="/ui/js/lib/quagga.min.js"></script>
 <script src="/ui/js/index.js?v=803"></script>
 
