@@ -7,7 +7,9 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>FamilyCollection – Belépés</title>
+<title data-i18n="login.title">
+    FamilyCollection – Login
+</title>
 
     <style>
         * {
@@ -42,6 +44,22 @@
             margin: 0 0 8px;
             color: #6dff6d;
         }
+
+.language-switcher {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 14px;
+}
+
+.language-switcher select {
+    padding: 6px 10px;
+    border: 1px solid #555;
+    border-radius: 6px;
+    background: #111;
+    color: #eee;
+    font-size: 14px;
+    cursor: pointer;
+}
 
         .subtitle {
             margin-bottom: 22px;
@@ -97,17 +115,41 @@
 </head>
 
 <body>
-    <main class="login-card">
-        <h1>FamilyCollection</h1>
+<main class="login-card">
+    <div class="language-switcher">
+        <select id="languageSelect">
+            <option
+                value="en"
+                data-i18n="language.english"
+            >
+                English
+            </option>
 
-        <div class="subtitle">
-            Jelentkezz be a gyűjtemények kezeléséhez.
-        </div>
+            <option
+                value="hu"
+                data-i18n="language.hungarian"
+            >
+                Magyar
+            </option>
+        </select>
+    </div>
+
+    <h1>FamilyCollection</h1>
+
+<div
+    class="subtitle"
+    data-i18n="login.subtitle"
+>
+    Sign in to manage your collections.
+</div>
 
         <form id="loginForm">
 
-<label for="identifier">
-    E-mail cím vagy felhasználónév
+<label
+    for="identifier"
+    data-i18n="login.username"
+>
+    Email address or username
 </label>
 
 <input
@@ -115,13 +157,17 @@
     name="identifier"
     type="text"
     autocomplete="username"
-    placeholder="pl. admin vagy nev@example.com"
+    data-i18n-placeholder="login.identifier_placeholder"
+    placeholder="e.g. admin or name@example.com"
     required
 >
 
-            <label for="password">
-                Jelszó
-            </label>
+<label
+    for="password"
+    data-i18n="login.password"
+>
+    Password
+</label>
 
             <input
                 id="password"
@@ -131,12 +177,14 @@
                 required
             >
 
-            <button
-                id="loginButton"
-                type="submit"
-            >
-                Belépés
-            </button>
+<button
+    id="loginButton"
+    type="submit"
+    data-i18n="login.submit"
+>
+    Sign in
+</button>
+
         </form>
 
         <div
@@ -231,12 +279,24 @@ body: JSON.stringify({
                         data = null;
                     }
 
-                    if (!response.ok) {
-                        throw new Error(
-                            data?.detail
-                            || `HTTP ${response.status}`
-                        );
-                    }
+if (!response.ok) {
+    if (response.status === 401) {
+        throw new Error(
+            FamilyCollectionI18n.t(
+                "login.error.invalid_credentials"
+            )
+        );
+    }
+
+    throw new Error(
+        FamilyCollectionI18n.t(
+            "login.error.http",
+            {
+                status: response.status
+            }
+        )
+    );
+}
 
                     window.location.href =
                         "/ui/dashboard.html";
@@ -256,5 +316,36 @@ body: JSON.stringify({
 
 identifier.focus();
     </script>
+<script src="/ui/js/i18n.js"></script>
+
+<script>
+    document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+            const languageSelect =
+                document.getElementById(
+                    "languageSelect"
+                );
+
+            if (!languageSelect) {
+                return;
+            }
+
+            languageSelect.value =
+                FamilyCollectionI18n
+                    .getLanguage();
+
+            languageSelect.addEventListener(
+                "change",
+                event => {
+                    FamilyCollectionI18n
+                        .setLanguage(
+                            event.target.value
+                        );
+                }
+            );
+        }
+    );
+</script>
 </body>
 </html>
