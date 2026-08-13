@@ -68,6 +68,19 @@ familycollection/
 ├── docker-compose.yml
 └── README.md
 ```
+
+## Support
+
+FamilyCollection is free and open-source software and is developed in my spare time.
+
+If you find the project useful and would like to support its continued development, you can support my open-source work on Patreon:
+
+**[Support me on Patreon](https://www.patreon.com/ZoltanRigo)**
+
+Support is completely optional. FamilyCollection remains freely available under the GNU General Public License.
+
+Think of it as buying me a coffee — or, if you really like the project, helping with a bottle of whiskey. 🥃
+
 ## License
 
 Copyright (C) 2026 Zoltán Rigó
