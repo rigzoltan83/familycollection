@@ -140,6 +140,30 @@ class ManualIsbnBookRequest(BaseModel):
 
     borrower: str | None = None
 
+def _is_borrowed_storage_location(
+    location: StorageLocation | None,
+) -> bool:
+    """
+    Megvizsgálja a kiválasztott tárhelyet és annak teljes
+    szülői láncát.
+
+    Ha bármelyik tárhely neve "Kölcsönadva", akkor a helyet
+    kölcsönadási tárhelynek tekintjük.
+    """
+    current_location = location
+
+    while current_location is not None:
+        if (
+            current_location.name.strip().casefold()
+            == "Kölcsönadva".casefold()
+        ):
+            return True
+
+        current_location = current_location.parent
+
+    return False
+
+
 @app.get("/places")
 def places():
 
@@ -239,15 +263,6 @@ def scan(
                 "message": "Válassz tárhelyet.",
             }
 
-        if target_location.location_type != "slot":
-            return {
-                "status": "error",
-                "message": (
-                    "Könyv csak slot típusú "
-                    "tárhelyre helyezhető."
-                ),
-            }
-
     except Exception as error:
         print("SCAN LOCATION ERROR:", error)
 
@@ -265,25 +280,10 @@ def scan(
     if borrowed_to == "":
         borrowed_to = None
 
-    shelf_location = target_location.parent
-
-    room_location = (
-        shelf_location.parent
-        if shelf_location is not None
-        else None
-    )
-
-    if shelf_location is None or room_location is None:
-        return {
-            "status": "error",
-            "message": (
-                "A kiválasztott tárhely hierarchiája hiányos."
-            ),
-        }
-
     is_borrowed_location = (
-        room_location.name.strip().casefold()
-        == "Kölcsönadva".casefold()
+        _is_borrowed_storage_location(
+            target_location
+        )
     )
 
     if is_borrowed_location and borrowed_to is None:
@@ -550,15 +550,6 @@ def add_manual_book(
                 "message": "Válassz tárhelyet.",
             }
 
-        if target_location.location_type != "slot":
-            return {
-                "status": "error",
-                "message": (
-                    "Könyv csak slot típusú "
-                    "tárhelyre helyezhető."
-                ),
-            }
-
         if target_location is None:
             return {
                 "status": "error",
@@ -763,34 +754,10 @@ def add_manual_isbn_book(
                 "message": "Válassz tárhelyet.",
             }
 
-        if target_location.location_type != "slot":
-            return {
-                "status": "error",
-                "message": (
-                    "Könyv csak slot típusú "
-                    "tárhelyre helyezhető."
-                ),
-            }
-
-        shelf_location = target_location.parent
-
-        room_location = (
-            shelf_location.parent
-            if shelf_location is not None
-            else None
-        )
-
-        if shelf_location is None or room_location is None:
-            return {
-                "status": "error",
-                "message": (
-                    "A kiválasztott tárhely hierarchiája hiányos."
-                ),
-            }
-
         is_borrowed_location = (
-            room_location.name.strip().casefold()
-            == "Kölcsönadva".casefold()
+            _is_borrowed_storage_location(
+                target_location
+            )
         )
 
         if is_borrowed_location and borrower is None:
@@ -1331,34 +1298,10 @@ def update_book(
                 ),
             }
 
-        if target_location.location_type != "slot":
-            return {
-                "status": "error",
-                "message": (
-                    "Könyv csak slot típusú "
-                    "tárhelyre helyezhető."
-                ),
-            }
-
-        shelf_location = target_location.parent
-
-        room_location = (
-            shelf_location.parent
-            if shelf_location is not None
-            else None
-        )
-
-        if shelf_location is None or room_location is None:
-            return {
-                "status": "error",
-                "message": (
-                    "A kiválasztott tárhely hierarchiája hiányos."
-                ),
-            }
-
         is_borrowed_location = (
-            room_location.name.strip().casefold()
-            == "Kölcsönadva".casefold()
+            _is_borrowed_storage_location(
+                target_location
+            )
         )
 
         if is_borrowed_location and borrower is None:

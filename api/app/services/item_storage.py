@@ -67,7 +67,7 @@ def set_item_storage_location(
     - létező;
     - aktív;
     - ugyanahhoz a háztartáshoz tartozó;
-    - slot típusú
+    - az elem kategóriájához engedélyezett
     tárhely használható.
     """
     active_assignment = get_active_item_storage_assignment(
@@ -133,12 +133,6 @@ def set_item_storage_location(
             "A megadott tárolóhely "
             "nem engedélyezett ehhez "
             "a kategóriához."
-        )
-
-    if target_location.location_type != "slot":
-        raise ValueError(
-            "Gyűjteményi elem csak slot típusú "
-            "tárolóhelyre helyezhető."
         )
 
     if (

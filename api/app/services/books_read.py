@@ -974,11 +974,6 @@ def move_book_to_storage_location(
             "A tárolóhely nem ehhez a háztartáshoz tartozik."
         )
 
-    if target_location.location_type != "slot":
-        raise ValueError(
-            "Könyv csak slot típusú tárolóhelyre helyezhető."
-        )
-
     active_assignment = session.scalar(
         select(ItemStorageAssignment).where(
             ItemStorageAssignment.item_id == item.id,
@@ -1015,27 +1010,20 @@ def move_book_to_storage_location(
 
     session.add(new_assignment)
 
-    shelf_location = target_location.parent
-
-    room_location = (
-        shelf_location.parent
-        if shelf_location is not None
-        else None
-    )
-
-    if shelf_location is None or room_location is None:
-        raise ValueError(
-            "A tárolóhely hierarchiája hiányos."
-        )
-
-    slot_number = _slot_number_from_location(
-        target_location
-    )
+    parent_location = target_location.parent
 
     migration.legacy_location_id = None
-    migration.legacy_room = room_location.name
-    migration.legacy_shelf = shelf_location.name
-    migration.legacy_slot = slot_number
+    migration.legacy_room = (
+        parent_location.name
+        if parent_location is not None
+        else target_location.name
+    )
+    migration.legacy_shelf = target_location.name
+    migration.legacy_slot = (
+        _slot_number_from_location(target_location)
+        if target_location.location_type == "slot"
+        else None
+)
 
     session.flush()
 
@@ -1342,26 +1330,20 @@ def create_manual_book(
             "A tárolóhely nem ehhez a háztartáshoz tartozik."
         )
 
-    if target_location.location_type != "slot":
-        raise ValueError(
-            "Könyv csak slot típusú tárolóhelyre helyezhető."
-        )
+    parent_location = target_location.parent
 
-    shelf_location = target_location.parent
-
-    room_location = (
-        shelf_location.parent
-        if shelf_location is not None
-        else None
+    legacy_room = (
+        parent_location.name
+        if parent_location is not None
+        else target_location.name
     )
 
-    if shelf_location is None or room_location is None:
-        raise ValueError(
-            "A tárolóhely hierarchiája hiányos."
-        )
+    legacy_shelf = target_location.name
 
-    slot_number = _slot_number_from_location(
-        target_location
+    legacy_slot = (
+        _slot_number_from_location(target_location)
+        if target_location.location_type == "slot"
+        else None
     )
 
     identifier_type, identifier_value = (
@@ -1449,9 +1431,9 @@ def create_manual_book(
         legacy_location_id=legacy_location_id,
         legacy_isbn=identifier_value,
         legacy_borrowed_to=None,
-        legacy_room=room_location.name,
-        legacy_shelf=shelf_location.name,
-        legacy_slot=slot_number,
+        legacy_room=legacy_room,
+        legacy_shelf=legacy_shelf,
+        legacy_slot=legacy_slot,
         migration_status="migrated",
         migration_notes=(
             "Az új adatmodellben manuálisan "
