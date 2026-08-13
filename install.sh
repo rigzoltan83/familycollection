@@ -57,12 +57,27 @@ apt-get install -y \
     docker.io \
     docker-compose-v2 \
     curl \
-    git
+    git \
+    iproute2
 
 systemctl enable --now docker
 
 echo
-echo "===== 2. TITKOK GENERÁLÁSA ====="
+echo "===== 2. POSTGRESQL HOST PORT ====="
+
+DB_PORT=5432
+
+while ss -ltn \
+    | awk '{print $4}' \
+    | grep -Eq "(^|:)$DB_PORT$"
+do
+    DB_PORT=$((DB_PORT + 1))
+done
+
+echo "OK: PostgreSQL host port: $DB_PORT"
+
+echo
+echo "===== 3. TITKOK GENERÁLÁSA ====="
 
 DB_PASS="$(
     python3 - <<'PY'
@@ -92,12 +107,12 @@ echo "OK: titkok elkészültek."
 echo "Az értékeket nem írjuk ki."
 
 echo
-echo "===== 3. API .ENV ====="
+echo "===== 4. API .ENV ====="
 
 cat > "$ENV_FILE" <<EOF
 # PostgreSQL kapcsolat
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=$DB_PORT
 DB_NAME=familycollection
 DB_USER=familyuser
 DB_PASS=$DB_PASS
@@ -135,7 +150,7 @@ ln -s \
 echo "OK: api/.env + gyökér .env symlink."
 
 echo
-echo "===== 4. POSTGRESQL ====="
+echo "===== 5. POSTGRESQL ====="
 
 cd "$PROJECT_DIR"
 
@@ -165,7 +180,7 @@ done
 echo "OK: PostgreSQL elérhető."
 
 echo
-echo "===== 5. PYTHON VENV ====="
+echo "===== 6. PYTHON VENV ====="
 
 sudo -u "$APP_USER" \
     python3 -m venv \
@@ -182,7 +197,7 @@ sudo -u "$APP_USER" \
     -r "$API_DIR/requirements.txt"
 
 echo
-echo "===== 6. ADATBÁZIS MIGRÁCIÓ ====="
+echo "===== 7. ADATBÁZIS MIGRÁCIÓ ====="
 
 cd "$API_DIR"
 
@@ -191,7 +206,7 @@ sudo -u "$APP_USER" \
     upgrade head
 
 echo
-echo "===== 7. SYSTEMD SERVICE ====="
+echo "===== 8. SYSTEMD SERVICE ====="
 
 cat > "$SERVICE_FILE" <<EOF
 [Unit]
@@ -238,7 +253,7 @@ fi
 echo "OK: FamilyCollection API fut."
 
 echo
-echo "===== 8. HTTP TESZT ====="
+echo "===== 9. HTTP TESZT ====="
 
 HTTP_CODE="$(
     curl \
