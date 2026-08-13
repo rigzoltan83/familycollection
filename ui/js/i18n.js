@@ -7,6 +7,327 @@
 
     const translations = {
         en: {
+"admin.users.validation.all_required":
+    "❌ Fill in all fields.",
+"admin.users.validation.username_length":
+    "❌ Username must be 3–100 characters long.",
+"admin.users.validation.username_format":
+    "❌ Username may only contain letters, numbers, dots, hyphens and underscores.",
+"admin.users.validation.password_length":
+    "❌ Password must be at least {minimum} characters long.",
+"admin.users.created":
+    "✅ User created.",
+"admin.auth.not_logged_in":
+    "You are not logged in.",
+"admin.document_title":
+    "FamilyCollection – Administration",
+
+"admin.common.close":
+    "▲ Close",
+
+"admin.category.system":
+    "System",
+"admin.category.system_empty":
+    "No system collections.",
+"admin.category.no_description":
+    "No description.",
+"admin.category.system_fixed":
+    "The basic properties of system collections are centrally defined.",
+
+"admin.fields.validation.name_required":
+    "❌ Field name is required.",
+"admin.fields.validation.key_required":
+    "❌ Field key is required.",
+"admin.fields.created":
+    "✅ Field created.",
+"admin.fields.saved":
+    "✅ Field saved.",
+"admin.fields.deactivate_confirm":
+    "Are you sure you want to deactivate this field?\n\n{name}",
+"admin.fields.deactivating":
+    "Deactivating...",
+
+"admin.users.no_household":
+    "No active household membership.",
+"admin.users.no_admin":
+    "You do not have administrator permission.",
+"admin.users.empty":
+    "No users.",
+"admin.users.state.active":
+    "🟢 Active",
+"admin.users.state.inactive":
+    "⚫ Inactive",
+"admin.users.own_account":
+    "Own account",
+"admin.users.manage":
+    "⚙️ Manage",
+"admin.users.close":
+    "▲ Close",
+"admin.users.membership":
+    "Membership",
+"admin.users.save":
+    "💾 Save",
+"admin.category.empty":
+    "No custom collections yet.",
+"admin.category.state.active":
+    "🟢 Active",
+"admin.category.state.inactive":
+    "⚫ Inactive",
+"admin.category.barcode.enabled":
+    "▥ Barcode enabled",
+"admin.category.barcode.disabled":
+    "No barcode",
+"admin.category.sort_order":
+    "Order",
+"admin.category.custom":
+    "Custom",
+"admin.category.settings":
+    "⚙️ Settings",
+"admin.category.settings_close":
+    "▲ Close",
+"admin.category.name":
+    "Name",
+"admin.category.icon":
+    "Icon",
+"admin.category.barcode":
+    "Barcode",
+"admin.category.description":
+    "Description",
+"admin.category.save_settings":
+    "💾 Save basic settings",
+"admin.category.fields_title":
+    "Collection fields",
+"admin.category.add_field":
+    "Add new field",
+"admin.category.create_field":
+    "➕ Create field",
+"admin.category.loading":
+    "Loading...",
+"admin.category.validation.name_required":
+    "❌ Name is required.",
+"admin.category.validation.name_not_empty":
+    "❌ Name cannot be empty.",
+"admin.category.created":
+    "✅ Collection created.",
+"admin.category.no_changes":
+    "No changes.",
+"admin.category.saved":
+    "✅ Saved.",
+"admin.fields.validation.value_required":
+    "❌ Value is required.",
+"admin.fields.validation.label_required":
+    "❌ Display name is required.",
+"admin.fields.validation.sort_order":
+    "❌ Sort order must be a non-negative integer.",
+"admin.fields.option_creating":
+    "Creating...",
+"admin.fields.option_saved":
+    "✅ Option saved.",
+"admin.fields.option_deactivate_confirm":
+    "Are you sure you want to deactivate this selectable value?\n\n{name}",
+"admin.fields.options_loading":
+    "Loading options...",
+"admin.fields.options_empty":
+    "No selectable values yet.",
+"admin.fields.option_value_short":
+    "Value",
+"admin.fields.option_label_short":
+    "Display name",
+"admin.fields.loading":
+    "Loading fields...",
+"admin.fields.empty":
+    "No fields have been defined for this collection yet.",
+"admin.fields.name":
+    "Name",
+"admin.fields.key":
+    "Field key",
+"admin.fields.type":
+    "Type",
+"admin.fields.sort_order":
+    "Sort order",
+"admin.fields.required":
+    "Required",
+"admin.fields.searchable":
+    "Searchable",
+"admin.fields.filterable":
+    "Filterable",
+"admin.fields.visible_in_list":
+    "Visible in list",
+"admin.fields.active":
+    "Active",
+"admin.fields.save":
+    "Save",
+"admin.fields.deactivate":
+    "🗑️ Deactivate",
+"admin.fields.options_title":
+    "Selectable values: {name}",
+"admin.fields.option_value":
+    "Value",
+"admin.fields.option_label":
+    "Display name",
+"admin.fields.option_sort_order":
+    "Sort order",
+"admin.fields.option_new":
+    "+ New option",
+
+"admin.fields.flag.required":
+    "Required",
+"admin.fields.flag.searchable":
+    "Searchable",
+"admin.fields.flag.filterable":
+    "Filterable",
+"admin.fields.flag.visible_in_list":
+    "In list",
+"admin.fields.flag.inactive":
+    "Inactive",
+"admin.fields.no_extra_settings":
+    "no extra settings",
+
+"admin.fields.edit":
+    "⚙️ Edit",
+"admin.fields.close":
+    "▲ Close",
+"admin.fields.manage":
+    "🧩 Manage fields",
+"admin.fields.close_manager":
+    "▲ Close fields",
+"admin.collections.title": "Collections",
+"admin.collections.description":
+    "Configure system and custom collections.",
+"admin.collections.new": "+ New collection",
+"admin.collections.new_title": "New custom collection",
+"admin.collections.name": "Name",
+"admin.collections.icon": "Icon",
+"admin.collections.icon_placeholder": "e.g. game",
+"admin.collections.sort_order": "Sort order",
+"admin.collections.barcode_support": "Barcode support",
+"admin.collections.description_field": "Description",
+"admin.collections.create": "Create collection",
+"admin.collections.system": "📦 System collections",
+"admin.collections.custom": "🧩 Custom collections",
+
+"admin.storage.title": "Storage",
+"admin.storage.description":
+    "Manage the household's physical storage structure.",
+"admin.storage.new_root": "+ New root location",
+"admin.storage.show_inactive": "Show inactive storage locations",
+"admin.storage.reload": "↻ Reload",
+"admin.storage.modal.new": "New storage location",
+"admin.storage.modal.root_create": "Create root location",
+"admin.storage.name": "Name",
+"admin.storage.type": "Type",
+"admin.storage.slug": "Slug",
+"admin.storage.slug_placeholder":
+    "Generated automatically when left empty",
+"admin.storage.description_field": "Description",
+"admin.storage.sort_order": "Sort order",
+"admin.storage.active": "Active",
+"admin.storage.cancel": "Cancel",
+"admin.storage.create": "Create",
+
+"admin.storage.type.room": "Room",
+"admin.storage.type.area": "Area",
+"admin.storage.type.shelf": "Shelf",
+"admin.storage.type.cabinet": "Cabinet",
+"admin.storage.type.drawer": "Drawer",
+"admin.storage.type.box": "Box",
+"admin.storage.type.slot": "Storage location",
+"admin.storage.type.other": "Other",
+"admin.storage.type.unknown": "Unknown",
+"admin.storage.sort_label": "order",
+"admin.storage.state.active": "Active",
+"admin.storage.state.inactive": "Inactive",
+"admin.storage.add_child": "＋ Child",
+"admin.storage.empty": "No storage locations to display.",
+"admin.storage.household_not_loaded":
+    "The household has not been loaded yet.",
+"admin.storage.loading": "Loading storage locations...",
+"admin.storage.invalid_tree":
+    "The server returned an invalid storage tree.",
+"admin.storage.summary":
+    "{nodes} storage locations · {roots} root locations",
+
+"admin.storage.modal.new_root":
+    "New root location",
+"admin.storage.modal.parent":
+    "Parent: {name}",
+"admin.storage.modal.new_child":
+    "New child location: {name}",
+"admin.storage.modal.not_found":
+    "Storage location not found.",
+"admin.storage.modal.parent_locked":
+    "The parent relationship cannot be changed here.",
+"admin.storage.modal.root": "Root location",
+"admin.storage.modal.edit":
+    "Edit storage location: {name}",
+
+"admin.storage.validation.name_required":
+    "❌ Name cannot be empty.",
+"admin.storage.validation.sort_order":
+    "❌ Sort order cannot be negative.",
+"admin.storage.saving": "Saving...",
+"admin.storage.creating": "Creating...",
+"admin.storage.updated":
+    "Storage location updated.",
+"admin.storage.created":
+    "Storage location created.",
+
+"admin.storage.delete_confirm":
+    "\"{name}\" storage location will be deleted.\n\n"
+    + "It can only be deleted if it has no children "
+    + "and has not been used.",
+"admin.storage.deleted":
+    "\"{name}\" storage location deleted.",
+"admin.storage.delete_error":
+    "Delete failed: {message}",
+
+"admin.storage.rules.manage":
+    "🗄️ Manage storage locations",
+"admin.storage.rules.close":
+    "▲ Close storage locations",
+"admin.storage.rules.title":
+    "Allowed storage locations",
+"admin.storage.rules.help":
+    "When unrestricted, the collection may use every active storage location.",
+"admin.storage.rules.unrestricted":
+    "All storage locations allowed",
+"admin.storage.rules.restricted":
+    "Only selected storage locations",
+"admin.storage.rules.include_descendants":
+    "Include storage locations below this one",
+"admin.storage.rules.save":
+    "💾 Save storage rules",
+"admin.storage.rules.loading":
+    "Loading storage rules...",
+"admin.storage.rules.no_active":
+    "No active storage locations.",
+"admin.storage.rules.select_required":
+    "❌ In restricted mode at least one storage location must be selected.",
+"admin.storage.rules.saved_restricted":
+    "✅ Storage restriction saved.",
+"admin.storage.rules.saved_unrestricted":
+    "✅ All storage locations allowed.",
+"admin.page_title": "Administration",
+"admin.loading": "Loading...",
+"admin.logout": "Log out",
+
+"admin.tabs.users": "👥 Users",
+"admin.tabs.collections": "🗂️ Collections",
+"admin.tabs.storage": "🗄️ Storage",
+
+"admin.users.title": "Users",
+"admin.users.new": "+ New user",
+"admin.users.new_title": "New user",
+"admin.users.email": "Email address",
+"admin.users.username": "Username",
+"admin.users.display_name": "Display name",
+"admin.users.initial_password": "Initial password",
+"admin.users.role": "Role",
+"admin.users.create": "Create user",
+
+"common.role.viewer": "Viewer",
+"common.role.editor": "Editor",
+"common.role.admin": "Administrator",
 "common.back": "← Back",
 "collection.list.page_title":
     "FamilyCollection – Collection list",
@@ -15,9 +336,6 @@
     "{name} – all items",
 
 "common.role.owner": "Owner",
-"common.role.admin": "Administrator",
-"common.role.editor": "Editor",
-"common.role.viewer": "Viewer",
 
 "common.minimum": "Minimum",
 "common.maximum": "Maximum",
@@ -886,6 +1204,327 @@
         },
 
         hu: {
+"admin.users.validation.all_required":
+    "❌ Tölts ki minden mezőt.",
+"admin.users.validation.username_length":
+    "❌ A felhasználónév 3–100 karakter hosszú legyen.",
+"admin.users.validation.username_format":
+    "❌ A felhasználónév csak betűt, számot, pontot, kötőjelet és aláhúzást tartalmazhat.",
+"admin.users.validation.password_length":
+    "❌ A jelszó legalább {minimum} karakter hosszú legyen.",
+"admin.users.created":
+    "✅ Felhasználó létrehozva.",
+"admin.auth.not_logged_in":
+    "Nincs bejelentkezve.",
+"admin.document_title":
+    "FamilyCollection – Adminisztráció",
+
+"admin.common.close":
+    "▲ Bezárás",
+
+"admin.category.system":
+    "Rendszer",
+"admin.category.system_empty":
+    "Nincs rendszerkategória.",
+"admin.category.no_description":
+    "Nincs leírás.",
+"admin.category.system_fixed":
+    "A rendszerkategória alapadatai központilag definiáltak.",
+
+"admin.fields.validation.name_required":
+    "❌ A mező neve kötelező.",
+"admin.fields.validation.key_required":
+    "❌ A mezőkulcs kötelező.",
+"admin.fields.created":
+    "✅ Mező létrehozva.",
+"admin.fields.saved":
+    "✅ Mező mentve.",
+"admin.fields.deactivate_confirm":
+    "Biztosan inaktiválod ezt a mezőt?\n\n{name}",
+"admin.fields.deactivating":
+    "Inaktiválás...",
+
+"admin.users.no_household":
+    "Nincs aktív háztartási tagság.",
+"admin.users.no_admin":
+    "Nincs admin jogosultság.",
+"admin.users.empty":
+    "Nincs felhasználó.",
+"admin.users.state.active":
+    "🟢 Aktív",
+"admin.users.state.inactive":
+    "⚫ Inaktív",
+"admin.users.own_account":
+    "Saját fiók",
+"admin.users.manage":
+    "⚙️ Kezelés",
+"admin.users.close":
+    "▲ Bezárás",
+"admin.users.membership":
+    "Tagság",
+"admin.users.save":
+    "💾 Mentés",
+"admin.category.empty":
+    "Még nincs saját gyűjtemény.",
+"admin.category.state.active":
+    "🟢 Aktív",
+"admin.category.state.inactive":
+    "⚫ Inaktív",
+"admin.category.barcode.enabled":
+    "▥ Vonalkódos",
+"admin.category.barcode.disabled":
+    "Vonalkód nélkül",
+"admin.category.sort_order":
+    "Sorrend",
+"admin.category.custom":
+    "Saját",
+"admin.category.settings":
+    "⚙️ Beállítások",
+"admin.category.settings_close":
+    "▲ Bezárás",
+"admin.category.name":
+    "Név",
+"admin.category.icon":
+    "Ikon",
+"admin.category.barcode":
+    "Vonalkód",
+"admin.category.description":
+    "Leírás",
+"admin.category.save_settings":
+    "💾 Alapbeállítások mentése",
+"admin.category.fields_title":
+    "Gyűjtemény mezői",
+"admin.category.add_field":
+    "Új mező hozzáadása",
+"admin.category.create_field":
+    "➕ Mező létrehozása",
+"admin.category.loading":
+    "Betöltés...",
+"admin.category.validation.name_required":
+    "❌ A név megadása kötelező.",
+"admin.category.validation.name_not_empty":
+    "❌ A név nem lehet üres.",
+"admin.category.created":
+    "✅ Gyűjtemény létrehozva.",
+"admin.category.no_changes":
+    "Nincs módosítás.",
+"admin.category.saved":
+    "✅ Mentve.",
+"admin.fields.validation.value_required":
+    "❌ Az érték kötelező.",
+"admin.fields.validation.label_required":
+    "❌ A megjelenő név kötelező.",
+"admin.fields.validation.sort_order":
+    "❌ A sorrend nemnegatív egész szám kell legyen.",
+"admin.fields.option_creating":
+    "Létrehozás...",
+"admin.fields.option_saved":
+    "✅ Opció mentve.",
+"admin.fields.option_deactivate_confirm":
+    "Biztosan inaktiválod ezt a választható értéket?\n\n{name}",
+"admin.fields.options_loading":
+    "Opciók betöltése...",
+"admin.fields.options_empty":
+    "Még nincs választható érték.",
+"admin.fields.option_value_short":
+    "Érték",
+"admin.fields.option_label_short":
+    "Megjelenő név",
+"admin.fields.loading":
+    "Mezők betöltése...",
+"admin.fields.empty":
+    "Ehhez a gyűjteményhez még nincs mező definiálva.",
+"admin.fields.name":
+    "Név",
+"admin.fields.key":
+    "Mezőkulcs",
+"admin.fields.type":
+    "Típus",
+"admin.fields.sort_order":
+    "Sorrend",
+"admin.fields.required":
+    "Kötelező",
+"admin.fields.searchable":
+    "Kereshető",
+"admin.fields.filterable":
+    "Szűrhető",
+"admin.fields.visible_in_list":
+    "Listában látható",
+"admin.fields.active":
+    "Aktív",
+"admin.fields.save":
+    "Mentés",
+"admin.fields.deactivate":
+    "🗑️ Inaktiválás",
+"admin.fields.options_title":
+    "Választható értékek: {name}",
+"admin.fields.option_value":
+    "Érték",
+"admin.fields.option_label":
+    "Megjelenő név",
+"admin.fields.option_sort_order":
+    "Sorrend",
+"admin.fields.option_new":
+    "+ Új opció",
+
+"admin.fields.flag.required":
+    "Kötelező",
+"admin.fields.flag.searchable":
+    "Kereshető",
+"admin.fields.flag.filterable":
+    "Szűrhető",
+"admin.fields.flag.visible_in_list":
+    "Listában",
+"admin.fields.flag.inactive":
+    "Inaktív",
+"admin.fields.no_extra_settings":
+    "nincs extra beállítás",
+
+"admin.fields.edit":
+    "⚙️ Szerkesztés",
+"admin.fields.close":
+    "▲ Bezárás",
+"admin.fields.manage":
+    "🧩 Mezők kezelése",
+"admin.fields.close_manager":
+    "▲ Mezők bezárása",
+"admin.collections.title": "Gyűjtemények",
+"admin.collections.description":
+    "Rendszer- és saját gyűjtemények konfigurálása.",
+"admin.collections.new": "+ Új gyűjtemény",
+"admin.collections.new_title": "Új saját gyűjtemény",
+"admin.collections.name": "Név",
+"admin.collections.icon": "Ikon",
+"admin.collections.icon_placeholder": "pl. game",
+"admin.collections.sort_order": "Sorrend",
+"admin.collections.barcode_support": "Vonalkód támogatása",
+"admin.collections.description_field": "Leírás",
+"admin.collections.create": "Gyűjtemény létrehozása",
+"admin.collections.system": "📦 Rendszergyűjtemények",
+"admin.collections.custom": "🧩 Saját gyűjtemények",
+
+"admin.storage.title": "Tárhelyek",
+"admin.storage.description":
+    "A háztartás fizikai tárhelystruktúrájának kezelése.",
+"admin.storage.new_root": "+ Új gyökérelem",
+"admin.storage.show_inactive": "Inaktív tárhelyek mutatása",
+"admin.storage.reload": "↻ Frissítés",
+"admin.storage.modal.new": "Új tárhely",
+"admin.storage.modal.root_create": "Gyökérelem létrehozása",
+"admin.storage.name": "Név",
+"admin.storage.type": "Típus",
+"admin.storage.slug": "Slug",
+"admin.storage.slug_placeholder":
+    "Üresen automatikusan készül",
+"admin.storage.description_field": "Leírás",
+"admin.storage.sort_order": "Sorrend",
+"admin.storage.active": "Aktív",
+"admin.storage.cancel": "Mégse",
+"admin.storage.create": "Létrehozás",
+
+"admin.storage.type.room": "Helyiség",
+"admin.storage.type.area": "Terület",
+"admin.storage.type.shelf": "Polc",
+"admin.storage.type.cabinet": "Szekrény",
+"admin.storage.type.drawer": "Fiók",
+"admin.storage.type.box": "Doboz",
+"admin.storage.type.slot": "Tárhely",
+"admin.storage.type.other": "Egyéb",
+"admin.storage.type.unknown": "Ismeretlen",
+"admin.storage.sort_label": "sorrend",
+"admin.storage.state.active": "Aktív",
+"admin.storage.state.inactive": "Inaktív",
+"admin.storage.add_child": "＋ Alhely",
+"admin.storage.empty": "Nincs megjeleníthető tárhely.",
+"admin.storage.household_not_loaded":
+    "A háztartás még nincs betöltve.",
+"admin.storage.loading": "Tárhelyek betöltése...",
+"admin.storage.invalid_tree":
+    "A szerver hibás tárhelyfa-választ adott.",
+"admin.storage.summary":
+    "{nodes} tárhelyelem · {roots} gyökérelem",
+
+"admin.storage.modal.new_root":
+    "Új gyökérelem",
+"admin.storage.modal.parent":
+    "Szülő: {name}",
+"admin.storage.modal.new_child":
+    "Új alhely: {name}",
+"admin.storage.modal.not_found":
+    "A tárhely nem található.",
+"admin.storage.modal.parent_locked":
+    "A szülőkapcsolat itt nem módosítható.",
+"admin.storage.modal.root": "Gyökérelem",
+"admin.storage.modal.edit":
+    "Tárhely szerkesztése: {name}",
+
+"admin.storage.validation.name_required":
+    "❌ A név nem lehet üres.",
+"admin.storage.validation.sort_order":
+    "❌ A sorrend nem lehet negatív.",
+"admin.storage.saving": "Mentés...",
+"admin.storage.creating": "Létrehozás...",
+"admin.storage.updated":
+    "Tárhely módosítva.",
+"admin.storage.created":
+    "Tárhely létrehozva.",
+
+"admin.storage.delete_confirm":
+    "\"{name}\" tárhely törlése?\n\n"
+    + "Csak akkor törölhető, ha nincs gyermeke "
+    + "és nem volt használatban.",
+"admin.storage.deleted":
+    "\"{name}\" tárhely törölve.",
+"admin.storage.delete_error":
+    "Nem sikerült törölni: {message}",
+
+"admin.storage.rules.manage":
+    "🗄️ Tárhelyek kezelése",
+"admin.storage.rules.close":
+    "▲ Tárhelyek bezárása",
+"admin.storage.rules.title":
+    "Engedélyezett tárhelyek",
+"admin.storage.rules.help":
+    "Ha nincs korlátozás, a gyűjtemény minden aktív tárhelyet használhat.",
+"admin.storage.rules.unrestricted":
+    "Minden tárhely engedélyezett",
+"admin.storage.rules.restricted":
+    "Csak a kijelölt tárhelyek",
+"admin.storage.rules.include_descendants":
+    "Alatta lévő tárhelyek is",
+"admin.storage.rules.save":
+    "💾 Tárhelyszabályok mentése",
+"admin.storage.rules.loading":
+    "Tárhelyszabályok betöltése...",
+"admin.storage.rules.no_active":
+    "Nincs aktív tárhely.",
+"admin.storage.rules.select_required":
+    "❌ Korlátozott módban legalább egy tárhelyet ki kell választani.",
+"admin.storage.rules.saved_restricted":
+    "✅ Tárhelykorlátozás elmentve.",
+"admin.storage.rules.saved_unrestricted":
+    "✅ Minden tárhely engedélyezve.",
+"admin.page_title": "Adminisztráció",
+"admin.loading": "Betöltés...",
+"admin.logout": "Kilépés",
+
+"admin.tabs.users": "👥 Felhasználók",
+"admin.tabs.collections": "🗂️ Gyűjtemények",
+"admin.tabs.storage": "🗄️ Tárhelyek",
+
+"admin.users.title": "Felhasználók",
+"admin.users.new": "+ Új felhasználó",
+"admin.users.new_title": "Új felhasználó",
+"admin.users.email": "E-mail cím",
+"admin.users.username": "Felhasználónév",
+"admin.users.display_name": "Megjelenített név",
+"admin.users.initial_password": "Kezdeti jelszó",
+"admin.users.role": "Szerepkör",
+"admin.users.create": "Felhasználó létrehozása",
+
+"common.role.viewer": "Megtekintő",
+"common.role.editor": "Szerkesztő",
+"common.role.admin": "Adminisztrátor",
 "common.back": "← Vissza",
 "collection.list.page_title":
     "FamilyCollection – Gyűjtemény lista",
@@ -893,9 +1532,6 @@
 "collection.list.dynamic_title":
     "{name} – összes elem",
 "common.role.owner": "Tulajdonos",
-"common.role.admin": "Adminisztrátor",
-"common.role.editor": "Szerkesztő",
-"common.role.viewer": "Megtekintő",
 
 "common.minimum": "Minimum",
 "common.maximum": "Maximum",

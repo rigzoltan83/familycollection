@@ -8,7 +8,9 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>FamilyCollection – Adminisztráció</title>
+    <title data-i18n="admin.document_title">
+    FamilyCollection – Administration
+</title>
 
     <style>
         * {
@@ -1076,60 +1078,70 @@
 
         <div class="topbar">
             <div>
-                <h1>Adminisztráció</h1>
 
-                <div
-                    id="contextLine"
-                    class="context-line"
-                >
-                    Betöltés...
-                </div>
+<h1 data-i18n="admin.page_title">
+    Administration
+</h1>
+
+<div
+    id="contextLine"
+    class="context-line"
+    data-i18n="admin.loading"
+>
+    Loading...
+</div>
+
             </div>
 
             <div class="top-actions">
-                <a
-                    href="/ui/dashboard.html"
-                    class="button-link"
-                >
-                    ← Vissza
-                </a>
 
-                <button
-                    id="logoutButton"
-                    type="button"
-                >
-                    Kilépés
-                </button>
+<a
+    href="/ui/dashboard.html"
+    class="button-link"
+    data-i18n="common.back"
+>
+    ← Back
+</a>
+
+<button
+    id="logoutButton"
+    type="button"
+    data-i18n="admin.logout"
+>
+    Log out
+</button>
+
             </div>
         </div>
 
-        <nav class="admin-tabs">
-            <button
-                class="admin-tab active"
-                type="button"
-                data-admin-page="users"
-            >
-                👥 Felhasználók
-            </button>
+<nav class="admin-tabs">
+    <button
+        class="admin-tab active"
+        type="button"
+        data-admin-page="users"
+        data-i18n="admin.tabs.users"
+    >
+        👥 Users
+    </button>
 
-            <button
-                class="admin-tab"
-                type="button"
-                data-admin-page="collections"
-            >
-                🗂️ Gyűjtemények
-            </button>
+    <button
+        class="admin-tab"
+        type="button"
+        data-admin-page="collections"
+        data-i18n="admin.tabs.collections"
+    >
+        🗂️ Collections
+    </button>
 
-            <button
-                class="admin-tab"
-                type="button"
-                data-admin-page="storage"
-            >
-                🗄️ Tárhelyek
-            </button>
-
-        </nav>
-
+    <button
+        class="admin-tab"
+        type="button"
+        data-admin-page="storage"
+        data-i18n="admin.tabs.storage"
+    >
+        🗄️ Storage
+    </button>
+</nav>
 
         <div
             id="adminPageUsers"
@@ -1137,28 +1149,36 @@
         >
             <section class="panel">
                 <div class="section-toolbar">
-                    <h2>Felhasználók</h2>
+<h2 data-i18n="admin.users.title">
+    Users
+</h2>
 
-                    <button
-                        id="toggleNewUserButton"
-                        class="primary"
-                        type="button"
-                    >
-                        + Új felhasználó
-                    </button>
+<button
+    id="toggleNewUserButton"
+    class="primary"
+    type="button"
+    data-i18n="admin.users.new"
+>
+    + New user
+</button>
                 </div>
 
                 <div
                     id="newUserBox"
                     class="create-box"
                 >
-                    <h3>Új felhasználó</h3>
+<h3 data-i18n="admin.users.new_title">
+    New user
+</h3>
 
                     <div class="new-user-grid">
                         <div>
-                            <label for="newEmail">
-                                E-mail cím
-                            </label>
+<label
+    for="newEmail"
+    data-i18n="admin.users.email"
+>
+    Email address
+</label>
 
                             <input
                                 id="newEmail"
@@ -1167,9 +1187,12 @@
                         </div>
 
                         <div>
-                            <label for="newUsername">
-                                Felhasználónév
-                            </label>
+<label
+    for="newUsername"
+    data-i18n="admin.users.username"
+>
+    Username
+</label>
 
                             <input
                                 id="newUsername"
@@ -1181,9 +1204,12 @@
                         </div>
 
                         <div>
-                            <label for="newDisplayName">
-                                Megjelenített név
-                            </label>
+<label
+    for="newDisplayName"
+    data-i18n="admin.users.display_name"
+>
+    Display name
+</label>
 
                             <input
                                 id="newDisplayName"
@@ -1192,9 +1218,12 @@
                         </div>
 
                         <div>
-                            <label for="newPassword">
-                                Kezdeti jelszó
-                            </label>
+<label
+    for="newPassword"
+    data-i18n="admin.users.initial_password"
+>
+    Initial password
+</label>
 
                             <input
                                 id="newPassword"
@@ -1203,34 +1232,48 @@
                         </div>
 
                         <div>
-                            <label for="newRole">
-                                Szerepkör
-                            </label>
+<label
+    for="newRole"
+    data-i18n="admin.users.role"
+>
+    Role
+</label>
 
-                            <select id="newRole">
-                                <option value="viewer">
-                                    Megtekintő
-                                </option>
+<select id="newRole">
+    <option
+        value="viewer"
+        data-i18n="common.role.viewer"
+    >
+        Viewer
+    </option>
 
-                                <option value="editor">
-                                    Szerkesztő
-                                </option>
+    <option
+        value="editor"
+        data-i18n="common.role.editor"
+    >
+        Editor
+    </option>
 
-                                <option value="admin">
-                                    Adminisztrátor
-                                </option>
-                            </select>
+    <option
+        value="admin"
+        data-i18n="common.role.admin"
+    >
+        Administrator
+    </option>
+</select>
+
                         </div>
                     </div>
 
                     <div class="actions">
-                        <button
-                            id="createUserButton"
-                            class="primary"
-                            type="button"
-                        >
-                            Felhasználó létrehozása
-                        </button>
+<button
+    id="createUserButton"
+    class="primary"
+    type="button"
+    data-i18n="admin.users.create"
+>
+    Create user
+</button>
                     </div>
 
                     <div
@@ -1239,12 +1282,13 @@
                     ></div>
                 </div>
 
-                <div
-                    id="usersStatus"
-                    class="status"
-                >
-                    Betöltés...
-                </div>
+<div
+    id="usersStatus"
+    class="status"
+    data-i18n="admin.loading"
+>
+    Loading...
+</div>
 
                 <div
                     id="usersList"
@@ -1261,34 +1305,44 @@
             <section class="panel">
                 <div class="section-toolbar">
                     <div>
-                        <h2>Gyűjtemények</h2>
+<h2 data-i18n="admin.collections.title">
+    Collections
+</h2>
 
-                        <div class="muted">
-                            Rendszer- és saját gyűjtemények
-                            konfigurálása.
-                        </div>
+<div
+    class="muted"
+    data-i18n="admin.collections.description"
+>
+    Configure system and custom collections.
+</div>
                     </div>
 
-                    <button
-                        id="toggleNewCategoryButton"
-                        class="primary"
-                        type="button"
-                    >
-                        + Új gyűjtemény
-                    </button>
+<button
+    id="toggleNewCategoryButton"
+    class="primary"
+    type="button"
+    data-i18n="admin.collections.new"
+>
+    + New collection
+</button>
                 </div>
 
                 <div
                     id="newCategoryBox"
                     class="create-box"
                 >
-                    <h3>Új saját gyűjtemény</h3>
+<h3 data-i18n="admin.collections.new_title">
+    New custom collection
+</h3>
 
                     <div class="category-form-grid">
                         <div>
-                            <label for="newCategoryName">
-                                Név
-                            </label>
+<label
+    for="newCategoryName"
+    data-i18n="admin.collections.name"
+>
+    Name
+</label>
 
                             <input
                                 id="newCategoryName"
@@ -1298,22 +1352,29 @@
                         </div>
 
                         <div>
-                            <label for="newCategoryIcon">
-                                Ikon
-                            </label>
+<label
+    for="newCategoryIcon"
+    data-i18n="admin.collections.icon"
+>
+    Icon
+</label>
 
-                            <input
-                                id="newCategoryIcon"
-                                type="text"
-                                maxlength="100"
-                                placeholder="pl. game"
-                            >
+<input
+    id="newCategoryIcon"
+    type="text"
+    maxlength="100"
+    data-i18n-placeholder="admin.collections.icon_placeholder"
+    placeholder="e.g. game"
+>
                         </div>
 
                         <div>
-                            <label for="newCategorySortOrder">
-                                Sorrend
-                            </label>
+<label
+    for="newCategorySortOrder"
+    data-i18n="admin.collections.sort_order"
+>
+    Sort order
+</label>
 
                             <input
                                 id="newCategorySortOrder"
@@ -1324,20 +1385,26 @@
                         </div>
 
                         <div class="checkbox-field">
-                            <label>
-                                <input
-                                    id="newCategorySupportsBarcode"
-                                    type="checkbox"
-                                >
-                                Vonalkód támogatása
-                            </label>
+<label>
+    <input
+        id="newCategorySupportsBarcode"
+        type="checkbox"
+    >
+
+    <span data-i18n="admin.collections.barcode_support">
+        Barcode support
+    </span>
+</label>
                         </div>
                     </div>
 
                     <div>
-                        <label for="newCategoryDescription">
-                            Leírás
-                        </label>
+<label
+    for="newCategoryDescription"
+    data-i18n="admin.collections.description_field"
+>
+    Description
+</label>
 
                         <textarea
                             id="newCategoryDescription"
@@ -1347,13 +1414,14 @@
                     </div>
 
                     <div class="actions">
-                        <button
-                            id="createCategoryButton"
-                            class="primary"
-                            type="button"
-                        >
-                            Gyűjtemény létrehozása
-                        </button>
+<button
+    id="createCategoryButton"
+    class="primary"
+    type="button"
+    data-i18n="admin.collections.create"
+>
+    Create collection
+</button>
                     </div>
 
                     <div
@@ -1363,15 +1431,19 @@
                 </div>
 
 
-                <div class="admin-section-title">
-                    📦 Rendszergyűjtemények
-                </div>
+<div
+    class="admin-section-title"
+    data-i18n="admin.collections.system"
+>
+    📦 System collections
+</div>
 
                 <div
                     id="systemCategoriesStatus"
                     class="status"
+                    data-i18n="admin.loading"
                 >
-                    Betöltés...
+                    Loading...
                 </div>
 
                 <div
@@ -1380,15 +1452,19 @@
                 ></div>
 
 
-                <div class="admin-section-title">
-                    🧩 Saját gyűjtemények
-                </div>
+<div
+    class="admin-section-title"
+    data-i18n="admin.collections.custom"
+>
+    🧩 Custom collections
+</div>
 
                 <div
                     id="householdCategoriesStatus"
                     class="status"
+                    data-i18n="admin.loading"
                 >
-                    Betöltés...
+                    Loading...
                 </div>
 
                 <div
@@ -1405,38 +1481,47 @@
             <section class="panel">
                 <div class="section-toolbar">
                     <div>
-                        <h2>Tárhelyek</h2>
+<h2 data-i18n="admin.storage.title">
+    Storage
+</h2>
 
-                        <p class="panel-description">
-                            A háztartás fizikai
-                            tárhelystruktúrájának kezelése.
-                        </p>
+<p
+    class="panel-description"
+    data-i18n="admin.storage.description"
+>
+    Manage the household's physical storage structure.
+</p>
                     </div>
 
-                    <button
-                        id="createRootStorageButton"
-                        class="primary"
-                        type="button"
-                    >
-                        + Új gyökérelem
-                    </button>
+<button
+    id="createRootStorageButton"
+    class="primary"
+    type="button"
+    data-i18n="admin.storage.new_root"
+>
+    + New root location
+</button>
                 </div>
 
                 <div class="storage-admin-toolbar">
-                    <label>
-                        <input
-                            id="storageIncludeInactive"
-                            type="checkbox"
-                        >
-                        Inaktív tárhelyek mutatása
-                    </label>
+<label>
+    <input
+        id="storageIncludeInactive"
+        type="checkbox"
+    >
 
-                    <button
-                        id="reloadStorageButton"
-                        type="button"
-                    >
-                        ↻ Frissítés
-                    </button>
+    <span data-i18n="admin.storage.show_inactive">
+        Show inactive storage locations
+    </span>
+</label>
+
+<button
+    id="reloadStorageButton"
+    type="button"
+    data-i18n="admin.storage.reload"
+>
+    ↻ Reload
+</button>
                 </div>
 
                 <div
@@ -1462,9 +1547,12 @@
         >
             <div class="storage-modal-content">
                 <div class="storage-modal-header">
-                    <h2 id="storageLocationModalTitle">
-                        Új tárhely
-                    </h2>
+<h2
+    id="storageLocationModalTitle"
+    data-i18n="admin.storage.modal.new"
+>
+    New storage location
+</h2>
 
                     <button
                         id="storageLocationModalClose"
@@ -1485,16 +1573,20 @@
                     type="hidden"
                 >
 
-                <div
-                    id="storageLocationParentInfo"
-                    class="storage-parent-info"
-                >
-                    Gyökérelem létrehozása
-                </div>
+<div
+    id="storageLocationParentInfo"
+    class="storage-parent-info"
+    data-i18n="admin.storage.modal.root_create"
+>
+    Create root location
+</div>
 
-                <label for="storageLocationName">
-                    Név
-                </label>
+<label
+    for="storageLocationName"
+    data-i18n="admin.storage.name"
+>
+    Name
+</label>
 
                 <input
                     id="storageLocationName"
@@ -1503,36 +1595,93 @@
                     autocomplete="off"
                 >
 
-                <label for="storageLocationType">
-                    Típus
-                </label>
+<label
+    for="storageLocationType"
+    data-i18n="admin.storage.type"
+>
+    Type
+</label>
 
-                <select id="storageLocationType">
-                    <option value="room">Helyiség</option>
-                    <option value="area">Terület</option>
-                    <option value="shelf">Polc</option>
-                    <option value="cabinet">Szekrény</option>
-                    <option value="drawer">Fiók</option>
-                    <option value="box">Doboz</option>
-                    <option value="slot">Tárhely</option>
-                    <option value="other">Egyéb</option>
-                </select>
+<select id="storageLocationType">
+    <option
+        value="room"
+        data-i18n="admin.storage.type.room"
+    >
+        Room
+    </option>
 
-                <label for="storageLocationSlug">
-                    Slug
-                </label>
+    <option
+        value="area"
+        data-i18n="admin.storage.type.area"
+    >
+        Area
+    </option>
 
-                <input
-                    id="storageLocationSlug"
-                    type="text"
-                    maxlength="150"
-                    placeholder="Üresen automatikusan készül"
-                    autocomplete="off"
-                >
+    <option
+        value="shelf"
+        data-i18n="admin.storage.type.shelf"
+    >
+        Shelf
+    </option>
 
-                <label for="storageLocationDescription">
-                    Leírás
-                </label>
+    <option
+        value="cabinet"
+        data-i18n="admin.storage.type.cabinet"
+    >
+        Cabinet
+    </option>
+
+    <option
+        value="drawer"
+        data-i18n="admin.storage.type.drawer"
+    >
+        Drawer
+    </option>
+
+    <option
+        value="box"
+        data-i18n="admin.storage.type.box"
+    >
+        Box
+    </option>
+
+    <option
+        value="slot"
+        data-i18n="admin.storage.type.slot"
+    >
+        Storage location
+    </option>
+
+    <option
+        value="other"
+        data-i18n="admin.storage.type.other"
+    >
+        Other
+    </option>
+</select>
+
+<label
+    for="storageLocationSlug"
+    data-i18n="admin.storage.slug"
+>
+    Slug
+</label>
+
+<input
+    id="storageLocationSlug"
+    type="text"
+    maxlength="150"
+    data-i18n-placeholder="admin.storage.slug_placeholder"
+    placeholder="Generated automatically when left empty"
+    autocomplete="off"
+>
+
+<label
+    for="storageLocationDescription"
+    data-i18n="admin.storage.description_field"
+>
+    Description
+</label>
 
                 <textarea
                     id="storageLocationDescription"
@@ -1540,9 +1689,12 @@
                     rows="3"
                 ></textarea>
 
-                <label for="storageLocationSortOrder">
-                    Sorrend
-                </label>
+<label
+    for="storageLocationSortOrder"
+    data-i18n="admin.storage.sort_order"
+>
+    Sort order
+</label>
 
                 <input
                     id="storageLocationSortOrder"
@@ -1552,14 +1704,17 @@
                     value="0"
                 >
 
-                <label class="checkbox-row">
-                    <input
-                        id="storageLocationIsActive"
-                        type="checkbox"
-                        checked
-                    >
-                    Aktív
-                </label>
+<label class="checkbox-row">
+    <input
+        id="storageLocationIsActive"
+        type="checkbox"
+        checked
+    >
+
+    <span data-i18n="admin.storage.active">
+        Active
+    </span>
+</label>
 
                 <div
                     id="storageLocationFormStatus"
@@ -1567,20 +1722,22 @@
                 ></div>
 
                 <div class="storage-modal-actions">
-                    <button
-                        id="storageLocationCancelButton"
-                        type="button"
-                    >
-                        Mégse
-                    </button>
+<button
+    id="storageLocationCancelButton"
+    type="button"
+    data-i18n="admin.storage.cancel"
+>
+    Cancel
+</button>
 
-                    <button
-                        id="storageLocationSaveButton"
-                        type="button"
-                        class="primary"
-                    >
-                        Létrehozás
-                    </button>
+<button
+    id="storageLocationSaveButton"
+    type="button"
+    class="primary"
+    data-i18n="admin.storage.create"
+>
+    Create
+</button>
                 </div>
             </div>
         </div>
@@ -1591,6 +1748,8 @@
         ></div>
 
     </main>
+
+    <script src="/ui/js/i18n.js"></script>
 
     <script>
         let currentUserId = null;
@@ -1713,21 +1872,26 @@ function storageAdminShowToast(
 function storageAdminLocationTypeLabel(
     type
 ) {
-    const labels = {
-        room: "Helyiség",
-        area: "Terület",
-        shelf: "Polc",
-        cabinet: "Szekrény",
-        drawer: "Fiók",
-        box: "Doboz",
-        slot: "Tárhely",
-        other: "Egyéb"
-    };
+    const key =
+        `admin.storage.type.${type}`;
+
+    const translated =
+        FamilyCollectionI18n.t(
+            key
+        );
+
+    if (
+        translated
+        && translated !== key
+    ) {
+        return translated;
+    }
 
     return (
-        labels[type]
-        || type
-        || "Ismeretlen"
+        type
+        || FamilyCollectionI18n.t(
+            "admin.storage.type.unknown"
+        )
     );
 }
 
@@ -1873,7 +2037,11 @@ function storageAdminRenderNode(node) {
 
                     <div class="storage-location-meta">
                         ${escapeHtml(node.slug)}
-                        · sorrend:
+                        · ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.storage.sort_label"
+                            )
+                        )}:
                         ${escapeHtml(
                             node.sort_order ?? 0
                         )}
@@ -1905,8 +2073,12 @@ function storageAdminRenderNode(node) {
                 <div class="storage-location-state">
                     ${
                         node.is_active
-                            ? "Aktív"
-                            : "Inaktív"
+                            ? FamilyCollectionI18n.t(
+                                "admin.storage.state.active"
+                            )
+                            : FamilyCollectionI18n.t(
+                                "admin.storage.state.inactive"
+                            )
                     }
                 </div>
 
@@ -1918,7 +2090,11 @@ function storageAdminRenderNode(node) {
                             node.public_id
                         )}"
                     >
-                        ＋ Alhely
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.storage.add_child"
+                            )
+                        )}
                     </button>
 
                     <button
@@ -1975,9 +2151,13 @@ function storageAdminRenderTree(
 
     if (!locations.length) {
         tree.innerHTML =
-            '<div class="muted">'
-            + 'Nincs megjeleníthető tárhely.'
-            + '</div>';
+            `<div class="muted">${
+                escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.storage.empty"
+                    )
+                )
+            }</div>`;
 
         return;
     }
@@ -2058,7 +2238,9 @@ async function loadAdminStorageTree() {
 
     if (!activeHousehold) {
         statusBox.textContent =
-            "A háztartás még nincs betöltve.";
+            FamilyCollectionI18n.t(
+                "admin.storage.household_not_loaded"
+            );
 
         return;
     }
@@ -2071,9 +2253,13 @@ async function loadAdminStorageTree() {
         ).checked;
 
     tree.innerHTML =
-        '<div class="muted">'
-        + 'Tárhelyek betöltése...'
-        + '</div>';
+        `<div class="muted">${
+            escapeHtml(
+                FamilyCollectionI18n.t(
+                    "admin.storage.loading"
+                )
+            )
+        }</div>`;
 
     summary.textContent = "";
     statusBox.textContent = "";
@@ -2112,8 +2298,9 @@ async function loadAdminStorageTree() {
             )
         ) {
             throw new Error(
-                "A szerver hibás "
-                + "tárhelyfa-választ adott."
+                FamilyCollectionI18n.t(
+                    "admin.storage.invalid_tree"
+                )
             );
         }
 
@@ -2122,14 +2309,18 @@ async function loadAdminStorageTree() {
         );
 
         summary.textContent =
-            `${
-                storageAdminCountNodes(
-                    data.locations
-                )
-            } tárhelyelem · `
-            + `${
-                data.locations.length
-            } gyökérelem`;
+            FamilyCollectionI18n.t(
+                "admin.storage.summary",
+                {
+                    nodes:
+                        storageAdminCountNodes(
+                            data.locations
+                        ),
+
+                    roots:
+                        data.locations.length
+                }
+            );
 
         storageAdminRenderTree(
             data.locations
@@ -2163,7 +2354,9 @@ function storageAdminResetForm() {
     document.getElementById(
         "storageLocationParentInfo"
     ).textContent =
-        "Gyökérelem létrehozása";
+        FamilyCollectionI18n.t(
+            "admin.storage.modal.root_create"
+        );
 
     document.getElementById(
         "storageLocationName"
@@ -2196,12 +2389,16 @@ function storageAdminResetForm() {
     document.getElementById(
         "storageLocationModalTitle"
     ).textContent =
-        "Új gyökérelem";
+        FamilyCollectionI18n.t(
+            "admin.storage.modal.new_root"
+        );
 
     document.getElementById(
         "storageLocationSaveButton"
     ).textContent =
-        "Létrehozás";
+        FamilyCollectionI18n.t(
+            "admin.storage.create"
+        );
 
     storageAdminSlugEditedManually =
         false;
@@ -2239,12 +2436,22 @@ function storageAdminOpenCreateChild(
     document.getElementById(
         "storageLocationParentInfo"
     ).textContent =
-        `Szülő: ${name}`;
+        FamilyCollectionI18n.t(
+            "admin.storage.modal.parent",
+            {
+                name
+            }
+        );
 
     document.getElementById(
         "storageLocationModalTitle"
     ).textContent =
-        `Új alhely: ${name}`;
+        FamilyCollectionI18n.t(
+            "admin.storage.modal.new_child",
+            {
+                name
+            }
+        );
 
     document.getElementById(
         "storageLocationType"
@@ -2265,7 +2472,9 @@ function storageAdminOpenEdit(
 
     if (!location) {
         storageAdminShowToast(
-            "A tárhely nem található.",
+            FamilyCollectionI18n.t(
+                "admin.storage.modal.not_found"
+            ),
             "error"
         );
 
@@ -2289,10 +2498,13 @@ function storageAdminOpenEdit(
     ).textContent =
         location.parent_public_id
             ? (
-                "A szülőkapcsolat itt "
-                + "nem módosítható."
+                FamilyCollectionI18n.t(
+                    "admin.storage.modal.parent_locked"
+                )
             )
-            : "Gyökérelem";
+            : FamilyCollectionI18n.t(
+                "admin.storage.modal.root"
+            );
 
     document.getElementById(
         "storageLocationName"
@@ -2331,14 +2543,20 @@ function storageAdminOpenEdit(
     document.getElementById(
         "storageLocationModalTitle"
     ).textContent =
-        `Tárhely szerkesztése: ${
-            location.name
-        }`;
+        FamilyCollectionI18n.t(
+            "admin.storage.modal.edit",
+            {
+                name:
+                    location.name
+            }
+        );
 
     document.getElementById(
         "storageLocationSaveButton"
     ).textContent =
-        "Mentés";
+        FamilyCollectionI18n.t(
+            "common.save"
+        );
 
     storageAdminSlugEditedManually =
         true;
@@ -2414,7 +2632,9 @@ async function storageAdminSaveLocation() {
 
     if (!name) {
         statusBox.textContent =
-            "❌ A név nem lehet üres.";
+            FamilyCollectionI18n.t(
+                "admin.storage.validation.name_required"
+            );
 
         return;
     }
@@ -2424,7 +2644,9 @@ async function storageAdminSaveLocation() {
         || sortOrder < 0
     ) {
         statusBox.textContent =
-            "❌ A sorrend nem lehet negatív.";
+            FamilyCollectionI18n.t(
+                "admin.storage.validation.sort_order"
+            );
 
         return;
     }
@@ -2433,8 +2655,12 @@ async function storageAdminSaveLocation() {
 
     statusBox.textContent =
         editPublicId
-            ? "Mentés..."
-            : "Létrehozás...";
+            ? FamilyCollectionI18n.t(
+                "admin.storage.saving"
+            )
+            : FamilyCollectionI18n.t(
+                "admin.storage.creating"
+            );
 
     try {
         const response =
@@ -2506,8 +2732,12 @@ async function storageAdminSaveLocation() {
 
         storageAdminShowToast(
             editPublicId
-                ? "Tárhely módosítva."
-                : "Tárhely létrehozva."
+                ? FamilyCollectionI18n.t(
+                    "admin.storage.updated"
+                )
+                : FamilyCollectionI18n.t(
+                    "admin.storage.created"
+                )
         );
 
     } catch (error) {
@@ -2526,10 +2756,12 @@ async function storageAdminDeleteLocation(
 ) {
     const confirmed =
         window.confirm(
-            `"${name}" tárhely törlése?\n\n`
-            + "Csak akkor törölhető, ha "
-            + "nincs gyermeke és nem volt "
-            + "használatban."
+            FamilyCollectionI18n.t(
+                "admin.storage.delete_confirm",
+                {
+                    name
+                }
+            )
         );
 
     if (!confirmed) {
@@ -2558,14 +2790,23 @@ async function storageAdminDeleteLocation(
         await loadAdminStorageTree();
 
         storageAdminShowToast(
-            `"${name}" tárhely törölve.`
+            FamilyCollectionI18n.t(
+                "admin.storage.deleted",
+                {
+                    name
+                }
+            )
         );
 
     } catch (error) {
         storageAdminShowToast(
-            `Nem sikerült törölni: ${
-                error.message
-            }`,
+            FamilyCollectionI18n.t(
+                "admin.storage.delete_error",
+                {
+                    message:
+                        error.message
+                }
+            ),
             "error"
         );
     }
@@ -2843,8 +3084,12 @@ if (target === "storage") {
 
             toggleNewUserButton.textContent =
                 opening
-                    ? "▲ Bezárás"
-                    : "+ Új felhasználó";
+                    ? FamilyCollectionI18n.t(
+                        "admin.common.close"
+                    )
+                    : FamilyCollectionI18n.t(
+                        "admin.users.new"
+                    );
         }
     );
 
@@ -2873,8 +3118,12 @@ if (target === "storage") {
 
             toggleNewCategoryButton.textContent =
                 opening
-                    ? "▲ Bezárás"
-                    : "+ Új gyűjtemény";
+                    ? FamilyCollectionI18n.t(
+                        "admin.common.close"
+                    )
+                    : FamilyCollectionI18n.t(
+                        "admin.collections.new"
+                    );
         }
     );
 }
@@ -3004,14 +3253,17 @@ const newUsername =
 
 
         function roleLabel(role) {
-            const labels = {
-                owner: "Tulajdonos",
-                admin: "Adminisztrátor",
-                editor: "Szerkesztő",
-                viewer: "Megtekintő"
-            };
+            const key =
+                `common.role.${role}`;
 
-            return labels[role] || role;
+            const translated =
+                FamilyCollectionI18n.t(
+                    key
+                );
+
+            return translated === key
+                ? role
+                : translated;
         }
 
 
@@ -3043,7 +3295,9 @@ async function loadCategoryStorageTree() {
 
     if (!activeHousehold) {
         throw new Error(
-            "Nincs aktív háztartás."
+            FamilyCollectionI18n.t(
+                "collection.init.no_household"
+            )
         );
     }
 
@@ -3069,7 +3323,9 @@ async function loadCategoryStorageTree() {
         )
     ) {
         throw new Error(
-            "A szerver hibás tárhelyfa-választ adott."
+            FamilyCollectionI18n.t(
+                "admin.storage.invalid_tree"
+            )
         );
     }
 
@@ -3164,7 +3420,11 @@ data-location-public-id="${escapeHtml(
                     ${includeDescendantsChecked}
                 >
 
-                Alatta lévő tárhelyek is
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.storage.rules.include_descendants"
+                    )
+                )}
             </label>
 
             ${
@@ -3205,7 +3465,9 @@ async function loadCategoryStorageRules(
 
     setStatus(
         statusBox,
-        "Tárhelyszabályok betöltése..."
+        FamilyCollectionI18n.t(
+            "admin.storage.rules.loading"
+        )
     );
 
     treeContainer.innerHTML = "";
@@ -3270,7 +3532,11 @@ const selectedRules =
                     .join("")
                 : `
                     <div class="muted">
-                        Nincs aktív tárhely.
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.storage.rules.no_active"
+                            )
+                        )}
                     </div>
                 `;
 
@@ -3357,9 +3623,9 @@ async function saveCategoryStorageRules(
             setStatus(
                 statusBox,
                 (
-                    "❌ Korlátozott módban "
-                    + "legalább egy tárhelyet "
-                    + "ki kell választani."
+                    FamilyCollectionI18n.t(
+                        "admin.storage.rules.select_required"
+                    )
                 ),
                 "error"
             );
@@ -3404,7 +3670,9 @@ async function saveCategoryStorageRules(
 
     setStatus(
         statusBox,
-        "Mentés..."
+        FamilyCollectionI18n.t(
+            "common.saving"
+        )
     );
 
     try {
@@ -3433,12 +3701,14 @@ async function saveCategoryStorageRules(
             statusBox,
             response.restricted
                 ? (
-                    "✅ Tárhelykorlátozás "
-                    + "elmentve."
+                    FamilyCollectionI18n.t(
+                        "admin.storage.rules.saved_restricted"
+                    )
                 )
                 : (
-                    "✅ Minden tárhely "
-                    + "engedélyezve."
+                    FamilyCollectionI18n.t(
+                        "admin.storage.rules.saved_unrestricted"
+                    )
                 ),
             "success"
         );
@@ -3480,7 +3750,11 @@ function appendCategoryStorageControls(
                 type="button"
                 class="manage-storage-rules"
             >
-                🗄️ Tárhelyek kezelése
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.storage.rules.manage"
+                    )
+                )}
             </button>
         </div>
 
@@ -3495,13 +3769,19 @@ function appendCategoryStorageControls(
             "
         >
             <h4>
-                Engedélyezett tárhelyek
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.storage.rules.title"
+                    )
+                )}
             </h4>
 
             <p class="muted">
-                Ha nincs korlátozás,
-                a gyűjtemény minden aktív
-                tárhelyet használhat.
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.storage.rules.help"
+                    )
+                )}
             </p>
 
             <label
@@ -3521,7 +3801,11 @@ function appendCategoryStorageControls(
                     value="all"
                 >
 
-                Minden tárhely engedélyezett
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.storage.rules.unrestricted"
+                    )
+                )}
             </label>
 
             <label
@@ -3541,7 +3825,11 @@ function appendCategoryStorageControls(
                     value="restricted"
                 >
 
-                Csak a kijelölt tárhelyek
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.storage.rules.restricted"
+                    )
+                )}
             </label>
 
             <div
@@ -3556,7 +3844,11 @@ function appendCategoryStorageControls(
                     type="button"
                     class="primary save-category-storage"
                 >
-                    💾 Tárhelyszabályok mentése
+                    ${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "admin.storage.rules.save"
+                        )
+                    )}
                 </button>
             </div>
 
@@ -3602,8 +3894,12 @@ while (wrapper.firstChild) {
 
             manageButton.textContent =
                 opening
-                    ? "▲ Tárhelyek bezárása"
-                    : "🗄️ Tárhelyek kezelése";
+                    ? FamilyCollectionI18n.t(
+                        "admin.storage.rules.close"
+                    )
+                    : FamilyCollectionI18n.t(
+                        "admin.storage.rules.manage"
+                    );
 
             if (opening) {
                 await loadCategoryStorageRules(
@@ -3661,7 +3957,11 @@ function renderSystemCategories(categories) {
     if (!categories.length) {
         systemCategoriesList.innerHTML =
             '<div class="muted">'
-            + 'Nincs rendszerkategória.'
+            + escapeHtml(
+                FamilyCollectionI18n.t(
+                    "admin.category.system_empty"
+                )
+            )
             + '</div>';
 
         return;
@@ -3689,22 +3989,34 @@ function renderSystemCategories(categories) {
 
                     <div class="category-meta">
                         <span>
-                            Rendszer
+                            ${escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "admin.category.system"
+                                )
+                            )}
                         </span>
 
                         <span>
                             ${
                                 category.is_active
-                                    ? "🟢 Aktív"
-                                    : "⚫ Inaktív"
+                                    ? FamilyCollectionI18n.t(
+                                        "admin.category.state.active"
+                                    )
+                                    : FamilyCollectionI18n.t(
+                                        "admin.category.state.inactive"
+                                    )
                             }
                         </span>
 
                         <span>
                             ${
                                 category.supports_barcode
-                                    ? "▥ Vonalkódos"
-                                    : "Vonalkód nélkül"
+                                    ? FamilyCollectionI18n.t(
+                                        "admin.category.barcode.enabled"
+                                    )
+                                    : FamilyCollectionI18n.t(
+                                        "admin.category.barcode.disabled"
+                                    )
                             }
                         </span>
 
@@ -3720,7 +4032,11 @@ function renderSystemCategories(categories) {
                     type="button"
                     class="toggle-category-settings"
                 >
-                    ⚙️ Beállítások
+                    ${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "admin.category.settings"
+                        )
+                    )}
                 </button>
             </div>
 
@@ -3731,7 +4047,9 @@ function renderSystemCategories(categories) {
                 <div class="category-description">
                     ${escapeHtml(
                         category.description
-                        || "Nincs leírás."
+                        || FamilyCollectionI18n.t(
+                            "admin.category.no_description"
+                        )
                     )}
                 </div>
 
@@ -3760,8 +4078,11 @@ function renderSystemCategories(categories) {
                     class="muted"
                     style="margin-top:10px;"
                 >
-                    A rendszerkategória alapadatai
-                    központilag definiáltak.
+                    ${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "admin.category.system_fixed"
+                        )
+                    )}
                 </div>
             </div>
         `;
@@ -3790,8 +4111,12 @@ function renderSystemCategories(categories) {
 
                 settingsButton.textContent =
                     opening
-                        ? "▲ Bezárás"
-                        : "⚙️ Beállítások";
+                        ? FamilyCollectionI18n.t(
+                            "admin.category.settings_close"
+                        )
+                        : FamilyCollectionI18n.t(
+                            "admin.category.settings"
+                        );
             }
         );
 
@@ -3855,7 +4180,9 @@ async function createCategoryField(
     if (!name) {
         setStatus(
             statusBox,
-            "❌ A mező neve kötelező.",
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.name_required"
+            ),
             "error"
         );
 
@@ -3865,7 +4192,9 @@ async function createCategoryField(
     if (!fieldKey) {
         setStatus(
             statusBox,
-            "❌ A mezőkulcs kötelező.",
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.key_required"
+            ),
             "error"
         );
 
@@ -3878,9 +4207,8 @@ async function createCategoryField(
     ) {
         setStatus(
             statusBox,
-            (
-                "❌ A sorrend nem lehet "
-                + "negatív egész szám."
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.sort_order"
             ),
             "error"
         );
@@ -3892,7 +4220,9 @@ async function createCategoryField(
 
     setStatus(
         statusBox,
-        "Létrehozás..."
+        FamilyCollectionI18n.t(
+            "admin.fields.option_creating"
+        )
     );
 
     try {
@@ -3992,7 +4322,9 @@ async function createCategoryField(
 
         setStatus(
             statusBox,
-            "✅ Mező létrehozva.",
+            FamilyCollectionI18n.t(
+                "admin.fields.created"
+            ),
             "success"
         );
 
@@ -4049,7 +4381,9 @@ async function saveCategoryField(
     if (!name) {
         setStatus(
             statusBox,
-            "❌ A mező neve kötelező.",
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.name_required"
+            ),
             "error"
         );
 
@@ -4062,9 +4396,8 @@ async function saveCategoryField(
     ) {
         setStatus(
             statusBox,
-            (
-                "❌ A sorrend nem lehet "
-                + "negatív egész szám."
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.sort_order"
             ),
             "error"
         );
@@ -4076,7 +4409,9 @@ async function saveCategoryField(
 
     setStatus(
         statusBox,
-        "Mentés..."
+        FamilyCollectionI18n.t(
+            "common.saving"
+        )
     );
 
     try {
@@ -4141,7 +4476,9 @@ async function saveCategoryField(
 
         setStatus(
             statusBox,
-            "✅ Mező mentve.",
+            FamilyCollectionI18n.t(
+                "admin.fields.saved"
+            ),
             "success"
         );
 
@@ -4171,8 +4508,13 @@ async function deactivateCategoryField(
     const confirmed =
         window.confirm(
             (
-                `Biztosan inaktiválod ezt a mezőt?\n\n`
-                + `${field.name} (${field.field_key})`
+                FamilyCollectionI18n.t(
+                    "admin.fields.deactivate_confirm",
+                    {
+                        name:
+                            `${field.name} (${field.field_key})`
+                    }
+                )
             )
         );
 
@@ -4182,7 +4524,9 @@ async function deactivateCategoryField(
 
     setStatus(
         statusBox,
-        "Inaktiválás..."
+        FamilyCollectionI18n.t(
+            "admin.fields.deactivating"
+        )
     );
 
     try {
@@ -4270,7 +4614,9 @@ async function createCategoryFieldOption(
     if (!value) {
         setStatus(
             statusBox,
-            "❌ Az érték kötelező.",
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.value_required"
+            ),
             "error"
         );
 
@@ -4280,7 +4626,9 @@ async function createCategoryFieldOption(
     if (!label) {
         setStatus(
             statusBox,
-            "❌ A megjelenő név kötelező.",
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.label_required"
+            ),
             "error"
         );
 
@@ -4293,9 +4641,8 @@ async function createCategoryFieldOption(
     ) {
         setStatus(
             statusBox,
-            (
-                "❌ A sorrend nem lehet "
-                + "negatív egész szám."
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.sort_order"
             ),
             "error"
         );
@@ -4307,7 +4654,9 @@ async function createCategoryFieldOption(
 
     setStatus(
         statusBox,
-        "Létrehozás..."
+        FamilyCollectionI18n.t(
+            "admin.fields.option_creating"
+        )
     );
 
     try {
@@ -4395,7 +4744,9 @@ async function saveCategoryFieldOption(
     if (!label) {
         setStatus(
             statusBox,
-            "❌ A megjelenő név kötelező.",
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.label_required"
+            ),
             "error"
         );
 
@@ -4408,9 +4759,8 @@ async function saveCategoryFieldOption(
     ) {
         setStatus(
             statusBox,
-            (
-                "❌ A sorrend nem lehet "
-                + "negatív egész szám."
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.sort_order"
             ),
             "error"
         );
@@ -4422,7 +4772,9 @@ async function saveCategoryFieldOption(
 
     setStatus(
         statusBox,
-        "Mentés..."
+        FamilyCollectionI18n.t(
+            "common.saving"
+        )
     );
 
     try {
@@ -4459,7 +4811,9 @@ async function saveCategoryFieldOption(
 
         setStatus(
             statusBox,
-            "✅ Opció mentve.",
+            FamilyCollectionI18n.t(
+                "admin.fields.option_saved"
+            ),
             "success"
         );
 
@@ -4485,9 +4839,13 @@ async function deactivateCategoryFieldOption(
     const confirmed =
         window.confirm(
             (
-                "Biztosan inaktiválod ezt "
-                + "a választható értéket?\n\n"
-                + `${option.label} (${option.value})`
+                FamilyCollectionI18n.t(
+                    "admin.fields.option_deactivate_confirm",
+                    {
+                        name:
+                            `${option.label} (${option.value})`
+                    }
+                )
             )
         );
 
@@ -4558,7 +4916,9 @@ async function loadCategoryFieldOptions(
 
     setStatus(
         statusBox,
-        "Opciók betöltése..."
+        FamilyCollectionI18n.t(
+            "admin.fields.options_loading"
+        )
     );
 
     try {
@@ -4580,7 +4940,11 @@ async function loadCategoryFieldOptions(
         if (!options.length) {
             list.innerHTML = `
                 <div class="muted">
-                    Még nincs választható érték.
+                    ${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "admin.fields.options_empty"
+                        )
+                    )}
                 </div>
             `;
 
@@ -4600,7 +4964,11 @@ async function loadCategoryFieldOptions(
                 <div class="category-edit-grid">
                     <div>
                         <label>
-                            Érték
+                            ${escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "admin.fields.option_value"
+                                )
+                            )}
                         </label>
 
                         <input
@@ -4614,7 +4982,11 @@ async function loadCategoryFieldOptions(
 
                     <div>
                         <label>
-                            Megjelenő név
+                            ${escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "admin.fields.option_label"
+                                )
+                            )}
                         </label>
 
                         <input
@@ -4653,7 +5025,11 @@ async function loadCategoryFieldOptions(
                                         : ""
                                 }
                             >
-                            Aktív
+                            ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.active"
+                    )
+                )}
                         </label>
                     </div>
                 </div>
@@ -4663,7 +5039,11 @@ async function loadCategoryFieldOptions(
                         type="button"
                         class="primary save-option"
                     >
-                        Mentés
+                        ${escapeHtml(
+                FamilyCollectionI18n.t(
+                    "admin.fields.save"
+                )
+            )}
                     </button>
 
                     ${
@@ -4673,7 +5053,11 @@ async function loadCategoryFieldOptions(
                                     type="button"
                                     class="deactivate-option"
                                 >
-                                    🗑️ Inaktiválás
+                                    ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.fields.deactivate"
+                            )
+                        )}
                                 </button>
                             `
                             : ""
@@ -4752,7 +5136,9 @@ async function loadCategoryFields(
 
     setStatus(
         statusBox,
-        "Mezők betöltése..."
+        FamilyCollectionI18n.t(
+            "admin.fields.loading"
+        )
     );
 
     try {
@@ -4771,8 +5157,11 @@ async function loadCategoryFields(
         if (!fields.length) {
             list.innerHTML = `
                 <div class="muted">
-                    Ehhez a gyűjteményhez
-                    még nincs mező definiálva.
+                    ${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "admin.fields.empty"
+                        )
+                    )}
                 </div>
             `;
 
@@ -4792,7 +5181,11 @@ row.innerHTML = `
     <div class="category-edit-grid">
         <div>
             <label>
-                Név
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.name"
+                    )
+                )}
             </label>
 
             <input
@@ -4807,7 +5200,11 @@ row.innerHTML = `
 
         <div>
             <label>
-                Mezőkulcs
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.key"
+                    )
+                )}
             </label>
 
             <input
@@ -4821,7 +5218,11 @@ row.innerHTML = `
 
         <div>
             <label>
-                Típus
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.type"
+                    )
+                )}
             </label>
 
             <input
@@ -4835,7 +5236,11 @@ row.innerHTML = `
 
         <div>
             <label>
-                Sorrend
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.sort_order"
+                    )
+                )}
             </label>
 
             <input
@@ -4861,7 +5266,11 @@ row.innerHTML = `
                             : ""
                     }
                 >
-                Kötelező
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.required"
+                    )
+                )}
             </label>
         </div>
 
@@ -4876,7 +5285,11 @@ row.innerHTML = `
                             : ""
                     }
                 >
-                Kereshető
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.searchable"
+                    )
+                )}
             </label>
         </div>
 
@@ -4891,7 +5304,11 @@ row.innerHTML = `
                             : ""
                     }
                 >
-                Szűrhető
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.filterable"
+                    )
+                )}
             </label>
         </div>
 
@@ -4906,7 +5323,11 @@ row.innerHTML = `
                             : ""
                     }
                 >
-                Listában látható
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.visible_in_list"
+                    )
+                )}
             </label>
         </div>
 
@@ -4921,7 +5342,11 @@ row.innerHTML = `
                             : ""
                     }
                 >
-                Aktív
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.active"
+                    )
+                )}
             </label>
         </div>
     </div>
@@ -4931,7 +5356,11 @@ row.innerHTML = `
             type="button"
             class="primary save-field"
         >
-            Mentés
+            ${escapeHtml(
+                FamilyCollectionI18n.t(
+                    "admin.fields.save"
+                )
+            )}
         </button>
 
         ${
@@ -4941,7 +5370,11 @@ row.innerHTML = `
                         type="button"
                         class="deactivate-field"
                     >
-                        🗑️ Inaktiválás
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.fields.deactivate"
+                            )
+                        )}
                     </button>
                 `
                 : ""
@@ -4957,8 +5390,15 @@ row.innerHTML = `
               ? `
                   <div class="field-options">
 <h4>
-    Választható értékek:
-    ${escapeHtml(field.name)}
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "admin.fields.options_title",
+            {
+                name:
+                    field.name
+            }
+        )
+    )}
     <span class="muted">
         (${escapeHtml(field.field_key)})
     </span>
@@ -4971,7 +5411,11 @@ row.innerHTML = `
                       <div class="category-edit-grid">
                           <div>
                               <label>
-                                  Érték
+                                  ${escapeHtml(
+                                      FamilyCollectionI18n.t(
+                                          "admin.fields.option_value"
+                                      )
+                                  )}
                               </label>
 
                               <input
@@ -4983,7 +5427,11 @@ row.innerHTML = `
 
                           <div>
                               <label>
-                                  Megjelenő név
+                                  ${escapeHtml(
+                                      FamilyCollectionI18n.t(
+                                          "admin.fields.option_label"
+                                      )
+                                  )}
                               </label>
 
                               <input
@@ -4995,7 +5443,11 @@ row.innerHTML = `
 
                           <div>
                               <label>
-                                  Sorrend
+                                  ${escapeHtml(
+                                      FamilyCollectionI18n.t(
+                                          "admin.fields.option_sort_order"
+                                      )
+                                  )}
                               </label>
 
                               <input
@@ -5012,7 +5464,11 @@ row.innerHTML = `
                               type="button"
                               class="primary create-option"
                           >
-                              + Új opció
+                              ${escapeHtml(
+                                  FamilyCollectionI18n.t(
+                                      "admin.fields.option_new"
+                                  )
+                              )}
                           </button>
                       </div>
 
@@ -5060,23 +5516,43 @@ summary.className =
 const flags = [];
 
 if (field.is_required) {
-    flags.push("Kötelező");
+    flags.push(
+        FamilyCollectionI18n.t(
+            "admin.fields.flag.required"
+        )
+    );
 }
 
 if (field.is_searchable) {
-    flags.push("Kereshető");
+    flags.push(
+        FamilyCollectionI18n.t(
+            "admin.fields.flag.searchable"
+        )
+    );
 }
 
 if (field.is_filterable) {
-    flags.push("Szűrhető");
+    flags.push(
+        FamilyCollectionI18n.t(
+            "admin.fields.flag.filterable"
+        )
+    );
 }
 
 if (field.is_visible_in_list) {
-    flags.push("Listában");
+    flags.push(
+        FamilyCollectionI18n.t(
+            "admin.fields.flag.visible_in_list"
+        )
+    );
 }
 
 if (!field.is_active) {
-    flags.push("Inaktív");
+    flags.push(
+        FamilyCollectionI18n.t(
+            "admin.fields.flag.inactive"
+        )
+    );
 }
 
 
@@ -5111,7 +5587,11 @@ summary.innerHTML = `
                     .join("")
                 : `
                     <span class="muted">
-                        nincs extra beállítás
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.fields.no_extra_settings"
+                            )
+                        )}
                     </span>
                 `
         }
@@ -5127,7 +5607,11 @@ summary.innerHTML = `
         type="button"
         class="toggle-field-editor"
     >
-        ⚙️ Szerkesztés
+        ${escapeHtml(
+            FamilyCollectionI18n.t(
+                "admin.fields.edit"
+            )
+        )}
     </button>
 `;
 
@@ -5161,8 +5645,12 @@ toggleFieldEditorButton.addEventListener(
 
         toggleFieldEditorButton.textContent =
             opening
-                ? "▲ Bezárás"
-                : "⚙️ Szerkesztés";
+                ? FamilyCollectionI18n.t(
+                    "admin.fields.close"
+                )
+                : FamilyCollectionI18n.t(
+                    "admin.fields.edit"
+                );
     }
 );
 
@@ -5258,7 +5746,9 @@ async function toggleCategoryFields(
         panel.style.display = "none";
 
         button.textContent =
-            "🧩 Mezők kezelése";
+            FamilyCollectionI18n.t(
+                "admin.fields.manage"
+            );
 
         return;
     }
@@ -5266,7 +5756,9 @@ async function toggleCategoryFields(
     panel.style.display = "block";
 
     button.textContent =
-        "▲ Mezők bezárása";
+        FamilyCollectionI18n.t(
+            "admin.fields.close_manager"
+        );
 
     await loadCategoryFields(
         category,
@@ -5279,9 +5771,13 @@ function renderHouseholdCategories(categories) {
 
     if (!categories.length) {
         householdCategoriesList.innerHTML =
-            '<div class="muted">'
-            + 'Még nincs saját gyűjtemény.'
-            + '</div>';
+            `<div class="muted">${
+                escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.category.empty"
+                    )
+                )
+            }</div>`;
 
         return;
     }
@@ -5310,21 +5806,33 @@ function renderHouseholdCategories(categories) {
                         <span>
                             ${
                                 category.is_active
-                                    ? "🟢 Aktív"
-                                    : "⚫ Inaktív"
+                                    ? FamilyCollectionI18n.t(
+                                        "admin.category.state.active"
+                                    )
+                                    : FamilyCollectionI18n.t(
+                                        "admin.category.state.inactive"
+                                    )
                             }
                         </span>
 
                         <span>
                             ${
                                 category.supports_barcode
-                                    ? "▥ Vonalkódos"
-                                    : "Vonalkód nélkül"
+                                    ? FamilyCollectionI18n.t(
+                                        "admin.category.barcode.enabled"
+                                    )
+                                    : FamilyCollectionI18n.t(
+                                        "admin.category.barcode.disabled"
+                                    )
                             }
                         </span>
 
                         <span>
-                            Sorrend:
+                            ${escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "admin.category.sort_order"
+                                )
+                            )}:
                             ${escapeHtml(
                                 category.sort_order
                             )}
@@ -5334,14 +5842,22 @@ function renderHouseholdCategories(categories) {
 
                 <div class="actions">
                     <span class="category-badge">
-                        Saját
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.category.custom"
+                            )
+                        )}
                     </span>
 
                     <button
                         type="button"
                         class="toggle-category-settings"
                     >
-                        ⚙️ Beállítások
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.category.settings"
+                            )
+                        )}
                     </button>
                 </div>
             </div>
@@ -5353,7 +5869,11 @@ function renderHouseholdCategories(categories) {
                 <div class="category-edit-grid">
                     <div>
                         <label>
-                            Név
+                            ${escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "admin.category.name"
+                                )
+                            )}
                         </label>
 
                         <input
@@ -5367,7 +5887,11 @@ function renderHouseholdCategories(categories) {
 
                     <div>
                         <label>
-                            Ikon
+                            ${escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "admin.category.icon"
+                                )
+                            )}
                         </label>
 
                         <input
@@ -5405,7 +5929,11 @@ function renderHouseholdCategories(categories) {
                                         : ""
                                 }
                             >
-                            Vonalkód
+                            ${escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "admin.category.barcode"
+                                )
+                            )}
                         </label>
                     </div>
 
@@ -5420,14 +5948,22 @@ function renderHouseholdCategories(categories) {
                                         : ""
                                 }
                             >
-                            Aktív
+                            ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.active"
+                    )
+                )}
                         </label>
                     </div>
                 </div>
 
                 <div>
                     <label>
-                        Leírás
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.category.description"
+                            )
+                        )}
                     </label>
 
                     <textarea
@@ -5457,14 +5993,22 @@ function renderHouseholdCategories(categories) {
                         type="button"
                         class="primary save-category"
                     >
-                        💾 Alapbeállítások mentése
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.category.save_settings"
+                            )
+                        )}
                     </button>
 
                     <button
                         type="button"
                         class="manage-fields"
                     >
-                        🧩 Mezők kezelése
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.fields.manage"
+                            )
+                        )}
                     </button>
                 </div>
 
@@ -5477,7 +6021,11 @@ function renderHouseholdCategories(categories) {
                     style="display:none;"
                 >
                     <h4>
-                        Gyűjtemény mezői
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "admin.category.fields_title"
+                            )
+                        )}
                     </h4>
 
                     <div
@@ -5488,13 +6036,21 @@ function renderHouseholdCategories(categories) {
                         class="category-field-create"
                     >
                         <h5>
-                            Új mező hozzáadása
+                            ${escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "admin.category.add_field"
+                                )
+                            )}
                         </h5>
 
                         <div class="category-edit-grid">
                             <div>
                                 <label>
-                                    Név
+                                    ${escapeHtml(
+                                        FamilyCollectionI18n.t(
+                                            "admin.fields.name"
+                                        )
+                                    )}
                                 </label>
 
                                 <input
@@ -5506,7 +6062,11 @@ function renderHouseholdCategories(categories) {
 
                             <div>
                                 <label>
-                                    Mezőkulcs
+                                    ${escapeHtml(
+                                        FamilyCollectionI18n.t(
+                                            "admin.fields.key"
+                                        )
+                                    )}
                                 </label>
 
                                 <input
@@ -5519,73 +6079,137 @@ function renderHouseholdCategories(categories) {
 
                             <div>
                                 <label>
-                                    Típus
+                                    ${escapeHtml(
+                                        FamilyCollectionI18n.t(
+                                            "admin.fields.type"
+                                        )
+                                    )}
                                 </label>
 
                                 <select
                                     class="new-field-type"
                                 >
                                     <option value="text">
-                                        Szöveg
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.text"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="long_text">
-                                        Hosszú szöveg
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.long_text"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="integer">
-                                        Egész szám
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.integer"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="decimal">
-                                        Decimális szám
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.decimal"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="boolean">
-                                        Igen / nem
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.boolean"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="date">
-                                        Dátum
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.date"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="year">
-                                        Év
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.year"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="url">
-                                        Webcím
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.url"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="email">
-                                        E-mail
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.email"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="single_select">
-                                        Egyszeres választás
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.single_select"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="multi_select">
-                                        Többszörös választás
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.multi_select"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="barcode">
-                                        Vonalkód
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.barcode"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="image">
-                                        Kép
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.image"
+                                            )
+                                        )}
                                     </option>
 
                                     <option value="file">
-                                        Fájl
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "collection.field_type.file"
+                                            )
+                                        )}
                                     </option>
                                 </select>
                             </div>
 
                             <div>
                                 <label>
-                                    Sorrend
+                                    ${escapeHtml(
+                                        FamilyCollectionI18n.t(
+                                            "admin.fields.sort_order"
+                                        )
+                                    )}
                                 </label>
 
                                 <input
@@ -5604,7 +6228,11 @@ function renderHouseholdCategories(categories) {
                                         class="new-field-required"
                                         type="checkbox"
                                     >
-                                    Kötelező
+                                    ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.required"
+                    )
+                )}
                                 </label>
                             </div>
 
@@ -5614,7 +6242,11 @@ function renderHouseholdCategories(categories) {
                                         class="new-field-searchable"
                                         type="checkbox"
                                     >
-                                    Kereshető
+                                    ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.searchable"
+                    )
+                )}
                                 </label>
                             </div>
 
@@ -5624,7 +6256,11 @@ function renderHouseholdCategories(categories) {
                                         class="new-field-filterable"
                                         type="checkbox"
                                     >
-                                    Szűrhető
+                                    ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.filterable"
+                    )
+                )}
                                 </label>
                             </div>
 
@@ -5634,7 +6270,11 @@ function renderHouseholdCategories(categories) {
                                         class="new-field-visible-list"
                                         type="checkbox"
                                     >
-                                    Listában látható
+                                    ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.visible_in_list"
+                    )
+                )}
                                 </label>
                             </div>
                         </div>
@@ -5644,7 +6284,11 @@ function renderHouseholdCategories(categories) {
                                 type="button"
                                 class="primary create-field"
                             >
-                                ➕ Mező létrehozása
+                                ${escapeHtml(
+                                    FamilyCollectionI18n.t(
+                                        "admin.category.create_field"
+                                    )
+                                )}
                             </button>
                         </div>
 
@@ -5684,8 +6328,12 @@ function renderHouseholdCategories(categories) {
 
                 settingsButton.textContent =
                     opening
-                        ? "▲ Bezárás"
-                        : "⚙️ Beállítások";
+                        ? FamilyCollectionI18n.t(
+                            "admin.category.settings_close"
+                        )
+                        : FamilyCollectionI18n.t(
+                            "admin.category.settings"
+                        );
             }
         );
 
@@ -5742,12 +6390,16 @@ appendCategoryStorageControls(
 async function loadCategories() {
     setStatus(
         systemCategoriesStatus,
-        "Betöltés..."
+        FamilyCollectionI18n.t(
+            "admin.category.loading"
+        )
     );
 
     setStatus(
         householdCategoriesStatus,
-        "Betöltés..."
+        FamilyCollectionI18n.t(
+            "admin.category.loading"
+        )
     );
 
     try {
@@ -5806,7 +6458,9 @@ async function createCategory() {
     if (!name) {
         setStatus(
             createCategoryStatus,
-            "❌ A név megadása kötelező.",
+            FamilyCollectionI18n.t(
+                "admin.category.validation.name_required"
+            ),
             "error"
         );
 
@@ -5824,9 +6478,8 @@ async function createCategory() {
     ) {
         setStatus(
             createCategoryStatus,
-            (
-                "❌ A sorrend nem lehet "
-                + "negatív egész szám."
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.sort_order"
             ),
             "error"
         );
@@ -5839,7 +6492,9 @@ async function createCategory() {
 
     setStatus(
         createCategoryStatus,
-        "Létrehozás..."
+        FamilyCollectionI18n.t(
+            "admin.fields.option_creating"
+        )
     );
 
     try {
@@ -5885,7 +6540,9 @@ async function createCategory() {
 
         setStatus(
             createCategoryStatus,
-            "✅ Gyűjtemény létrehozva.",
+            FamilyCollectionI18n.t(
+                "admin.category.created"
+            ),
             "success"
         );
 
@@ -5968,7 +6625,9 @@ async function saveCategory(
     if (!name) {
         setStatus(
             rowStatus,
-            "❌ A név nem lehet üres.",
+            FamilyCollectionI18n.t(
+                "admin.category.validation.name_not_empty"
+            ),
             "error"
         );
 
@@ -5981,9 +6640,8 @@ async function saveCategory(
     ) {
         setStatus(
             rowStatus,
-            (
-                "❌ A sorrend nem lehet "
-                + "negatív egész szám."
+            FamilyCollectionI18n.t(
+                "admin.fields.validation.sort_order"
             ),
             "error"
         );
@@ -6044,7 +6702,9 @@ async function saveCategory(
     ) {
         setStatus(
             rowStatus,
-            "Nincs módosítás."
+            FamilyCollectionI18n.t(
+                "admin.category.no_changes"
+            )
         );
 
         return;
@@ -6054,7 +6714,9 @@ async function saveCategory(
 
     setStatus(
         rowStatus,
-        "Mentés..."
+        FamilyCollectionI18n.t(
+            "common.saving"
+        )
     );
 
     try {
@@ -6081,7 +6743,9 @@ async function saveCategory(
 
         setStatus(
             rowStatus,
-            "✅ Mentve.",
+            FamilyCollectionI18n.t(
+                "admin.category.saved"
+            ),
             "success"
         );
 
@@ -6114,7 +6778,9 @@ async function saveCategory(
                     "/ui/login.html";
 
                 throw new Error(
-                    "Nincs bejelentkezve."
+                    FamilyCollectionI18n.t(
+                        "admin.auth.not_logged_in"
+                    )
                 );
             }
 
@@ -6164,7 +6830,9 @@ async function saveCategory(
 
             if (!activeHousehold) {
                 throw new Error(
-                    "Nincs aktív háztartási tagság."
+                    FamilyCollectionI18n.t(
+                        "admin.users.no_household"
+                    )
                 );
             }
 
@@ -6176,7 +6844,9 @@ async function saveCategory(
                     "/ui/dashboard.html";
 
                 throw new Error(
-                    "Nincs admin jogosultság."
+                    FamilyCollectionI18n.t(
+                        "admin.users.no_admin"
+                    )
                 );
             }
 
@@ -6201,7 +6871,11 @@ async function saveCategory(
             if (!users.length) {
                 usersList.innerHTML =
                     '<div class="muted">'
-                    + 'Nincs felhasználó.'
+                    + escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "admin.users.empty"
+                        )
+                    )
                     + '</div>';
 
                 return;
@@ -6268,14 +6942,24 @@ async function saveCategory(
                                 <span>
                                     ${
                                         user.membership_is_active
-                                            ? "🟢 Aktív"
-                                            : "⚫ Inaktív"
+                                            ? FamilyCollectionI18n.t(
+                                                "admin.users.state.active"
+                                            )
+                                            : FamilyCollectionI18n.t(
+                                                "admin.users.state.inactive"
+                                            )
                                     }
                                 </span>
 
                                 ${
                                     isSelf
-                                        ? "<span>Saját fiók</span>"
+                                        ? `<span>${
+                                            escapeHtml(
+                                                FamilyCollectionI18n.t(
+                                                    "admin.users.own_account"
+                                                )
+                                            )
+                                        }</span>`
                                         : ""
                                 }
                             </div>
@@ -6285,7 +6969,11 @@ async function saveCategory(
                             type="button"
                             class="toggle-user-settings"
                         >
-                            ⚙️ Kezelés
+                            ${escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "admin.users.manage"
+                                )
+                            )}
                         </button>
                     </div>
 
@@ -6296,7 +6984,11 @@ async function saveCategory(
                         <div class="user-grid">
                             <div>
                                 <label>
-                                    Megjelenített név
+                                    ${escapeHtml(
+                                        FamilyCollectionI18n.t(
+                                            "admin.users.display_name"
+                                        )
+                                    )}
                                 </label>
 
                                 <input
@@ -6315,7 +7007,11 @@ async function saveCategory(
 
                             <div>
                                 <label>
-                                    Szerepkör
+                                    ${escapeHtml(
+                                        FamilyCollectionI18n.t(
+                                            "admin.users.role"
+                                        )
+                                    )}
                                 </label>
 
                                 <select
@@ -6334,7 +7030,11 @@ async function saveCategory(
                                                 : ""
                                         }
                                     >
-                                        Megtekintő
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "common.role.viewer"
+                                            )
+                                        )}
                                     </option>
 
                                     <option
@@ -6345,7 +7045,11 @@ async function saveCategory(
                                                 : ""
                                         }
                                     >
-                                        Szerkesztő
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "common.role.editor"
+                                            )
+                                        )}
                                     </option>
 
                                     <option
@@ -6356,7 +7060,11 @@ async function saveCategory(
                                                 : ""
                                         }
                                     >
-                                        Adminisztrátor
+                                        ${escapeHtml(
+                                            FamilyCollectionI18n.t(
+                                                "common.role.admin"
+                                            )
+                                        )}
                                     </option>
 
                                     ${
@@ -6366,7 +7074,11 @@ async function saveCategory(
                                                     value="owner"
                                                     selected
                                                 >
-                                                    Tulajdonos
+                                                    ${escapeHtml(
+                                                        FamilyCollectionI18n.t(
+                                                            "common.role.owner"
+                                                        )
+                                                    )}
                                                 </option>
                                             `
                                             : ""
@@ -6376,7 +7088,11 @@ async function saveCategory(
 
                             <div>
                                 <label>
-                                    Tagság
+                                    ${escapeHtml(
+                                        FamilyCollectionI18n.t(
+                                            "admin.users.membership"
+                                        )
+                                    )}
                                 </label>
 
                                 <div class="checkbox-row">
@@ -6396,7 +7112,11 @@ async function saveCategory(
                                     >
 
                                     <span>
-                                        Aktív
+                                        ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "admin.fields.active"
+                    )
+                )}
                                     </span>
                                 </div>
                             </div>
@@ -6412,7 +7132,11 @@ async function saveCategory(
                                         : ""
                                 }
                             >
-                                💾 Mentés
+                                ${escapeHtml(
+                                    FamilyCollectionI18n.t(
+                                        "admin.users.save"
+                                    )
+                                )}
                             </button>
                         </div>
 
@@ -6446,8 +7170,12 @@ async function saveCategory(
 
                         settingsButton.textContent =
                             opening
-                                ? "▲ Bezárás"
-                                : "⚙️ Kezelés";
+                                ? FamilyCollectionI18n.t(
+                                    "admin.users.close"
+                                )
+                                : FamilyCollectionI18n.t(
+                                    "admin.users.manage"
+                                );
                     }
                 );
 
@@ -6476,7 +7204,9 @@ async function saveCategory(
         async function loadUsers() {
             setStatus(
                 usersStatus,
-                "Betöltés..."
+                FamilyCollectionI18n.t(
+            "admin.category.loading"
+        )
             );
 
             try {
@@ -6569,7 +7299,9 @@ async function saveCategory(
             ) {
                 setStatus(
                     status,
-                    "Nincs módosítás."
+                    FamilyCollectionI18n.t(
+                "admin.category.no_changes"
+            )
                 );
 
                 return;
@@ -6579,7 +7311,9 @@ async function saveCategory(
 
             setStatus(
                 status,
-                "Mentés..."
+                FamilyCollectionI18n.t(
+            "common.saving"
+        )
             );
 
             try {
@@ -6606,7 +7340,9 @@ async function saveCategory(
 
                 setStatus(
                     status,
-                    "✅ Mentve.",
+                    FamilyCollectionI18n.t(
+                "admin.category.saved"
+            ),
                     "success"
                 );
 
@@ -6648,7 +7384,9 @@ if (
 
                 setStatus(
                     createStatus,
-                    "❌ Tölts ki minden mezőt.",
+                    FamilyCollectionI18n.t(
+                        "admin.users.validation.all_required"
+                    ),
                     "error"
                 );
 
@@ -6662,8 +7400,9 @@ if (
     setStatus(
         createStatus,
         (
-            "❌ A felhasználónév "
-            + "3–100 karakter hosszú legyen."
+            FamilyCollectionI18n.t(
+                "admin.users.validation.username_length"
+            )
         ),
         "error"
     );
@@ -6679,10 +7418,9 @@ if (
     setStatus(
         createStatus,
         (
-            "❌ A felhasználónév csak "
-            + "betűt, számot, pontot, "
-            + "kötőjelet és aláhúzást "
-            + "tartalmazhat."
+            FamilyCollectionI18n.t(
+                "admin.users.validation.username_format"
+            )
         ),
         "error"
     );
@@ -6694,7 +7432,12 @@ if (
                 setStatus(
                     createStatus,
                     (
-                        "❌ A jelszó legalább "
+                        FamilyCollectionI18n.t(
+                            "admin.users.validation.password_length",
+                            {
+                                minimum: 8
+                            }
+                        )
                         + "12 karakter legyen."
                     ),
                     "error"
@@ -6708,7 +7451,9 @@ if (
 
             setStatus(
                 createStatus,
-                "Létrehozás..."
+                FamilyCollectionI18n.t(
+            "admin.fields.option_creating"
+        )
             );
 
             try {
@@ -6746,7 +7491,9 @@ newPassword.value = "";
 
                 setStatus(
                     createStatus,
-                    "✅ Felhasználó létrehozva.",
+                    FamilyCollectionI18n.t(
+                        "admin.users.created"
+                    ),
                     "success"
                 );
 
