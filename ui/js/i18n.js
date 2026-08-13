@@ -2267,7 +2267,7 @@
 "books.images.clear":
     "🧹 Képek törlése",
 "books.main.title":
-    "📚 A Rigó család könyvtára",
+    "📚 Könyvtár",
 
 "books.main.book_list":
     "📖 Könyvek listája",
@@ -2319,7 +2319,7 @@
 "books.scanner.starting":
     "Kamera indítása...",
 "books.page_title":
-    "A Rigó család könyvtára",
+    "Könyvtár",
 
 "books.metadata.title":
     "Könyvadatok megadása",
