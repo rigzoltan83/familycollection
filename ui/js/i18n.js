@@ -7,6 +7,8 @@
 
     const translations = {
         en: {
+"common.search": "Search...",
+
 "admin.users.validation.all_required":
     "❌ Fill in all fields.",
 "admin.users.validation.username_length":
@@ -1204,6 +1206,8 @@
         },
 
         hu: {
+"common.search": "Keresés...",
+
 "admin.users.validation.all_required":
     "❌ Tölts ki minden mezőt.",
 "admin.users.validation.username_length":
