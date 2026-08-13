@@ -9,6 +9,7 @@ A valódi .env fájl nem kerül Gitbe.
 
 import os
 from pathlib import Path
+from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
 
@@ -137,10 +138,36 @@ if SESSION_MAX_AGE_SECONDS <= 0:
     )
 
 
-TEST_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL",
-    "",
+TEST_DATABASE_NAME = os.getenv(
+    "TEST_DATABASE_NAME",
+    "familycollection_test",
 ).strip()
+
+
+def build_test_database_url() -> str:
+    if not TEST_DATABASE_NAME:
+        return ""
+
+    encoded_user = quote_plus(
+        DB_USER
+    )
+
+    encoded_password = quote_plus(
+        DB_PASS
+    )
+
+    return (
+        "postgresql+psycopg2://"
+        f"{encoded_user}:"
+        f"{encoded_password}"
+        f"@{DB_HOST}:{DB_PORT}/"
+        f"{TEST_DATABASE_NAME}"
+    )
+
+
+TEST_DATABASE_URL = (
+    build_test_database_url()
+)
 
 ITEM_IMAGE_ROOT = Path(
     os.getenv(
