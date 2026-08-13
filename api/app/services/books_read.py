@@ -1032,11 +1032,6 @@ def move_book_to_storage_location(
         target_location
     )
 
-    if slot_number is None:
-        raise ValueError(
-            "A tárolóhely slot száma nem állapítható meg."
-        )
-
     migration.legacy_location_id = None
     migration.legacy_room = room_location.name
     migration.legacy_shelf = shelf_location.name
@@ -1368,11 +1363,6 @@ def create_manual_book(
     slot_number = _slot_number_from_location(
         target_location
     )
-
-    if slot_number is None:
-        raise ValueError(
-            "A tárolóhely slot száma nem állapítható meg."
-        )
 
     identifier_type, identifier_value = (
         _classify_manual_identifier(identifier)
