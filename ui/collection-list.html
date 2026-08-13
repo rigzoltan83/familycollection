@@ -41,6 +41,10 @@
             margin-bottom: 24px;
         }
 
+.collection-heading {
+    margin-bottom: 24px;
+}
+
         h1 {
             margin: 0;
             color: #6dff6d;
@@ -703,32 +707,30 @@
 <body>
 <main class="container">
 
-    <div class="topbar">
-        <div>
-            <h1
-                id="pageTitle"
-                data-i18n="collection.list.title"
-            >
-                Collection list
-            </h1>
+<div class="topbar">
+    <a
+        id="collectionHomeLink"
+        class="back-link"
+        href="#"
+        data-i18n="common.back"
+    >
+        ← Back
+    </a>
+</div>
 
-            <div
-                id="householdName"
-                class="subtitle"
-            ></div>
-        </div>
+<div class="collection-heading">
+    <h1
+        id="pageTitle"
+        data-i18n="collection.list.title"
+    >
+        Collection list
+    </h1>
 
-<a
-    id="collectionHomeLink"
-    class="back-link"
-    href="#"
->
-    <span data-i18n="collection.list.back">
-        ← Collection home
-    </span>
-</a>
-
-    </div>
+    <div
+        id="householdName"
+        class="subtitle"
+    ></div>
+</div>
 
     <div
         id="status"
@@ -5621,12 +5623,6 @@ renderDynamicFilters(
     activeFields
 );
 
-collectionHomeLink.href =
-    `/ui/collection.html?category_id=${
-        encodeURIComponent(
-            activeCategory.id
-        )
-    }`;
 
 
             document.title =
@@ -5651,6 +5647,17 @@ const canEdit =
     household.role === "editor"
     || household.role === "admin"
     || household.role === "owner";
+
+collectionHomeLink.href =
+    canEdit
+        ? (
+            `/ui/collection.html?category_id=${
+                encodeURIComponent(
+                    activeCategory.id
+                )
+            }`
+        )
+        : "/ui/dashboard.html";
 
 editItemButton.style.display =
     canEdit

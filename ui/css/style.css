@@ -808,11 +808,14 @@ button:hover{
 
 .page-navigation {
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
     margin-bottom: 14px;
 }
 
-.dashboard-back-button {
+.dashboard-back-button,
+.all-items-button {
     display: inline-block;
     padding: 8px 14px;
     border: 1px solid #555;
@@ -828,7 +831,8 @@ button:hover{
         color 0.15s ease;
 }
 
-.dashboard-back-button:hover {
+.dashboard-back-button:hover,
+.all-items-button:hover {
     background: #292929;
     border-color: #6dff6d;
     color: #6dff6d;

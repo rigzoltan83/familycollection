@@ -431,35 +431,21 @@ function renderCategories(
 
     for (const category of categories) {
         if (category.slug === "book") {
-            if (canEdit) {
-                collectionCards.appendChild(
-                    createMenuCard({
-title:
-    FamilyCollectionI18n.t(
-        "dashboard.books.title"
-    ),
-description:
-    FamilyCollectionI18n.t(
-        "dashboard.books.description"
-    ),
-                        icon: "📚",
-                        href: "/ui/index.html",
-                    })
-                );
-            }
-
             collectionCards.appendChild(
                 createMenuCard({
-title:
-    FamilyCollectionI18n.t(
-        "dashboard.booklist.title"
-    ),
-description:
-    FamilyCollectionI18n.t(
-        "dashboard.booklist.description"
-    ),
-                    icon: "🔎",
-                    href: "/ui/books.html",
+                    title:
+                        FamilyCollectionI18n.t(
+                            "dashboard.books.title"
+                        ),
+                    description:
+                        FamilyCollectionI18n.t(
+                            "dashboard.books.description"
+                        ),
+                    icon: "📚",
+                    href:
+                        canEdit
+                            ? "/ui/index.html"
+                            : "/ui/books.html",
                 })
             );
 
@@ -475,12 +461,16 @@ description:
         "dashboard.custom_collection.description"
     ),
                 icon: categoryIcon(category),
-                href:
-                    "/ui/collection.html"
-                    + "?category_id="
-                    + encodeURIComponent(
-                        category.id
-                    ),
+href:
+    (
+        canEdit
+            ? "/ui/collection.html"
+            : "/ui/collection-list.html"
+    )
+    + "?category_id="
+    + encodeURIComponent(
+        category.id
+    ),
             })
         );
 

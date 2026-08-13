@@ -739,19 +739,11 @@ header input {
 <header>
 
 <a
+    id="backLink"
     href="/ui/dashboard.html"
-    data-i18n="common.back_dashboard"
+    data-i18n="common.back"
 >
-    ⬅ Dashboard
-</a>
-
-<a
-    id="addBookLink"
-    href="/ui/index.html"
-    style="display:none"
-    data-i18n="books.list.add"
->
-    ➕ Add book
+    ← Back
 </a>
 
 <input
@@ -1207,16 +1199,16 @@ throw new Error(
         || household.role === "admin"
         || household.role === "owner";
 
-    const addBookLink =
+    const backLink =
         document.getElementById(
-            "addBookLink"
+            "backLink"
         );
 
-    if (addBookLink) {
-        addBookLink.style.display =
+    if (backLink) {
+        backLink.href =
             canEditBooks
-                ? ""
-                : "none";
+                ? "/ui/index.html"
+                : "/ui/dashboard.html";
     }
 
     return true;
@@ -1400,17 +1392,16 @@ async function loadAuthorizationContext() {
         || household.role === "admin"
         || household.role === "owner";
 
-    const addBookLink =
+    const backLink =
         document.getElementById(
-            "addBookLink"
+            "backLink"
         );
 
-    if (
-        addBookLink
-        && canEditBooks
-    ) {
-        addBookLink.style.display =
-            "";
+    if (backLink) {
+        backLink.href =
+            canEditBooks
+                ? "/ui/index.html"
+                : "/ui/dashboard.html";
     }
 
     return true;

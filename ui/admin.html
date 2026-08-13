@@ -33,6 +33,10 @@
             padding: 24px 0 40px;
         }
 
+.admin-heading {
+    margin-bottom: 24px;
+}
+
         .topbar {
             display: flex;
             justify-content: space-between;
@@ -1076,43 +1080,29 @@
 <body>
     <main class="container">
 
-        <div class="topbar">
-            <div>
-
-<h1 data-i18n="admin.page_title">
-    Administration
-</h1>
-
-<div
-    id="contextLine"
-    class="context-line"
-    data-i18n="admin.loading"
->
-    Loading...
+<div class="topbar">
+    <a
+        href="/ui/dashboard.html"
+        class="button-link"
+        data-i18n="common.back"
+    >
+        ← Back
+    </a>
 </div>
 
-            </div>
+<div class="admin-heading">
+    <h1 data-i18n="admin.page_title">
+        Administration
+    </h1>
 
-            <div class="top-actions">
-
-<a
-    href="/ui/dashboard.html"
-    class="button-link"
-    data-i18n="common.back"
->
-    ← Back
-</a>
-
-<button
-    id="logoutButton"
-    type="button"
-    data-i18n="admin.logout"
->
-    Log out
-</button>
-
-            </div>
-        </div>
+    <div
+        id="contextLine"
+        class="context-line"
+        data-i18n="admin.loading"
+    >
+        Loading...
+    </div>
+</div>
 
 <nav class="admin-tabs">
     <button
@@ -3234,11 +3224,6 @@ const newUsername =
         const newRole =
             document.getElementById(
                 "newRole"
-            );
-
-        const logoutButton =
-            document.getElementById(
-                "logoutButton"
             );
 
 
@@ -7522,23 +7507,6 @@ createCategoryButton.addEventListener(
     "click",
     createCategory
 );
-
-        logoutButton.addEventListener(
-            "click",
-            async () => {
-                try {
-                    await fetch(
-                        "/auth/logout",
-                        {
-                            method: "POST"
-                        }
-                    );
-                } finally {
-                    window.location.href =
-                        "/ui/login.html";
-                }
-            }
-        );
 
 
 async function initialize() {
