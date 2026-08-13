@@ -53,8 +53,5 @@ Thumbs.db
 # Régi kézi fájlmentések
 *.regi
 
-# Helyi alkalmazáskonfiguráció – jelszavakat és API-kulcsokat tartalmaz
-api/config.py
-
 # FamilyCollection runtime data
 data/
