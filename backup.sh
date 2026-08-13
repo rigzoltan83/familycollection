@@ -13,10 +13,18 @@ if [ -f /opt/familycollection/api/.env ]; then
     set +a
 fi
 
-if [ -z "${DB_PASS:-}" ]; then
-    echo "HIBA: DB_PASS nincs beállítva."
-    exit 1
-fi
+for variable in \
+    DB_HOST \
+    DB_PORT \
+    DB_NAME \
+    DB_USER \
+    DB_PASS
+do
+    if [ -z "${!variable:-}" ]; then
+        echo "HIBA: $variable nincs beállítva."
+        exit 1
+    fi
+done
 
 echo "===================================="
 echo "FamilyCollection backup indul"
@@ -50,18 +58,20 @@ cp -a \
 echo "== SQL dump =="
 
 PGPASSWORD="$DB_PASS" pg_dump \
-    -h localhost \
-    -U familyuser \
-    -d familycollection \
+    -h "$DB_HOST" \
+    -p "$DB_PORT" \
+    -U "$DB_USER" \
+    -d "$DB_NAME" \
     > "$BACKUPDIR/familycollection.sql"
 
 echo "== PostgreSQL custom dump =="
 
 PGPASSWORD="$DB_PASS" pg_dump \
     -Fc \
-    -h localhost \
-    -U familyuser \
-    -d familycollection \
+    -h "$DB_HOST" \
+    -p "$DB_PORT" \
+    -U "$DB_USER" \
+    -d "$DB_NAME" \
     -f "$BACKUPDIR/familycollection.dump"
 
 echo "== Könyvtárlista =="
