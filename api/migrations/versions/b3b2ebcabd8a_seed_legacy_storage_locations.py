@@ -200,6 +200,11 @@ def upgrade() -> None:
     """
     connection = op.get_bind()
 
+    inspector = sa.inspect(connection)
+
+    if not inspector.has_table("locations"):
+        return
+
     household_id = _get_default_household_id(
         connection
     )
