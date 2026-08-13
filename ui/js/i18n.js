@@ -7,6 +7,78 @@
 
     const translations = {
         en: {
+"common.back": "← Back",
+"collection.list.page_title":
+    "FamilyCollection – Collection list",
+
+"collection.list.dynamic_title":
+    "{name} – all items",
+
+"common.role.owner": "Owner",
+"common.role.admin": "Administrator",
+"common.role.editor": "Editor",
+"common.role.viewer": "Viewer",
+
+"common.minimum": "Minimum",
+"common.maximum": "Maximum",
+
+"collection.filter.search":
+    "Filter...",
+
+"collection.list.title":
+    "Collection list",
+
+"collection.list.back":
+    "← Collection home",
+
+"collection.field.storage":
+    "Storage location",
+
+"collection.field.notes":
+    "Notes",
+
+"collection.images.title":
+    "Images",
+
+"collection.images.none_selected":
+    "0 images selected",
+
+"collection.images.take_photo":
+    "📷 Take photo",
+
+"collection.images.select":
+    "🖼️ Select images",
+
+"collection.images.clear":
+    "🧹 Clear images",
+
+"collection.items.all_title":
+    "All items",
+
+"collection.items.search":
+    "Search...",
+
+"collection.filter.status":
+    "Status",
+
+"collection.filter.all":
+    "All",
+
+"collection.filter.all_storage":
+    "All storage locations",
+
+"collection.status.loaned":
+    "Loaned",
+
+"collection.status.archived":
+    "Archived",
+
+"collection.status.missing":
+    "Missing",
+
+"collection.status.disposed":
+    "Disposed",
+
 "collection.page_title":
     "FamilyCollection – Collection",
 
@@ -814,6 +886,77 @@
         },
 
         hu: {
+"common.back": "← Vissza",
+"collection.list.page_title":
+    "FamilyCollection – Gyűjtemény lista",
+
+"collection.list.dynamic_title":
+    "{name} – összes elem",
+"common.role.owner": "Tulajdonos",
+"common.role.admin": "Adminisztrátor",
+"common.role.editor": "Szerkesztő",
+"common.role.viewer": "Megtekintő",
+
+"common.minimum": "Minimum",
+"common.maximum": "Maximum",
+
+"collection.filter.search":
+    "Szűrés...",
+
+"collection.list.title":
+    "Gyűjtemény lista",
+
+"collection.list.back":
+    "← Gyűjtemény főoldal",
+
+"collection.field.storage":
+    "Tárhely",
+
+"collection.field.notes":
+    "Megjegyzés",
+
+"collection.images.title":
+    "Képek",
+
+"collection.images.none_selected":
+    "0 kép kiválasztva",
+
+"collection.images.take_photo":
+    "📷 Fotó készítése",
+
+"collection.images.select":
+    "🖼️ Képek kiválasztása",
+
+"collection.images.clear":
+    "🧹 Képek törlése",
+
+"collection.items.all_title":
+    "Összes elem",
+
+"collection.items.search":
+    "Keresés...",
+
+"collection.filter.status":
+    "Státusz",
+
+"collection.filter.all":
+    "Mind",
+
+"collection.filter.all_storage":
+    "Minden tárhely",
+
+"collection.status.loaned":
+    "Kölcsönadva",
+
+"collection.status.archived":
+    "Archivált",
+
+"collection.status.missing":
+    "Hiányzik",
+
+"collection.status.disposed":
+    "Selejtezett",
+
 "collection.page_title":
     "FamilyCollection – Gyűjtemény",
 

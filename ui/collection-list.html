@@ -8,7 +8,9 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-<title>FamilyCollection – Gyűjtemény lista</title>
+<title data-i18n="collection.list.page_title">
+    FamilyCollection – Collection list
+</title>
 
     <style>
         * {
@@ -77,12 +79,6 @@
             line-height: 1.4;
         }
 
-        .permission {
-            margin-top: 10px;
-            color: #aaa;
-            font-size: 14px;
-        }
-
 .field-row label {
     display: block;
     margin-bottom: 6px;
@@ -107,6 +103,60 @@
 
 .field-row select[multiple] {
     min-height: 130px;
+}
+
+.collection-toolbar {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(180px, 260px);
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.collection-toolbar input,
+.collection-toolbar select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    border: 1px solid #555;
+    border-radius: 7px;
+    background: #111;
+    color: #fff;
+    font-size: 16px;
+}
+
+#systemFilters,
+#dynamicFilters {
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(220px, 1fr)
+        );
+}
+
+#systemFilters {
+    margin-bottom: 10px;
+}
+
+.collection-toolbar input:focus,
+.collection-toolbar select:focus,
+.field-row input:focus,
+.field-row select:focus,
+.field-row textarea:focus {
+    outline: none;
+    border-color: #2e8b57;
+}
+
+@media (max-width: 600px) {
+    .collection-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    #systemFilters,
+    #dynamicFilters {
+        grid-template-columns: 1fr;
+    }
 }
 
 .field-help {
@@ -655,8 +705,11 @@
 
     <div class="topbar">
         <div>
-            <h1 id="pageTitle">
-                Gyűjtemény lista
+            <h1
+                id="pageTitle"
+                data-i18n="collection.list.title"
+            >
+                Collection list
             </h1>
 
             <div
@@ -670,7 +723,9 @@
     class="back-link"
     href="#"
 >
-    ← Gyűjtemény főoldal
+    <span data-i18n="collection.list.back">
+        ← Collection home
+    </span>
 </a>
 
     </div>
@@ -679,38 +734,32 @@
         id="status"
         class="status"
     >
-        Betöltés...
+        <span data-i18n="common.loading">
+            Loading...
+        </span>
     </div>
 
     <div
         id="content"
         style="display:none"
     >
-        <section class="category-info">
-            <strong id="categoryName"></strong>
-
-            <div
-                id="categoryDescription"
-                class="category-description"
-            ></div>
-
-            <div
-                id="permission"
-                class="permission"
-            ></div>
-        </section>
 
 <section
     id="createSection"
     class="field-section"
     style="display:none !important"
 >
-    <h2>Új elem felvitele</h2>
+    <h2 data-i18n="collection.create.title">
+        Add new item
+    </h2>
 
     <div class="field-list">
         <div class="field-row">
-            <label for="itemTitle">
-                Név / cím *
+            <label
+                for="itemTitle"
+                data-i18n="collection.field.title_required"
+            >
+                Name / title *
             </label>
 
             <input
@@ -721,8 +770,11 @@
         </div>
 
         <div class="field-row">
-            <label for="itemSubtitle">
-                Alcím
+            <label
+                for="itemSubtitle"
+                data-i18n="collection.field.subtitle"
+            >
+                Subtitle
             </label>
 
             <input
@@ -738,30 +790,38 @@
         ></div>
 
 <div class="field-row">
-    <label for="itemStorage">
-        Tárhely
+    <label
+        for="itemStorage"
+        data-i18n="collection.field.storage"
+    >
+        Storage location
     </label>
 
     <select id="itemStorage">
         <option value="">
-            -- nincs tárhely megadva --
+            -- no storage location --
         </option>
     </select>
 
-    <div class="field-help">
-        A tárhelyek az adminisztrációban
-        beállított aktív rekeszekből választhatók.
+    <div
+        class="field-help"
+        data-i18n="collection.storage.help"
+    >
+        Storage locations can be selected from
+        active locations configured in administration.
     </div>
 </div>
 
 <div class="field-row">
     <div class="pending-item-image-header">
-        <label>
-            Képek
+        <label data-i18n="collection.images.title">
+            Images
         </label>
 
         <span id="pendingItemImageCount">
-            0 kép kiválasztva
+            <span data-i18n="collection.images.none_selected">
+                0 images selected
+            </span>
         </span>
     </div>
 
@@ -778,7 +838,9 @@
             </div>
 
             <div>
-                Még nincs kép kiválasztva.
+                <span data-i18n="collection.images.empty">
+                    No images selected yet.
+                </span>
             </div>
         </div>
     </div>
@@ -789,7 +851,9 @@
             type="button"
             class="pending-item-image-button"
         >
-            📷 Fotó készítése
+            <span data-i18n="collection.images.take_photo">
+                📷 Take photo
+            </span>
         </button>
 
         <button
@@ -797,7 +861,9 @@
             type="button"
             class="pending-item-image-button"
         >
-            🖼️ Képek kiválasztása
+            <span data-i18n="collection.images.select">
+                🖼️ Select images
+            </span>
         </button>
 
         <button
@@ -806,7 +872,9 @@
             class="pending-item-image-button"
             disabled
         >
-            🧹 Képek törlése
+            <span data-i18n="collection.images.clear">
+                🧹 Clear images
+            </span>
         </button>
     </div>
 
@@ -826,16 +894,22 @@
         hidden
     >
 
-    <div class="field-help">
-        A nagy képek feltöltés előtt automatikusan
-        legfeljebb 2000 pixelesre lesznek átméretezve.
-        Az első kép lesz az elsődleges kép.
+    <div
+        class="field-help"
+        data-i18n="collection.images.help"
+    >
+        Large images are automatically resized
+        before upload. The first image becomes
+        the primary image.
     </div>
 </div>
 
         <div class="field-row">
-            <label for="itemNotes">
-                Megjegyzés
+            <label
+                for="itemNotes"
+                data-i18n="collection.field.notes"
+            >
+                Notes
             </label>
 
             <textarea
@@ -848,7 +922,9 @@
             id="createItemButton"
             type="button"
         >
-            💾 Mentés
+            <span data-i18n="common.save">
+                💾 Save
+            </span>
         </button>
 
         <div
@@ -858,47 +934,57 @@
     </div>
 </section>
 
-        <section class="field-section">
-            <h2>Mezők</h2>
-
-            <div
-                id="fieldList"
-                class="field-list"
-            ></div>
-        </section>
-
 <section class="field-section">
-    <h2>Összes elem</h2>
+    <h2 data-i18n="collection.items.all_title">
+        All items
+    </h2>
 
 <div class="collection-toolbar">
     <input
         id="itemSearch"
         type="search"
-        placeholder="Keresés..."
+        data-i18n-placeholder="collection.items.search"
+        placeholder="Search..."
     >
 
-    <select id="itemSort">
+<select id="itemSort">
 
-        <option value="created_at:desc">
-            Legújabb elöl
-        </option>
+    <option
+        value="created_at:desc"
+        data-i18n="collection.sort.newest"
+    >
+        Newest first
+    </option>
 
-        <option value="created_at:asc">
-            Legrégebbi elöl
-        </option>
+    <option
+        value="created_at:asc"
+        data-i18n="collection.sort.oldest"
+    >
+        Oldest first
+    </option>
 
-        <option value="title:asc">
-            Név A–Z
-        </option>
+    <option
+        value="title:asc"
+        data-i18n="collection.sort.name_asc"
+    >
+        Name A–Z
+    </option>
 
-        <option value="title:desc">
-            Név Z–A
-        </option>
+    <option
+        value="title:desc"
+        data-i18n="collection.sort.name_desc"
+    >
+        Name Z–A
+    </option>
 
-        <option value="updated_at:desc">
-            Legutóbb módosított
-        </option>
-    </select>
+    <option
+        value="updated_at:desc"
+        data-i18n="collection.sort.updated"
+    >
+        Recently updated
+    </option>
+</select>
+
 </div>
 
 <div
@@ -907,47 +993,78 @@
     style="margin-top: 14px;"
 >
     <div class="field-row">
-        <label for="itemStatusFilter">
-            Státusz
+        <label
+            for="itemStatusFilter"
+            data-i18n="collection.filter.status"
+        >
+            Status
         </label>
 
-        <select id="itemStatusFilter">
-            <option value="">
-                Mind
-            </option>
+<select id="itemStatusFilter">
 
-            <option value="active">
-                Aktív
-            </option>
+    <option
+        value=""
+        data-i18n="collection.filter.all"
+    >
+        All
+    </option>
 
-            <option value="loaned">
-                Kölcsönadva
-            </option>
+    <option
+        value="active"
+        data-i18n="common.active"
+    >
+        Active
+    </option>
 
-            <option value="archived">
-                Archivált
-            </option>
+    <option
+        value="loaned"
+        data-i18n="collection.status.loaned"
+    >
+        Loaned
+    </option>
 
-            <option value="missing">
-                Hiányzik
-            </option>
+    <option
+        value="archived"
+        data-i18n="collection.status.archived"
+    >
+        Archived
+    </option>
 
-            <option value="disposed">
-                Selejtezett
-            </option>
-        </select>
+    <option
+        value="missing"
+        data-i18n="collection.status.missing"
+    >
+        Missing
+    </option>
+
+    <option
+        value="disposed"
+        data-i18n="collection.status.disposed"
+    >
+        Disposed
+    </option>
+
+</select>
+
     </div>
 
     <div class="field-row">
-        <label for="itemStorageFilter">
-            Tárhely
+        <label
+            for="itemStorageFilter"
+            data-i18n="collection.field.storage"
+        >
+            Storage location
         </label>
 
-        <select id="itemStorageFilter">
-            <option value="">
-                Minden tárhely
-            </option>
-        </select>
+<select id="itemStorageFilter">
+    <option
+        value=""
+        data-i18n="collection.filter.all_storage"
+    >
+        All storage locations
+    </option>
+</select>
+
     </div>
 </div>
 
@@ -961,7 +1078,9 @@
         id="itemsStatus"
         class="status"
     >
-        Betöltés...
+        <span data-i18n="common.loading">
+            Loading...
+        </span>
     </div>
 
     <div
@@ -977,7 +1096,9 @@
 >
 
 <div class="section-header">
-    <h2>Elem adatai</h2>
+    <h2 data-i18n="collection.item.details">
+        Item details
+    </h2>
 
     <div class="actions">
         <button
@@ -985,7 +1106,9 @@
             type="button"
             class="primary"
         >
-            ✏️ Szerkesztés
+            <span data-i18n="common.edit">
+                ✏️ Edit
+            </span>
         </button>
 
 <button
@@ -993,7 +1116,9 @@
     type="button"
     class="secondary-button"
 >
-    🗑️ Inaktiválás
+    <span data-i18n="collection.item.deactivate">
+        🗑️ Deactivate
+    </span>
 </button>
 
         <button
@@ -1001,7 +1126,9 @@
             type="button"
             class="secondary-button"
         >
-            Bezárás
+            <span data-i18n="common.close">
+                Close
+            </span>
         </button>
     </div>
 </div>
@@ -1020,10 +1147,14 @@
     style="display:none"
 >
     <div class="item-detail-images-header">
-        <h3>Képek</h3>
+        <h3 data-i18n="collection.images.title">
+            Images
+        </h3>
 
         <span id="itemDetailImageCount">
-            0 kép
+            <span data-i18n="collection.images.count_zero">
+                0 images
+            </span>
         </span>
     </div>
 
@@ -1039,8 +1170,11 @@
 >
     <div class="field-list">
         <div class="field-row">
-            <label for="editItemTitle">
-                Név / cím *
+            <label
+                for="editItemTitle"
+                data-i18n="collection.field.title_required"
+            >
+                Name / title *
             </label>
 
             <input
@@ -1051,8 +1185,11 @@
         </div>
 
         <div class="field-row">
-            <label for="editItemSubtitle">
-                Alcím
+            <label
+                for="editItemSubtitle"
+                data-i18n="collection.field.subtitle"
+            >
+                Subtitle
             </label>
 
             <input
@@ -1068,30 +1205,38 @@
         ></div>
 
 <div class="field-row">
-    <label for="editItemStorage">
-        Tárhely
+    <label
+        for="editItemStorage"
+        data-i18n="collection.field.storage"
+    >
+        Storage location
     </label>
 
     <select id="editItemStorage">
         <option value="">
-            -- nincs tárhely megadva --
+            -- no storage location --
         </option>
     </select>
 
-    <div class="field-help">
-        Másik hely kiválasztásakor
-        tárhely-áthelyezési előzmény készül.
+    <div
+        class="field-help"
+        data-i18n="collection.storage.move_help"
+    >
+        Changing the storage location creates
+        a storage movement history entry.
     </div>
 </div>
 
 <div class="field-row">
     <div class="edit-item-image-header">
-        <label>
-            Képek
+        <label data-i18n="collection.images.title">
+            Images
         </label>
 
         <span id="editItemImageCount">
-            0 kép
+            <span data-i18n="collection.images.count_zero">
+                0 images
+            </span>
         </span>
     </div>
 
@@ -1100,7 +1245,9 @@
         class="edit-item-image-gallery"
     >
         <div class="edit-item-image-empty">
-            🖼️ Még nincs kép ehhez az elemhez.
+            <span data-i18n="collection.images.item_empty">
+                🖼️ No images for this item yet.
+            </span>
         </div>
     </div>
 
@@ -1110,7 +1257,9 @@
             type="button"
             class="edit-item-image-button"
         >
-            📷 Fotó készítése
+            <span data-i18n="collection.images.take_photo">
+                📷 Take photo
+            </span>
         </button>
 
         <button
@@ -1118,7 +1267,9 @@
             type="button"
             class="edit-item-image-button"
         >
-            🖼️ Képek kiválasztása
+            <span data-i18n="collection.images.select">
+                🖼️ Select images
+            </span>
         </button>
     </div>
 
@@ -1138,9 +1289,12 @@
         hidden
     >
 
-    <div class="field-help">
-        A nagy képek feltöltés előtt automatikusan
-        legfeljebb 2000 pixelesre lesznek átméretezve.
+    <div
+        class="field-help"
+        data-i18n="collection.images.resize_help"
+    >
+        Large images are automatically resized
+        to a maximum of 2000 pixels before upload.
     </div>
 
     <div
@@ -1150,8 +1304,11 @@
 </div>
 
         <div class="field-row">
-            <label for="editItemNotes">
-                Megjegyzés
+            <label
+                for="editItemNotes"
+                data-i18n="collection.field.notes"
+            >
+                Notes
             </label>
 
             <textarea
@@ -1166,7 +1323,9 @@
                 type="button"
                 class="primary"
             >
-                💾 Mentés
+                <span data-i18n="common.save">
+                💾 Save
+            </span>
             </button>
 
             <button
@@ -1174,7 +1333,9 @@
                 type="button"
                 class="secondary-button"
             >
-                Mégse
+                <span data-i18n="common.cancel">
+                    Cancel
+                </span>
             </button>
         </div>
 
@@ -1190,7 +1351,9 @@
         id="previousPageButton"
         type="button"
     >
-        ← Előző
+        <span data-i18n="common.previous">
+            ← Previous
+        </span>
     </button>
 
     <span id="pageInfo"></span>
@@ -1199,7 +1362,9 @@
         id="nextPageButton"
         type="button"
     >
-        Következő →
+        <span data-i18n="common.next">
+            Next →
+        </span>
     </button>
 </div>
 
@@ -1208,6 +1373,8 @@
     </div>
 
 </main>
+
+<script src="/ui/js/i18n.js"></script>
 
 <script>
 
@@ -1511,26 +1678,6 @@ const dynamicCreateFields =
             "content"
         );
 
-    const categoryName =
-        document.getElementById(
-            "categoryName"
-        );
-
-    const categoryDescription =
-        document.getElementById(
-            "categoryDescription"
-        );
-
-    const permission =
-        document.getElementById(
-            "permission"
-        );
-
-    const fieldList =
-        document.getElementById(
-            "fieldList"
-        );
-
 function flattenCollectionStorageTree(
     nodes,
     parentPath = []
@@ -1617,9 +1764,8 @@ async function loadCategoryAllowedStorage() {
     if (!response.ok) {
         throw new Error(
             data?.detail
-            || (
-                "A gyűjteményhez engedélyezett "
-                + "tárhelyek betöltése sikertelen."
+            || FamilyCollectionI18n.t(
+                "collection.storage.allowed_load_error"
             )
         );
     }
@@ -1631,8 +1777,9 @@ async function loadCategoryAllowedStorage() {
         )
     ) {
         throw new Error(
-            "Az engedélyezett tárhelyek "
-            + "lekérdezése hibás választ adott."
+            FamilyCollectionI18n.t(
+                "collection.storage.allowed_invalid_response"
+            )
         );
     }
 
@@ -1652,7 +1799,11 @@ function fillCollectionStorageSelect(
 ) {
     selectElement.innerHTML = `
         <option value="">
-            -- nincs tárhely megadva --
+            ${escapeHtml(
+                FamilyCollectionI18n.t(
+                    "collection.storage.none"
+                )
+            )}
         </option>
     `;
 
@@ -1713,7 +1864,11 @@ const activeSlots =
 function fillCollectionStorageFilter() {
     itemStorageFilter.innerHTML = `
         <option value="">
-            Minden tárhely
+            ${escapeHtml(
+                FamilyCollectionI18n.t(
+                    "collection.filter.all_storage"
+                )
+            )}
         </option>
     `;
 
@@ -1812,9 +1967,8 @@ async function loadCollectionStorageTree() {
     if (!response.ok) {
         throw new Error(
             data?.detail
-            || (
-                "A tárhelyek betöltése "
-                + "sikertelen."
+            || FamilyCollectionI18n.t(
+                "collection.storage.load_error"
             )
         );
     }
@@ -1826,7 +1980,9 @@ async function loadCollectionStorageTree() {
         )
     ) {
         throw new Error(
-            "A tárhelyfa hibás választ adott."
+            FamilyCollectionI18n.t(
+                "collection.storage.invalid_tree"
+            )
         );
     }
 
@@ -1855,14 +2011,18 @@ async function loadCollectionStorageTree() {
 }
 
     function roleLabel(role) {
-        const labels = {
-            owner: "Tulajdonos",
-            admin: "Adminisztrátor",
-            editor: "Szerkesztő",
-            viewer: "Megtekintő"
+        const keys = {
+            owner: "common.role.owner",
+            admin: "common.role.admin",
+            editor: "common.role.editor",
+            viewer: "common.role.viewer"
         };
 
-        return labels[role] || role;
+        return keys[role]
+            ? FamilyCollectionI18n.t(
+                keys[role]
+            )
+            : role;
     }
 
 
@@ -1873,10 +2033,11 @@ async function deleteActiveItem() {
 
     const confirmed =
         window.confirm(
-            (
-                "Biztosan inaktiválod ezt az elemet?\n\n"
-                + activeItem.title
+            FamilyCollectionI18n.t(
+                "collection.item.deactivate_confirm"
             )
+            + "\n\n"
+            + activeItem.title
         );
 
     if (!confirmed) {
@@ -1952,24 +2113,15 @@ itemDetailImages.style.display =
 
 
     function fieldTypeLabel(type) {
-        const labels = {
-            text: "Szöveg",
-            long_text: "Hosszú szöveg",
-            integer: "Egész szám",
-            decimal: "Szám",
-            boolean: "Igen / nem",
-            date: "Dátum",
-            year: "Év",
-            url: "Webcím",
-            email: "E-mail",
-            single_select: "Egyszeres választás",
-            multi_select: "Többszörös választás",
-            barcode: "Vonalkód",
-            image: "Kép",
-            file: "Fájl"
-        };
+        const key =
+            `collection.field_type.${type}`;
 
-        return labels[type] || type;
+        const translated =
+            FamilyCollectionI18n.t(key);
+
+        return translated === key
+            ? type
+            : translated;
     }
 
 
@@ -1982,52 +2134,6 @@ itemDetailImages.style.display =
             .replaceAll("'", "&#039;");
     }
 
-
-    function renderFields(fields) {
-        fieldList.innerHTML = "";
-
-        if (!fields.length) {
-            fieldList.innerHTML = `
-                <div class="empty">
-                    Ehhez a gyűjteményhez
-                    még nincs mező definiálva.
-                </div>
-            `;
-
-            return;
-        }
-
-        for (const field of fields) {
-            const row =
-                document.createElement("div");
-
-            row.className = "field-row";
-
-            row.innerHTML = `
-                <div class="field-name">
-                    ${escapeHtml(field.name)}
-                </div>
-
-                <div class="field-meta">
-                    ${escapeHtml(
-                        fieldTypeLabel(
-                            field.field_type
-                        )
-                    )}
-
-                    ${
-                        field.is_required
-                            ? " · kötelező"
-                            : ""
-                    }
-
-                    · ${escapeHtml(field.field_key)}
-                </div>
-            `;
-
-            fieldList.appendChild(row);
-        }
-    }
 
 function renderDynamicFilters(fields) {
     dynamicFilters.innerHTML = "";
@@ -2078,7 +2184,11 @@ function renderDynamicFilters(fields) {
                         )}"
                         data-filter-kind="min"
                         type="number"
-                        placeholder="Minimum"
+                        placeholder="${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "common.minimum"
+                        )
+                    )}"
                     >
 
                     <input
@@ -2087,7 +2197,11 @@ function renderDynamicFilters(fields) {
                         )}"
                         data-filter-kind="max"
                         type="number"
-                        placeholder="Maximum"
+                        placeholder="${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "common.maximum"
+                        )
+                    )}"
                     >
                 </div>
             `;
@@ -2124,26 +2238,39 @@ function renderDynamicFilters(fields) {
         } else if (
             field.field_type === "boolean"
         ) {
-            inputHtml = `
-                <select
-                    data-filter-field-key="${escapeHtml(
-                        field.field_key
-                    )}"
-                    data-filter-kind="value"
-                >
-                    <option value="">
-                        Mind
-                    </option>
 
-                    <option value="true">
-                        Igen
-                    </option>
+inputHtml = `
+    <select
+        data-filter-field-key="${escapeHtml(
+            field.field_key
+        )}"
+        data-filter-kind="value"
+    >
+        <option value="">
+            ${escapeHtml(
+                FamilyCollectionI18n.t(
+                    "collection.filter.all"
+                )
+            )}
+        </option>
 
-                    <option value="false">
-                        Nem
-                    </option>
-                </select>
-            `;
+        <option value="true">
+            ${escapeHtml(
+                FamilyCollectionI18n.t(
+                    "common.yes"
+                )
+            )}
+        </option>
+
+        <option value="false">
+            ${escapeHtml(
+                FamilyCollectionI18n.t(
+                    "common.no"
+                )
+            )}
+        </option>
+    </select>
+`;
 
         } else if (
             field.field_type === "single_select"
@@ -2156,9 +2283,14 @@ function renderDynamicFilters(fields) {
                     )}"
                     data-filter-kind="value"
                 >
-                    <option value="">
-                        Mind
-                    </option>
+
+<option value="">
+    ${escapeHtml(
+        FamilyCollectionI18n.t(
+            "collection.filter.all"
+        )
+    )}
+</option>
 
                     ${field.options
                         .map(
@@ -2192,7 +2324,11 @@ function renderDynamicFilters(fields) {
                     )}"
                     data-filter-kind="value"
                     type="search"
-                    placeholder="Szűrés..."
+                    placeholder="${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "collection.filter.search"
+                        )
+                    )}"
                 >
             `;
 
@@ -2375,7 +2511,11 @@ function renderDynamicFields(
                                 : ""
                         }
                     >
-                    Igen
+                    ${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "common.yes"
+                        )
+                    )}
                 </label>
             `;
 
@@ -2451,7 +2591,11 @@ function renderDynamicFields(
                     ${required}
                 >
                     <option value="">
-                        -- válassz --
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "common.select"
+                            )
+                        )}
                     </option>
 
                     ${field.options
@@ -2524,8 +2668,11 @@ function renderDynamicFields(
                 </select>
 
                 <div class="field-help">
-                    Több érték kijelöléséhez
-                    Ctrl vagy Shift használható.
+                    ${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "collection.fields.multi_select_help"
+                        )
+                    )}
                 </div>
             `;
 
@@ -2650,8 +2797,12 @@ function formatDynamicFieldValue(
 
     if (field.field_type === "boolean") {
         return value
-            ? "Igen"
-            : "Nem";
+            ? FamilyCollectionI18n.t(
+                "common.yes"
+            )
+            : FamilyCollectionI18n.t(
+                "common.no"
+            );
     }
 
     if (field.field_type === "single_select") {
@@ -2684,8 +2835,14 @@ function formatDynamicFieldValue(
             );
 
         if (!Number.isNaN(date.getTime())) {
+            const locale =
+                FamilyCollectionI18n.getLanguage()
+                === "hu"
+                    ? "hu-HU"
+                    : "en-GB";
+
             return date.toLocaleDateString(
-                "hu-HU"
+                locale
             );
         }
     }
@@ -2705,8 +2862,14 @@ function formatItemDate(value) {
         return value;
     }
 
+    const locale =
+        FamilyCollectionI18n.getLanguage()
+        === "hu"
+            ? "hu-HU"
+            : "en-GB";
+
     return date.toLocaleString(
-        "hu-HU"
+        locale
     );
 }
 
@@ -2786,7 +2949,11 @@ function renderItemDetail(
                     ? `
                         <div class="item-detail-row">
                             <strong>
-                                Tárhely
+                                ${escapeHtml(
+                                    FamilyCollectionI18n.t(
+                                        "collection.field.storage"
+                                    )
+                                )}
                             </strong>
 
                             <span>
@@ -2806,7 +2973,13 @@ function renderItemDetail(
             item.notes
                 ? `
                     <div class="item-detail-notes">
-                        <strong>Megjegyzés</strong>
+                        <strong>
+                            ${escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "collection.field.notes"
+                                )
+                            )}
+                        </strong>
 
                         <div>
                             ${escapeHtml(
@@ -2819,7 +2992,11 @@ function renderItemDetail(
         }
 
         <div class="field-meta">
-            Felvéve:
+            ${escapeHtml(
+                FamilyCollectionI18n.t(
+                    "collection.item.created"
+                )
+            )}
             ${escapeHtml(
                 formatItemDate(
                     item.created_at
@@ -2828,7 +3005,11 @@ function renderItemDetail(
 
             <br>
 
-            Módosítva:
+            ${escapeHtml(
+                FamilyCollectionI18n.t(
+                    "collection.item.updated"
+                )
+            )}
             ${escapeHtml(
                 formatItemDate(
                     item.updated_at
@@ -2847,9 +3028,12 @@ function renderItemDetailImages(
             : [];
 
     itemDetailImageCount.textContent =
-        (
-            `${normalizedImages.length} `
-            + "kép"
+        FamilyCollectionI18n.t(
+            "collection.images.count",
+            {
+                count:
+                    normalizedImages.length
+            }
         );
 
     itemDetailImageGallery.innerHTML =
@@ -2858,7 +3042,11 @@ function renderItemDetailImages(
     if (normalizedImages.length === 0) {
         itemDetailImageGallery.innerHTML = `
             <div class="item-detail-image-empty">
-                🖼️ Ehhez az elemhez még nincs kép.
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "collection.images.item_empty"
+                    )
+                )}
             </div>
         `;
 
@@ -2907,7 +3095,9 @@ function renderItemDetailImages(
                     alt="${escapeHtml(
                         image.caption
                         || image.original_filename
-                        || "Gyűjteményi kép"
+                        || FamilyCollectionI18n.t(
+                            "collection.images.default_alt"
+                        )
                     )}"
                     loading="lazy"
                 >
@@ -2918,7 +3108,11 @@ function renderItemDetailImages(
                             <span
                                 class="item-detail-image-primary"
                             >
-                                ⭐ Elsődleges
+                                ${escapeHtml(
+                                    FamilyCollectionI18n.t(
+                                        "collection.images.primary"
+                                    )
+                                )}
                             </span>
                         `
                         : ""
@@ -2959,12 +3153,18 @@ async function loadItemDetailImages(
         "";
 
     itemDetailImageCount.textContent =
-        "Betöltés...";
+        FamilyCollectionI18n.t(
+            "common.loading"
+        );
 
     itemDetailImageGallery.innerHTML =
         `
             <div class="item-detail-image-empty">
-                Képek betöltése...
+                ${escapeHtml(
+                    FamilyCollectionI18n.t(
+                        "collection.images.loading"
+                    )
+                )}
             </div>
         `;
 
@@ -2989,9 +3189,12 @@ async function loadItemDetailImages(
     if (!response.ok) {
         throw new Error(
             data?.detail
-            || (
-                "A képek betöltése sikertelen: "
-                + `HTTP ${response.status}`
+            || FamilyCollectionI18n.t(
+                "collection.images.load_error",
+                {
+                    status:
+                        response.status
+                }
             )
         );
     }
@@ -3015,7 +3218,9 @@ async function openItemDetail(
         "";
 
     itemDetailStatus.textContent =
-        "Betöltés...";
+        FamilyCollectionI18n.t(
+            "common.loading"
+        );
 
     try {
         const response =
@@ -3099,7 +3304,9 @@ async function loadEditItemImages(
     if (!response.ok) {
         throw new Error(
             data?.detail
-            || "A képek nem tölthetők be."
+            || FamilyCollectionI18n.t(
+                "collection.images.unavailable"
+            )
         );
     }
 
@@ -3118,7 +3325,13 @@ function renderEditItemImages(
             : [];
 
     editItemImageCount.textContent =
-        `${editItemImages.length} kép`;
+        FamilyCollectionI18n.t(
+            "collection.images.count",
+            {
+                count:
+                    editItemImages.length
+            }
+        );
 
     editItemImageGallery.innerHTML =
         "";
@@ -3126,7 +3339,9 @@ function renderEditItemImages(
     if (editItemImages.length === 0) {
         editItemImageGallery.innerHTML = `
             <div class="edit-item-image-empty">
-                🖼️ Még nincs kép ehhez az elemhez.
+                <span data-i18n="collection.images.item_empty">
+                🖼️ No images for this item yet.
+            </span>
             </div>
         `;
 
@@ -3172,7 +3387,11 @@ function renderEditItemImages(
                             src="${escapeHtml(
                                 thumbnailUrl
                             )}"
-                            alt="Gyűjteményi kép"
+                            alt="${escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "collection.images.default_alt"
+                                )
+                            )}"
                             loading="lazy"
                         >
                     </a>
@@ -3183,7 +3402,11 @@ function renderEditItemImages(
                                 <span
                                     class="edit-item-image-primary"
                                 >
-                                    ⭐ Elsődleges
+                                    ${escapeHtml(
+                                    FamilyCollectionI18n.t(
+                                        "collection.images.primary"
+                                    )
+                                )}
                                 </span>
                             `
                             : ""
@@ -3194,7 +3417,13 @@ function renderEditItemImages(
                     ${escapeHtml(
                         image.caption
                         || image.original_filename
-                        || `Kép ${index + 1}`
+                        || FamilyCollectionI18n.t(
+                            "collection.images.default_name",
+                            {
+                                index:
+                                    index + 1
+                            }
+                        )
                     )}
                 </div>
 
@@ -3251,7 +3480,11 @@ function renderEditItemImages(
                                 : ""
                         }
                     >
-                        ⭐ Elsődleges
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "collection.images.primary"
+                            )
+                        )}
                     </button>
 
                     <button
@@ -3265,7 +3498,11 @@ function renderEditItemImages(
                             image.public_id
                         )}"
                     >
-                        🗑️ Törlés
+                        ${escapeHtml(
+                            FamilyCollectionI18n.t(
+                                "collection.images.delete_button"
+                            )
+                        )}
                     </button>
                 </div>
             `;
@@ -3284,7 +3521,9 @@ async function refreshEditItemImages() {
     }
 
     editItemImageStatus.textContent =
-        "Képek betöltése...";
+        FamilyCollectionI18n.t(
+            "collection.images.loading"
+        );
 
     const images =
         await loadEditItemImages(
@@ -3337,9 +3576,14 @@ async function uploadEditItemImageFiles(
             index += 1
         ) {
             editItemImageStatus.textContent =
-                (
-                    `Feltöltés: ${index + 1}`
-                    + ` / ${files.length}`
+                FamilyCollectionI18n.t(
+                    "collection.images.upload_progress",
+                    {
+                        current:
+                            index + 1,
+                        total:
+                            files.length
+                    }
                 );
 
             const uploadFile =
@@ -3422,22 +3666,31 @@ async function uploadEditItemImageFiles(
 
         editItemImageStatus.textContent =
             uploadedCount === 1
-                ? "✅ A kép feltöltve."
-                : (
-                    `✅ ${uploadedCount} kép `
-                    + "feltöltve."
+                ? FamilyCollectionI18n.t(
+                    "collection.images.upload_success_one"
+                )
+                : FamilyCollectionI18n.t(
+                    "collection.images.upload_success_many",
+                    {
+                        count:
+                            uploadedCount
+                    }
                 );
 
     } catch (error) {
         console.error(
-            "Képfeltöltési hiba:",
+            "Image upload error:",
             error
         );
 
         editItemImageStatus.textContent =
-            `❌ Képfeltöltési hiba: ${
-                error.message
-            }`;
+            FamilyCollectionI18n.t(
+                "collection.images.upload_error",
+                {
+                    message:
+                        error.message
+                }
+            );
 
     } finally {
         editItemImageCameraButton.disabled =
@@ -3452,7 +3705,9 @@ async function setEditItemPrimaryImage(
     imagePublicId
 ) {
     editItemImageStatus.textContent =
-        "Elsődleges kép beállítása...";
+        FamilyCollectionI18n.t(
+            "collection.images.setting_primary"
+        );
 
     try {
         const response =
@@ -3499,11 +3754,19 @@ async function setEditItemPrimaryImage(
         );
 
         editItemImageStatus.textContent =
-            "✅ Elsődleges kép beállítva.";
+            FamilyCollectionI18n.t(
+                "collection.images.primary_set"
+            );
 
     } catch (error) {
         editItemImageStatus.textContent =
-            `❌ ${error.message}`;
+            FamilyCollectionI18n.t(
+                "collection.images.primary_error",
+                {
+                    message:
+                        error.message
+                }
+            );
     }
 }
 
@@ -3512,7 +3775,9 @@ async function deleteEditItemImage(
 ) {
     const confirmed =
         window.confirm(
-            "Biztosan törlöd ezt a képet?"
+            FamilyCollectionI18n.t(
+                "collection.images.delete_confirm"
+            )
         );
 
     if (!confirmed) {
@@ -3520,7 +3785,9 @@ async function deleteEditItemImage(
     }
 
     editItemImageStatus.textContent =
-        "Kép törlése...";
+        FamilyCollectionI18n.t(
+            "collection.images.deleting"
+        );
 
     try {
         const response =
@@ -3558,11 +3825,19 @@ async function deleteEditItemImage(
         );
 
         editItemImageStatus.textContent =
-            "✅ A kép törölve.";
+            FamilyCollectionI18n.t(
+                "collection.images.deleted"
+            );
 
     } catch (error) {
         editItemImageStatus.textContent =
-            `❌ ${error.message}`;
+            FamilyCollectionI18n.t(
+                "collection.images.primary_error",
+                {
+                    message:
+                        error.message
+                }
+            );
     }
 }
 
@@ -3621,7 +3896,9 @@ async function moveEditItemImage(
     ];
 
     editItemImageStatus.textContent =
-        "Képsorrend mentése...";
+        FamilyCollectionI18n.t(
+            "collection.images.order_saving"
+        );
 
     try {
         for (
@@ -3688,16 +3965,24 @@ async function moveEditItemImage(
         );
 
         editItemImageStatus.textContent =
-            "✅ Képsorrend elmentve.";
+            FamilyCollectionI18n.t(
+                "collection.images.order_saved"
+            );
 
     } catch (error) {
         editItemImageStatus.textContent =
-            `❌ ${error.message}`;
+            FamilyCollectionI18n.t(
+                "collection.images.primary_error",
+                {
+                    message:
+                        error.message
+                }
+            );
 
         try {
             await refreshEditItemImages();
         } catch {
-            // A szerveren tárolt állapot marad.
+            // The server-side state remains authoritative.
         }
     }
 }
@@ -3733,12 +4018,18 @@ try {
 
 } catch (error) {
     console.error(
-        "Szerkesztői képek betöltési hiba:",
+        "Editor image load error:",
         error
     );
 
     editItemImageStatus.textContent =
-        `❌ ${error.message}`;
+        FamilyCollectionI18n.t(
+            "collection.images.editor_load_error",
+            {
+                message:
+                    error.message
+            }
+        );
 }
 
     itemDetailContent.style.display =
@@ -3765,7 +4056,9 @@ async function saveItemEdit() {
 
     if (!title) {
         itemEditStatus.textContent =
-            "❌ A név / cím kötelező.";
+            FamilyCollectionI18n.t(
+                "collection.item.title_required"
+            );
 
         return;
     }
@@ -3784,7 +4077,9 @@ async function saveItemEdit() {
     saveItemEditButton.disabled = true;
 
     itemEditStatus.textContent =
-        "Mentés...";
+        FamilyCollectionI18n.t(
+            "common.saving"
+        );
 
     try {
         const response =
@@ -4006,7 +4301,9 @@ async function loadCollectionItems(
     itemsStatus.style.display = "";
 
     itemsStatus.textContent =
-        "Betöltés...";
+        FamilyCollectionI18n.t(
+            "common.loading"
+        );
 
     itemsList.innerHTML = "";
 
@@ -4148,8 +4445,11 @@ nextPageButton.disabled =
         if (!data.items.length) {
             itemsList.innerHTML = `
                 <div class="empty">
-                    Ebben a gyűjteményben
-                    még nincs elem.
+                    ${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "collection.items.empty"
+                        )
+                    )}
                 </div>
             `;
 
@@ -4185,13 +4485,18 @@ const thumbnailHtml =
                     src="${escapeHtml(
                         primaryThumbnailUrl
                     )}"
-                    alt="${escapeHtml(
-                        (
-                            item.title
-                            || "Gyűjteményi elem"
-                        )
-                        + " képe"
-                    )}"
+alt="${escapeHtml(
+    FamilyCollectionI18n.t(
+        "collection.items.image_alt",
+        {
+            title:
+                item.title
+                || FamilyCollectionI18n.t(
+                    "collection.items.default_name"
+                )
+        }
+    )
+)}"
                     loading="lazy"
                 >
             </div>
@@ -4269,7 +4574,11 @@ row.innerHTML = `
     }
 
     <div class="field-meta">
-        Felvéve:
+        ${escapeHtml(
+            FamilyCollectionI18n.t(
+                "collection.item.created"
+            )
+        )}
         ${escapeHtml(
             formatItemDate(
                 item.created_at
@@ -4370,9 +4679,12 @@ function renderPendingItemImages() {
     revokePendingItemImagePreviewUrls();
 
     pendingItemImageCount.textContent =
-        (
-            `${pendingItemImages.length} `
-            + "kép kiválasztva"
+        FamilyCollectionI18n.t(
+            "collection.images.selected_count",
+            {
+                count:
+                    pendingItemImages.length
+            }
         );
 
     pendingItemImagesClearButton.disabled =
@@ -4390,7 +4702,9 @@ function renderPendingItemImages() {
                 </div>
 
                 <div>
-                    Még nincs kép kiválasztva.
+                    <span data-i18n="collection.images.empty">
+                    No images selected yet.
+                </span>
                 </div>
             </div>
         `;
@@ -4422,7 +4736,11 @@ function renderPendingItemImages() {
             card.innerHTML = `
                 <img
                     src="${escapeHtml(url)}"
-                    alt="Kiválasztott kép"
+                    alt="${escapeHtml(
+                        FamilyCollectionI18n.t(
+                            "collection.images.selected_alt"
+                        )
+                    )}"
                 >
 
                 <div
@@ -4430,13 +4748,23 @@ function renderPendingItemImages() {
                 >
                     ${
                         index === 0
-                            ? "⭐ Elsődleges · "
+                            ? escapeHtml(
+                                FamilyCollectionI18n.t(
+                                    "collection.images.primary_prefix"
+                                )
+                            )
                             : ""
                     }
 
                     ${escapeHtml(
                         file.name
-                        || `Kép ${index + 1}`
+                        || FamilyCollectionI18n.t(
+                            "collection.images.default_name",
+                            {
+                                index:
+                                    index + 1
+                            }
+                        )
                     )}
 
                     <br>
@@ -4653,7 +4981,9 @@ async function prepareCollectionImageForUpload(
         imageBitmap.close();
 
         throw new Error(
-            "A kép átméretezése nem sikerült."
+            FamilyCollectionI18n.t(
+                "collection.images.resize_error"
+            )
         );
     }
 
@@ -4675,8 +5005,9 @@ async function prepareCollectionImageForUpload(
                         if (!result) {
                             reject(
                                 new Error(
-                                    "A kép tömörítése "
-                                    + "nem sikerült."
+                                    FamilyCollectionI18n.t(
+                                        "collection.images.compress_error"
+                                    )
                                 )
                             );
 
@@ -4725,8 +5056,9 @@ async function uploadPendingItemImages(
 
     if (!normalizedItemPublicId) {
         throw new Error(
-            "Hiányzik a létrehozott elem "
-            + "azonosítója."
+            FamilyCollectionI18n.t(
+                "collection.images.missing_item_id"
+            )
         );
     }
 
@@ -4812,13 +5144,16 @@ async function uploadPendingItemImages(
         }
 
         if (!response.ok) {
-            throw new Error(
-                data?.detail
-                || (
-                    "Képfeltöltési hiba: "
-                    + `HTTP ${response.status}`
-                )
-            );
+throw new Error(
+    data?.detail
+    || FamilyCollectionI18n.t(
+        "collection.images.upload_http_error",
+        {
+            status:
+                response.status
+        }
+    )
+);
         }
 
         uploadedCount += 1;
@@ -4924,7 +5259,9 @@ async function createCollectionItem(
 
     if (!title) {
         createItemStatus.textContent =
-            "❌ A név / cím kötelező.";
+            FamilyCollectionI18n.t(
+                "collection.item.title_required"
+            );
 
         return;
     }
@@ -4947,7 +5284,9 @@ async function createCollectionItem(
     createItemButton.disabled = true;
 
     createItemStatus.textContent =
-        "Mentés...";
+        FamilyCollectionI18n.t(
+            "common.saving"
+        );
 
     try {
         const result =
@@ -5017,11 +5356,10 @@ let imageUploadResult = {
 };
 
 if (pendingItemImages.length > 0) {
-    createItemStatus.textContent =
-        (
-            "Elem létrehozva. "
-            + "Képek feltöltése..."
-        );
+createItemStatus.textContent =
+    FamilyCollectionI18n.t(
+        "collection.create.upload_start"
+    );
 
     imageUploadResult =
         await uploadPendingItemImages(
@@ -5030,23 +5368,33 @@ if (pendingItemImages.length > 0) {
                 current,
                 total
             ) => {
-                createItemStatus.textContent =
-                    (
-                        "Képek feltöltése: "
-                        + `${current} / ${total}`
-                    );
+createItemStatus.textContent =
+    FamilyCollectionI18n.t(
+        "collection.create.upload_progress",
+        {
+            current:
+                current,
+
+            total:
+                total
+        }
+    );
             }
         );
 }
 
 createItemStatus.textContent =
     imageUploadResult.uploadedCount > 0
-        ? (
-            "✅ Elem sikeresen létrehozva, "
-            + `${imageUploadResult.uploadedCount} `
-            + "kép feltöltve."
+        ? FamilyCollectionI18n.t(
+            "collection.create.success_with_images",
+            {
+                count:
+                    imageUploadResult.uploadedCount
+            }
         )
-        : "✅ Elem sikeresen létrehozva.";
+        : FamilyCollectionI18n.t(
+            "collection.create.success"
+        );
 
         itemTitle.value = "";
         itemSubtitle.value = "";
@@ -5087,12 +5435,18 @@ await loadCollectionItems(
 
     } catch (error) {
         console.error(
-            "Elem létrehozási hiba:",
+            "Item creation error:",
             error
         );
 
         createItemStatus.textContent =
-            `❌ ${error.message}`;
+            FamilyCollectionI18n.t(
+                "collection.create.error",
+                {
+                    message:
+                        error.message
+                }
+            );
 
     } finally {
         createItemButton.disabled =
@@ -5140,7 +5494,9 @@ itemDetailContent.style.display =
                 || categoryId <= 0
             ) {
                 throw new Error(
-                    "Hiányzó vagy hibás kategóriaazonosító."
+                    FamilyCollectionI18n.t(
+                        "collection.init.invalid_category"
+                    )
                 );
             }
 
@@ -5159,8 +5515,9 @@ itemDetailContent.style.display =
 
             if (!contextResponse.ok) {
                 throw new Error(
-                    "A jogosultságok betöltése "
-                    + "sikertelen."
+                    FamilyCollectionI18n.t(
+                        "collection.init.permissions_error"
+                    )
                 );
             }
 
@@ -5186,7 +5543,9 @@ itemDetailContent.style.display =
 
             if (!household) {
                 throw new Error(
-                    "Nincs aktív háztartási tagság."
+                    FamilyCollectionI18n.t(
+                        "collection.init.no_household"
+                    )
                 );
             }
 
@@ -5205,8 +5564,9 @@ itemDetailContent.style.display =
 
             if (!categoriesResponse.ok) {
                 throw new Error(
-                    "A gyűjtemények betöltése "
-                    + "sikertelen."
+                    FamilyCollectionI18n.t(
+                        "collection.init.categories_error"
+                    )
                 );
             }
 
@@ -5221,8 +5581,9 @@ itemDetailContent.style.display =
 
             if (!category) {
                 throw new Error(
-                    "A kiválasztott gyűjtemény "
-                    + "nem érhető el."
+                    FamilyCollectionI18n.t(
+                        "collection.init.category_unavailable"
+                    )
                 );
             }
 
@@ -5238,8 +5599,9 @@ itemDetailContent.style.display =
 
             if (!fieldsResponse.ok) {
                 throw new Error(
-                    "A meződefiníciók betöltése "
-                    + "sikertelen."
+                    FamilyCollectionI18n.t(
+                        "collection.init.fields_error"
+                    )
                 );
             }
 
@@ -5273,26 +5635,17 @@ collectionHomeLink.href =
                 }`;
 
 pageTitle.textContent =
-    `${activeCategory.name} – összes elem`;
+    FamilyCollectionI18n.t(
+        "collection.list.dynamic_title",
+        {
+            name:
+                activeCategory.name
+        }
+    );
 
             householdName.textContent =
                 household.name;
 
-            categoryName.textContent =
-                category.name;
-
-            categoryDescription.textContent =
-                category.description
-                || "Nincs leírás.";
-
-            permission.textContent =
-                `Jogosultság: ${
-                    roleLabel(
-                        household.role
-                    )
-                }`;
-
-renderFields(fields);
 
 const canEdit =
     household.role === "editor"
@@ -5326,13 +5679,18 @@ content.style.display =
 
         } catch (error) {
             console.error(
-                "Gyűjteményoldal "
-                + "inicializálási hiba:",
+                "Collection list page initialization error:",
                 error
             );
 
             statusBox.textContent =
-                `❌ ${error.message}`;
+                FamilyCollectionI18n.t(
+                    "collection.init.error",
+                    {
+                        message:
+                            error.message
+                    }
+                );
         }
     }
 
@@ -5647,7 +6005,9 @@ createItemButton.addEventListener(
             || !activeCategory
         ) {
             createItemStatus.textContent =
-                "❌ A gyűjtemény még nem töltődött be.";
+                FamilyCollectionI18n.t(
+                    "collection.not_loaded"
+                );
 
             return;
         }

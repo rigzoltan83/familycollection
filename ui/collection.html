@@ -33,13 +33,17 @@
             padding: 24px 0 40px;
         }
 
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.collection-heading {
+    margin-bottom: 24px;
+}
 
         h1 {
             margin: 0;
@@ -77,12 +81,6 @@
             margin-top: 8px;
             color: #bbb;
             line-height: 1.4;
-        }
-
-        .permission {
-            margin-top: 10px;
-            color: #aaa;
-            font-size: 14px;
         }
 
 .field-row label {
@@ -164,12 +162,6 @@
 
         .empty {
             color: #aaa;
-        }
-
-        @media (max-width: 600px) {
-            .topbar {
-                flex-direction: column;
-            }
         }
 
 .item-dynamic-fields {
@@ -655,29 +647,38 @@
 <body>
 <main class="container">
 
-    <div class="topbar">
-        <div>
-<h1
-    id="pageTitle"
-    data-i18n="collection.title"
->
-    Collection
-</h1>
+<div class="topbar">
+    <a
+        class="back-link"
+        href="/ui/dashboard.html"
+        data-i18n="common.back"
+    >
+        ← Back
+    </a>
 
-            <div
-                id="householdName"
-                class="subtitle"
-            ></div>
-        </div>
+    <a
+        id="allItemsLink"
+        class="back-link"
+        href="#"
+        data-i18n="collection.items.all"
+    >
+        All items →
+    </a>
+</div>
 
-<a
-    class="back-link"
-    href="/ui/dashboard.html"
-    data-i18n="common.back"
->
-    ← Back
-</a>
-    </div>
+<div class="collection-heading">
+    <h1
+        id="pageTitle"
+        data-i18n="collection.title"
+    >
+        Collection
+    </h1>
+
+    <div
+        id="householdName"
+        class="subtitle"
+    ></div>
+</div>
 
 <div
     id="status"
@@ -691,19 +692,6 @@
         id="content"
         style="display:none"
     >
-        <section class="category-info">
-            <strong id="categoryName"></strong>
-
-            <div
-                id="categoryDescription"
-                class="category-description"
-            ></div>
-
-            <div
-                id="permission"
-                class="permission"
-            ></div>
-        </section>
 
 <section
     id="createSection"
@@ -894,31 +882,11 @@
     </div>
 </section>
 
-        <section class="field-section">
-<h2 data-i18n="collection.fields.title">
-    Fields
-</h2>
-
-            <div
-                id="fieldList"
-                class="field-list"
-            ></div>
-        </section>
-
 <section class="field-section">
     <div class="section-header">
-<h2 data-i18n="collection.items.latest">
-    Recently added items
-</h2>
-
-<a
-    id="allItemsLink"
-    class="back-link"
-    href="#"
-    data-i18n="collection.items.all"
->
-    All items →
-</a>
+        <h2 data-i18n="collection.items.latest">
+            Recently added items
+        </h2>
     </div>
 
 <div
@@ -1560,26 +1528,6 @@ const dynamicCreateFields =
             "content"
         );
 
-    const categoryName =
-        document.getElementById(
-            "categoryName"
-        );
-
-    const categoryDescription =
-        document.getElementById(
-            "categoryDescription"
-        );
-
-    const permission =
-        document.getElementById(
-            "permission"
-        );
-
-    const fieldList =
-        document.getElementById(
-            "fieldList"
-        );
-
 function flattenCollectionStorageTree(
     nodes,
     parentPath = []
@@ -2029,59 +1977,6 @@ function fieldTypeLabel(type) {
             .replaceAll("'", "&#039;");
     }
 
-
-    function renderFields(fields) {
-        fieldList.innerHTML = "";
-
-        if (!fields.length) {
-fieldList.innerHTML = `
-    <div class="empty">
-        ${escapeHtml(
-            FamilyCollectionI18n.t(
-                "collection.fields.empty"
-            )
-        )}
-    </div>
-`;
-
-            return;
-        }
-
-        for (const field of fields) {
-            const row =
-                document.createElement("div");
-
-            row.className = "field-row";
-
-            row.innerHTML = `
-                <div class="field-name">
-                    ${escapeHtml(field.name)}
-                </div>
-
-                <div class="field-meta">
-                    ${escapeHtml(
-                        fieldTypeLabel(
-                            field.field_type
-                        )
-                    )}
-
-${
-    field.is_required
-        ? escapeHtml(
-            FamilyCollectionI18n.t(
-                "collection.fields.required_suffix"
-            )
-        )
-        : ""
-}
-
-                    · ${escapeHtml(field.field_key)}
-                </div>
-            `;
-
-            fieldList.appendChild(row);
-        }
-    }
 
 
 function renderDynamicFields(
@@ -5271,27 +5166,6 @@ document.title =
             householdName.textContent =
                 household.name;
 
-            categoryName.textContent =
-                category.name;
-
-categoryDescription.textContent =
-    category.description
-    || FamilyCollectionI18n.t(
-        "collection.no_description"
-    );
-
-permission.textContent =
-    FamilyCollectionI18n.t(
-        "collection.permission",
-        {
-            role:
-                roleLabel(
-                    household.role
-                )
-        }
-    );
-
-renderFields(fields);
 
 const canEdit =
     household.role === "editor"
