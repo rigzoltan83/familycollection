@@ -14,38 +14,98 @@ APP_GROUP="$(
     id -gn "$APP_USER"
 )"
 
+echo "======================================"
+echo " FamilyCollection installer"
+echo " FamilyCollection telepítő"
+echo "======================================"
+echo
+echo "Select language / Válassz nyelvet:"
+echo
+echo "1) English"
+echo "2) Magyar"
+echo
+
+read -r -p "Choice / Választás [1]: " LANGUAGE_CHOICE
+
+case "${LANGUAGE_CHOICE:-1}" in
+    2|hu|HU)
+        LANGUAGE="hu"
+        ;;
+    *)
+        LANGUAGE="en"
+        ;;
+esac
+
+message() {
+    local english="$1"
+    local hungarian="$2"
+
+    if [ "$LANGUAGE" = "hu" ]; then
+        echo "$hungarian"
+    else
+        echo "$english"
+    fi
+}
+
+section() {
+    echo
+    message \
+        "===== $1 =====" \
+        "===== $2 ====="
+}
+
 if [ "$(id -u)" -ne 0 ]; then
-    echo "HIBA: a telepítőt sudo-val kell futtatni."
+    message \
+        "ERROR: run the installer with sudo." \
+        "HIBA: a telepítőt sudo-val kell futtatni."
     exit 1
 fi
 
 if [ ! -d "$PROJECT_DIR/.git" ]; then
-    echo "HIBA: nem található Git repository:"
+    message \
+        "ERROR: Git repository not found:" \
+        "HIBA: nem található Git repository:"
     echo "$PROJECT_DIR"
     exit 1
 fi
 
 if [ -e "$ENV_FILE" ]; then
-    echo "HIBA: az api/.env már létezik."
+    message \
+        "ERROR: api/.env already exists." \
+        "HIBA: az api/.env már létezik."
     echo
-    echo "Ez a script csak új telepítéshez használható."
+    message \
+        "This script is intended for fresh installations only." \
+        "Ez a script csak új telepítéshez használható."
     exit 1
 fi
 
 if [ -e "$ROOT_ENV" ] || [ -L "$ROOT_ENV" ]; then
-    echo "HIBA: a projekt gyökér .env már létezik."
+    message \
+        "ERROR: the project root .env already exists." \
+        "HIBA: a projekt gyökér .env már létezik."
     exit 1
 fi
 
-echo "======================================"
-echo " FamilyCollection telepítés"
-echo "======================================"
 echo
-echo "Alkalmazás-felhasználó: $APP_USER"
-echo "Projekt: $PROJECT_DIR"
+echo "======================================"
+message \
+    " FamilyCollection installation" \
+    " FamilyCollection telepítés"
+echo "======================================"
 echo
 
-echo "===== 1. RENDSZERCSOMAGOK ====="
+message \
+    "Application user: $APP_USER" \
+    "Alkalmazás-felhasználó: $APP_USER"
+
+message \
+    "Project: $PROJECT_DIR" \
+    "Projekt: $PROJECT_DIR"
+
+section \
+    "1. SYSTEM PACKAGES" \
+    "1. RENDSZERCSOMAGOK"
 
 apt-get update
 
@@ -62,8 +122,9 @@ apt-get install -y \
 
 systemctl enable --now docker
 
-echo
-echo "===== 2. POSTGRESQL HOST PORT ====="
+section \
+    "2. POSTGRESQL HOST PORT" \
+    "2. POSTGRESQL HOST PORT"
 
 DB_PORT=5432
 
@@ -74,10 +135,13 @@ do
     DB_PORT=$((DB_PORT + 1))
 done
 
-echo "OK: PostgreSQL host port: $DB_PORT"
+message \
+    "OK: PostgreSQL host port: $DB_PORT" \
+    "OK: PostgreSQL host port: $DB_PORT"
 
-echo
-echo "===== 3. TITKOK GENERÁLÁSA ====="
+section \
+    "3. GENERATING SECRETS" \
+    "3. TITKOK GENERÁLÁSA"
 
 DB_PASS="$(
     python3 - <<'PY'
@@ -94,44 +158,54 @@ PY
 )"
 
 if [ "${#DB_PASS}" -ne 64 ]; then
-    echo "HIBA: DB-jelszó generálási hiba."
+    message \
+        "ERROR: database password generation failed." \
+        "HIBA: DB-jelszó generálási hiba."
     exit 1
 fi
 
 if [ "${#SESSION_SECRET}" -ne 96 ]; then
-    echo "HIBA: session secret generálási hiba."
+    message \
+        "ERROR: session secret generation failed." \
+        "HIBA: session secret generálási hiba."
     exit 1
 fi
 
-echo "OK: titkok elkészültek."
-echo "Az értékeket nem írjuk ki."
+message \
+    "OK: secrets generated." \
+    "OK: titkok elkészültek."
 
-echo
-echo "===== 4. API .ENV ====="
+message \
+    "Secret values are not printed." \
+    "Az értékeket nem írjuk ki."
+
+section \
+    "4. API .ENV" \
+    "4. API .ENV"
 
 cat > "$ENV_FILE" <<EOF
-# PostgreSQL kapcsolat
+# PostgreSQL connection
 DB_HOST=localhost
 DB_PORT=$DB_PORT
 DB_NAME=familycollection
 DB_USER=familyuser
 DB_PASS=$DB_PASS
 
-# Külső metadata-szolgáltatások
+# External metadata services
 ISBNDB_KEY=
 
-# Metadata-szolgáltatók
+# Metadata providers
 USE_ISBNDB=false
 USE_OPENLIBRARY=true
 USE_ISBNSEARCH=true
 
-# Alkalmazási környezet
+# Application environment
 APP_ENV=production
 
-# Pytest adatbázis
+# Pytest database
 TEST_DATABASE_NAME=familycollection_test
 
-# Bejelentkezási session
+# Login session
 SESSION_SECRET_KEY=$SESSION_SECRET
 SESSION_COOKIE_SECURE=false
 SESSION_MAX_AGE_SECONDS=2592000
@@ -147,16 +221,21 @@ ln -s \
     "api/.env" \
     "$ROOT_ENV"
 
-echo "OK: api/.env + gyökér .env symlink."
+message \
+    "OK: api/.env and root .env symlink created." \
+    "OK: api/.env + gyökér .env symlink."
 
-echo
-echo "===== 5. POSTGRESQL ====="
+section \
+    "5. POSTGRESQL" \
+    "5. POSTGRESQL"
 
 cd "$PROJECT_DIR"
 
 docker compose up -d db
 
-echo "Várakozás a PostgreSQL indulására..."
+message \
+    "Waiting for PostgreSQL to start..." \
+    "Várakozás a PostgreSQL indulására..."
 
 for attempt in $(seq 1 30)
 do
@@ -170,17 +249,22 @@ do
     fi
 
     if [ "$attempt" -eq 30 ]; then
-        echo "HIBA: PostgreSQL nem indult el."
+        message \
+            "ERROR: PostgreSQL failed to start." \
+            "HIBA: PostgreSQL nem indult el."
         exit 1
     fi
 
     sleep 2
 done
 
-echo "OK: PostgreSQL elérhető."
+message \
+    "OK: PostgreSQL is available." \
+    "OK: PostgreSQL elérhető."
 
-echo
-echo "===== 6. PYTHON VENV ====="
+section \
+    "6. PYTHON VENV" \
+    "6. PYTHON VENV"
 
 sudo -u "$APP_USER" \
     python3 -m venv \
@@ -196,8 +280,9 @@ sudo -u "$APP_USER" \
     install \
     -r "$API_DIR/requirements.txt"
 
-echo
-echo "===== 7. ADATBÁZIS MIGRÁCIÓ ====="
+section \
+    "7. DATABASE MIGRATIONS" \
+    "7. ADATBÁZIS MIGRÁCIÓ"
 
 cd "$API_DIR"
 
@@ -205,8 +290,9 @@ sudo -u "$APP_USER" \
     "$API_DIR/venv/bin/alembic" \
     upgrade head
 
-echo
-echo "===== 8. SYSTEMD SERVICE ====="
+section \
+    "8. SYSTEMD SERVICE" \
+    "8. SYSTEMD SERVICE"
 
 cat > "$SERVICE_FILE" <<EOF
 [Unit]
@@ -242,18 +328,25 @@ if ! systemctl is-active \
     --quiet \
     family-api.service
 then
-    echo "HIBA: family-api.service nem indult el."
+    message \
+        "ERROR: family-api.service failed to start." \
+        "HIBA: family-api.service nem indult el."
+
     systemctl \
         --no-pager \
         --full \
         status family-api.service
+
     exit 1
 fi
 
-echo "OK: FamilyCollection API fut."
+message \
+    "OK: FamilyCollection API is running." \
+    "OK: FamilyCollection API fut."
 
-echo
-echo "===== 9. HTTP TESZT ====="
+section \
+    "9. HTTP TEST" \
+    "9. HTTP TESZT"
 
 HTTP_CODE="$(
     curl \
@@ -264,28 +357,55 @@ HTTP_CODE="$(
 )"
 
 if [ "$HTTP_CODE" != "200" ]; then
-    echo "HIBA: login oldal HTTP $HTTP_CODE"
+    message \
+        "ERROR: login page returned HTTP $HTTP_CODE." \
+        "HIBA: login oldal HTTP $HTTP_CODE"
     exit 1
 fi
 
-echo "OK: login oldal HTTP 200."
+message \
+    "OK: login page returned HTTP 200." \
+    "OK: login oldal HTTP 200."
 
 echo
 echo "======================================"
-echo " ALAPTELEPÍTÉS KÉSZ"
+
+message \
+    " BASE INSTALLATION COMPLETE" \
+    " ALAPTELEPÍTÉS KÉSZ"
+
 echo "======================================"
 echo
-echo "Következő lépés:"
+
+message \
+    "Next step:" \
+    "Következő lépés:"
+
 echo
 echo "cd $API_DIR"
 echo "venv/bin/python scripts/bootstrap_admin.py"
 echo
-echo "Ez interaktívan létrehozza az első admint."
+
+message \
+    "This interactively creates the first administrator." \
+    "Ez interaktívan létrehozza az első admint."
+
 echo
-echo "Web:"
-echo "http://<szerver-ip>:8000/ui/login.html"
+message \
+    "Web:" \
+    "Web:"
+
+echo "http://<server-ip>:8000/ui/login.html"
 echo
-echo "FONTOS:"
-echo "Ha HTTPS nélkül tesztelsz, a"
-echo "SESSION_COOKIE_SECURE=false beállítás szükséges."
-echo "Éles HTTPS használatakor állítsd true-ra."
+
+message \
+    "IMPORTANT:" \
+    "FONTOS:"
+
+message \
+    "For testing without HTTPS, SESSION_COOKIE_SECURE=false is required." \
+    "Ha HTTPS nélkül tesztelsz, a SESSION_COOKIE_SECURE=false beállítás szükséges."
+
+message \
+    "When using HTTPS in production, set it to true." \
+    "Éles HTTPS használatakor állítsd true-ra."
