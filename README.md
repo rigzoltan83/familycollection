@@ -68,3 +68,21 @@ familycollection/
 ├── docker-compose.yml
 └── README.md
 ```
+## License
+
+Copyright (C) 2026 Zoltán Rigó
+
+FamilyCollection is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+FamilyCollection is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+See the [LICENSE](LICENSE) file for the full license text.
+
+Third-party components remain subject to their respective licenses.
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
