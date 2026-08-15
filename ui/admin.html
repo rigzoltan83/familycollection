@@ -1075,17 +1075,83 @@
 }
 
 .category-icon-picker {
+    position: relative;
     margin-top: 6px;
 }
 
+.category-icon-picker-toggle {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+
+    padding: 8px 10px;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.04);
+    color: inherit;
+
+    cursor: pointer;
+}
+
+.category-icon-picker-toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.category-icon-picker-current {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.category-icon-picker-current-emoji {
+    font-size: 22px;
+}
+
+.category-icon-picker-arrow {
+    opacity: 0.7;
+}
+
 .category-icon-picker-grid {
-    display: grid;
+    display: none;
+
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+
+    z-index: 100;
+
     grid-template-columns:
         repeat(
             auto-fill,
             minmax(72px, 1fr)
         );
+
     gap: 8px;
+
+    padding: 10px;
+
+    background: #202020;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.14);
+
+    border-radius: 8px;
+
+    box-shadow:
+        0 12px 28px
+        rgba(0, 0, 0, 0.45);
+}
+
+.category-icon-picker.open
+.category-icon-picker-grid {
+    display: grid;
 }
 
 .category-icon-option {
@@ -1409,6 +1475,33 @@
         type="hidden"
         value=""
     >
+
+<button
+    type="button"
+    class="category-icon-picker-toggle"
+>
+    <span
+        class="category-icon-picker-current"
+    >
+        <span
+            class="category-icon-picker-current-emoji"
+        >
+            📦
+        </span>
+
+        <span
+            class="category-icon-picker-current-label"
+        >
+            Ikon kiválasztása
+        </span>
+    </span>
+
+    <span
+        class="category-icon-picker-arrow"
+    >
+        ▼
+    </span>
+</button>
 
     <div class="category-icon-picker-grid">
         <button
@@ -3436,28 +3529,103 @@ function renderCategoryIconPicker(
             `
         ).join("");
 
-    return `
-        <div class="category-icon-picker">
-            <input
-                type="hidden"
-                class="
-                    category-icon-value
-                    ${inputClass}
-                "
-                value="${escapeHtml(selected)}"
-            >
+const selectedIcon =
+    CATEGORY_ICONS.find(
+        ([key]) => key === selected
+    );
 
-            <div class="category-icon-picker-grid">
-                ${buttons}
-            </div>
+const currentEmoji =
+    selectedIcon?.[1] || "📦";
+
+const currentLabel =
+    selectedIcon?.[2] || "Ikon kiválasztása";
+
+return `
+    <div class="category-icon-picker">
+        <input
+            type="hidden"
+            class="
+                category-icon-value
+                ${inputClass}
+            "
+            value="${escapeHtml(selected)}"
+        >
+
+        <button
+            type="button"
+            class="category-icon-picker-toggle"
+        >
+            <span
+                class="category-icon-picker-current"
+            >
+                <span
+                    class="category-icon-picker-current-emoji"
+                >
+                    ${currentEmoji}
+                </span>
+
+                <span
+                    class="category-icon-picker-current-label"
+                >
+                    ${escapeHtml(currentLabel)}
+                </span>
+            </span>
+
+            <span
+                class="category-icon-picker-arrow"
+            >
+                ▼
+            </span>
+        </button>
+
+        <div class="category-icon-picker-grid">
+            ${buttons}
         </div>
-    `;
+    </div>
+`;
 }
 
 
 document.addEventListener(
     "click",
     event => {
+        const toggle =
+            event.target.closest(
+                ".category-icon-picker-toggle"
+            );
+
+        if (toggle) {
+            const picker =
+                toggle.closest(
+                    ".category-icon-picker"
+                );
+
+            document
+                .querySelectorAll(
+                    ".category-icon-picker.open"
+                )
+                .forEach(
+                    otherPicker => {
+                        if (
+                            otherPicker
+                            !== picker
+                        ) {
+                            otherPicker
+                                .classList
+                                .remove(
+                                    "open"
+                                );
+                        }
+                    }
+                );
+
+            picker?.classList.toggle(
+                "open"
+            );
+
+            return;
+        }
+
         const button =
             event.target.closest(
                 ".category-icon-option"
@@ -3503,6 +3671,42 @@ document.addEventListener(
 
         valueInput.value =
             button.dataset.iconKey || "";
+
+        const emoji =
+            button.querySelector(
+                ".category-icon-option-emoji"
+            )?.textContent?.trim()
+            || "📦";
+
+        const label =
+            button.querySelector(
+                ".category-icon-option-label"
+            )?.textContent?.trim()
+            || "";
+
+        const currentEmoji =
+            picker.querySelector(
+                ".category-icon-picker-current-emoji"
+            );
+
+        const currentLabel =
+            picker.querySelector(
+                ".category-icon-picker-current-label"
+            );
+
+        if (currentEmoji) {
+            currentEmoji.textContent =
+                emoji;
+        }
+
+        if (currentLabel) {
+            currentLabel.textContent =
+                label;
+        }
+
+        picker.classList.remove(
+            "open"
+        );
     }
 );
 
@@ -6880,6 +7084,33 @@ async function createCategory() {
 
         newCategoryName.value = "";
         newCategoryIcon.value = "";
+const newIconPicker =
+    newCategoryIcon.closest(
+        ".category-icon-picker"
+    );
+
+newIconPicker?.classList.remove(
+    "open"
+);
+
+const newIconEmoji =
+    newIconPicker?.querySelector(
+        ".category-icon-picker-current-emoji"
+    );
+
+const newIconLabel =
+    newIconPicker?.querySelector(
+        ".category-icon-picker-current-label"
+    );
+
+if (newIconEmoji) {
+    newIconEmoji.textContent = "📦";
+}
+
+if (newIconLabel) {
+    newIconLabel.textContent =
+        "Ikon kiválasztása";
+}
 newCategoryIcon
     .closest(".category-icon-picker")
     ?.querySelectorAll(

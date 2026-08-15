@@ -1804,8 +1804,13 @@ parts.push(
                 }
             }
 
-            latest.innerHTML += `
-                <div class="book latest-book">
+latest.innerHTML += `
+    <div
+        class="book latest-book"
+        role="button"
+        tabindex="0"
+        data-book-id="${Number(book.id)}"
+    >
 
                     ${coverHtml}
 
@@ -1874,6 +1879,157 @@ latest.innerHTML =
     }
 }
 
+const latestBookEditorModal =
+    document.getElementById(
+        "latestBookEditorModal"
+    );
+
+const latestBookEditorFrame =
+    document.getElementById(
+        "latestBookEditorFrame"
+    );
+
+
+function openLatestBookEditorModal(
+    bookId
+) {
+    const id = Number(bookId);
+
+    if (
+        !Number.isInteger(id)
+        || id <= 0
+    ) {
+        return;
+    }
+
+    if (
+        !latestBookEditorModal
+        || !latestBookEditorFrame
+    ) {
+        return;
+    }
+
+    latestBookEditorFrame.src =
+        `/ui/books.html`
+        + `?edit=${encodeURIComponent(id)}`
+        + `&embedded=1`;
+
+    latestBookEditorModal.style.display =
+        "flex";
+
+    document.body.style.overflow =
+        "hidden";
+}
+
+
+function closeLatestBookEditorModal() {
+    if (!latestBookEditorModal) {
+        return;
+    }
+
+    latestBookEditorModal.style.display =
+        "none";
+
+    if (latestBookEditorFrame) {
+        latestBookEditorFrame.src = "";
+    }
+
+    document.body.style.overflow = "";
+}
+
+
+latest?.addEventListener(
+    "click",
+    event => {
+        const card =
+            event.target.closest(
+                ".latest-book[data-book-id]"
+            );
+
+        if (!card) {
+            return;
+        }
+
+        openLatestBookEditorModal(
+            card.dataset.bookId
+        );
+    }
+);
+
+
+latest?.addEventListener(
+    "keydown",
+    event => {
+        if (
+            event.key !== "Enter"
+            && event.key !== " "
+        ) {
+            return;
+        }
+
+        const card =
+            event.target.closest(
+                ".latest-book[data-book-id]"
+            );
+
+        if (!card) {
+            return;
+        }
+
+        event.preventDefault();
+
+        openLatestBookEditorModal(
+            card.dataset.bookId
+        );
+    }
+);
+
+
+latestBookEditorModal
+    ?.querySelector(
+        ".latest-book-editor-backdrop"
+    )
+    ?.addEventListener(
+        "click",
+        closeLatestBookEditorModal
+    );
+
+
+document.addEventListener(
+    "keydown",
+    event => {
+        if (
+            event.key === "Escape"
+            && latestBookEditorModal
+            && latestBookEditorModal
+                .style.display !== "none"
+        ) {
+            closeLatestBookEditorModal();
+        }
+    }
+);
+
+
+window.addEventListener(
+    "message",
+    event => {
+        if (
+            event.origin
+            !== window.location.origin
+        ) {
+            return;
+        }
+
+        if (
+            event.data?.type
+            !== "familycollection-close-book-editor"
+        ) {
+            return;
+        }
+
+        closeLatestBookEditorModal();
+    }
+);
 
 // --------------------------------------------------
 // KÉZI, ISBN NÉLKÜLI FELVITEL

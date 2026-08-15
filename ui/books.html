@@ -731,6 +731,37 @@ header input {
         gap: 5px;
     }
 }
+
+body.embedded-book-editor {
+    overflow: hidden;
+    background: #171717;
+}
+
+body.embedded-book-editor > * {
+    display: none !important;
+}
+
+body.embedded-book-editor > #editModal {
+    display: block !important;
+}
+
+body.embedded-book-editor #editModal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+}
+
+body.embedded-book-editor #editModal .modal-content {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+
+    margin: 0;
+    border-radius: 0;
+
+    overflow-y: auto;
+}
 </style>
 </head>
 
@@ -3260,6 +3291,25 @@ ${escapeHtml(
 ----------------------- */
 
 function closeEditor() {
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    const embedded =
+        params.get("embedded") === "1";
+
+    if (embedded) {
+        window.parent.postMessage(
+            {
+                type: "familycollection-close-book-editor"
+            },
+            window.location.origin
+        );
+
+        return;
+    }
+
     document
         .getElementById("editModal")
         .style.display = "none";
@@ -3530,6 +3580,20 @@ document
 
 async function initializeBooksPage() {
     try {
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
+
+        const embedded =
+            params.get("embedded") === "1";
+
+        if (embedded) {
+            document.body.classList.add(
+                "embedded-book-editor"
+            );
+        }
+
         const permissionLoaded =
             await loadBookPagePermissions();
 
@@ -3538,6 +3602,18 @@ async function initializeBooksPage() {
         }
 
         await loadBooks();
+
+        const editId =
+            Number(
+                params.get("edit")
+            );
+
+        if (
+            Number.isInteger(editId)
+            && editId > 0
+        ) {
+            await editBook(editId);
+        }
 
     } catch (error) {
 console.error(

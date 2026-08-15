@@ -55,3 +55,6 @@ Thumbs.db
 
 # FamilyCollection runtime data
 data/
+
+# Local LEGO import images
+lego_box_images/
