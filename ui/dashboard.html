@@ -354,15 +354,34 @@ function roleLabel(role) {
 
 function categoryIcon(category) {
 
-    if (category.slug === "book") {
-        return "📚";
+    const icons = {
+        book: "📚",
+        puzzle: "🧩",
+        lego: "🧱",
+        game: "🎮",
+        film: "🎬",
+        music: "🎵",
+        photo: "🖼️",
+        tool: "🛠️",
+        card: "🃏",
+        figure: "🦸",
+        vehicle: "🚗",
+        disc: "💿",
+        archive: "🗃️",
+        box: "📦"
+    };
+
+    const iconKey =
+        String(category.icon || "")
+            .trim()
+            .toLowerCase();
+
+    if (iconKey && icons[iconKey]) {
+        return icons[iconKey];
     }
 
-    if (
-        category.icon
-        && category.icon.trim()
-    ) {
-        return "🗃️";
+    if (category.slug === "book") {
+        return "📚";
     }
 
     return "📦";

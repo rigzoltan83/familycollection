@@ -1074,6 +1074,59 @@
     border-top: 1px solid #3d3d3d;
 }
 
+.category-icon-picker {
+    margin-top: 6px;
+}
+
+.category-icon-picker-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(72px, 1fr)
+        );
+    gap: 8px;
+}
+
+.category-icon-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 66px;
+    padding: 8px 6px;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+
+    background: rgba(255, 255, 255, 0.04);
+    color: inherit;
+
+    cursor: pointer;
+}
+
+.category-icon-option:hover {
+    background: rgba(255, 255, 255, 0.10);
+}
+
+.category-icon-option.selected {
+    border-color: #4da3ff;
+    background: rgba(77, 163, 255, 0.18);
+}
+
+.category-icon-option-emoji {
+    font-size: 26px;
+    line-height: 1;
+}
+
+.category-icon-option-label {
+    margin-top: 5px;
+    font-size: 11px;
+    opacity: 0.8;
+}
+
 </style>
 </head>
 
@@ -1349,13 +1402,198 @@
     Icon
 </label>
 
-<input
-    id="newCategoryIcon"
-    type="text"
-    maxlength="100"
-    data-i18n-placeholder="admin.collections.icon_placeholder"
-    placeholder="e.g. game"
->
+<div class="category-icon-picker">
+    <input
+        id="newCategoryIcon"
+        class="category-icon-value"
+        type="hidden"
+        value=""
+    >
+
+    <div class="category-icon-picker-grid">
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="book"
+        >
+            <span class="category-icon-option-emoji">
+                📚
+            </span>
+            <span class="category-icon-option-label">
+                Könyv
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="puzzle"
+        >
+            <span class="category-icon-option-emoji">
+                🧩
+            </span>
+            <span class="category-icon-option-label">
+                Társas
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="lego"
+        >
+            <span class="category-icon-option-emoji">
+                🧱
+            </span>
+            <span class="category-icon-option-label">
+                LEGO
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="game"
+        >
+            <span class="category-icon-option-emoji">
+                🎮
+            </span>
+            <span class="category-icon-option-label">
+                Játék
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="film"
+        >
+            <span class="category-icon-option-emoji">
+                🎬
+            </span>
+            <span class="category-icon-option-label">
+                Film
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="music"
+        >
+            <span class="category-icon-option-emoji">
+                🎵
+            </span>
+            <span class="category-icon-option-label">
+                Zene
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="photo"
+        >
+            <span class="category-icon-option-emoji">
+                🖼️
+            </span>
+            <span class="category-icon-option-label">
+                Kép
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="tool"
+        >
+            <span class="category-icon-option-emoji">
+                🛠️
+            </span>
+            <span class="category-icon-option-label">
+                Eszköz
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="card"
+        >
+            <span class="category-icon-option-emoji">
+                🃏
+            </span>
+            <span class="category-icon-option-label">
+                Kártya
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="figure"
+        >
+            <span class="category-icon-option-emoji">
+                🦸
+            </span>
+            <span class="category-icon-option-label">
+                Figura
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="vehicle"
+        >
+            <span class="category-icon-option-emoji">
+                🚗
+            </span>
+            <span class="category-icon-option-label">
+                Jármű
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="disc"
+        >
+            <span class="category-icon-option-emoji">
+                💿
+            </span>
+            <span class="category-icon-option-label">
+                Lemez
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="archive"
+        >
+            <span class="category-icon-option-emoji">
+                🗃️
+            </span>
+            <span class="category-icon-option-label">
+                Gyűjtemény
+            </span>
+        </button>
+
+        <button
+            type="button"
+            class="category-icon-option"
+            data-icon-key="box"
+        >
+            <span class="category-icon-option-emoji">
+                📦
+            </span>
+            <span class="category-icon-option-label">
+                Egyéb
+            </span>
+        </button>
+    </div>
+</div>
                         </div>
 
                         <div>
@@ -3140,6 +3378,133 @@ const newCategoryName =
     document.getElementById(
         "newCategoryName"
     );
+
+const CATEGORY_ICONS = [
+    ["book", "📚", "Könyv"],
+    ["puzzle", "🧩", "Társas"],
+    ["lego", "🧱", "LEGO"],
+    ["game", "🎮", "Játék"],
+    ["film", "🎬", "Film"],
+    ["music", "🎵", "Zene"],
+    ["photo", "🖼️", "Kép"],
+    ["tool", "🛠️", "Eszköz"],
+    ["card", "🃏", "Kártya"],
+    ["figure", "🦸", "Figura"],
+    ["vehicle", "🚗", "Jármű"],
+    ["disc", "💿", "Lemez"],
+    ["archive", "🗃️", "Gyűjtemény"],
+    ["box", "📦", "Egyéb"]
+];
+
+
+function renderCategoryIconPicker(
+    selectedValue,
+    inputClass
+) {
+    const selected =
+        String(selectedValue || "")
+            .trim()
+            .toLowerCase();
+
+    const buttons =
+        CATEGORY_ICONS.map(
+            ([key, emoji, label]) => `
+                <button
+                    type="button"
+                    class="
+                        category-icon-option
+                        ${
+                            key === selected
+                                ? "selected"
+                                : ""
+                        }
+                    "
+                    data-icon-key="${key}"
+                >
+                    <span
+                        class="category-icon-option-emoji"
+                    >
+                        ${emoji}
+                    </span>
+
+                    <span
+                        class="category-icon-option-label"
+                    >
+                        ${label}
+                    </span>
+                </button>
+            `
+        ).join("");
+
+    return `
+        <div class="category-icon-picker">
+            <input
+                type="hidden"
+                class="
+                    category-icon-value
+                    ${inputClass}
+                "
+                value="${escapeHtml(selected)}"
+            >
+
+            <div class="category-icon-picker-grid">
+                ${buttons}
+            </div>
+        </div>
+    `;
+}
+
+
+document.addEventListener(
+    "click",
+    event => {
+        const button =
+            event.target.closest(
+                ".category-icon-option"
+            );
+
+        if (!button) {
+            return;
+        }
+
+        const picker =
+            button.closest(
+                ".category-icon-picker"
+            );
+
+        if (!picker) {
+            return;
+        }
+
+        const valueInput =
+            picker.querySelector(
+                ".category-icon-value"
+            );
+
+        if (!valueInput) {
+            return;
+        }
+
+        picker
+            .querySelectorAll(
+                ".category-icon-option"
+            )
+            .forEach(
+                option => {
+                    option.classList.remove(
+                        "selected"
+                    );
+                }
+            );
+
+        button.classList.add(
+            "selected"
+        );
+
+        valueInput.value =
+            button.dataset.iconKey || "";
+    }
+);
 
 const newCategoryIcon =
     document.getElementById(
@@ -5879,13 +6244,10 @@ function renderHouseholdCategories(categories) {
                             )}
                         </label>
 
-                        <input
-                            class="category-icon"
-                            type="text"
-                            value="${escapeHtml(
-                                category.icon || ""
-                            )}"
-                        >
+${renderCategoryIconPicker(
+    category.icon || "",
+    "category-icon"
+)}
                     </div>
 
                     <div>
@@ -6518,6 +6880,18 @@ async function createCategory() {
 
         newCategoryName.value = "";
         newCategoryIcon.value = "";
+newCategoryIcon
+    .closest(".category-icon-picker")
+    ?.querySelectorAll(
+        ".category-icon-option"
+    )
+    .forEach(
+        option => {
+            option.classList.remove(
+                "selected"
+            );
+        }
+    );
         newCategoryDescription.value = "";
         newCategorySortOrder.value = "100";
         newCategorySupportsBarcode.checked =
