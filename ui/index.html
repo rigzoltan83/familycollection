@@ -8,7 +8,32 @@
     FamilyCollection – Books
 </title>
 
-    <link rel="stylesheet" href="/ui/css/style.css">
+    <link rel="stylesheet" href="./css/style.css">
+<script>
+window.FC_BASE_PATH = (() => {
+    const marker = "/ui/";
+    const index = window.location.pathname.indexOf(marker);
+
+    if (index <= 0) {
+        return "";
+    }
+
+    return window.location.pathname.slice(0, index);
+})();
+
+window.fcUrl = (path) => {
+    if (!path) {
+        return window.FC_BASE_PATH || "/";
+    }
+
+    if (!path.startsWith("/")) {
+        path = "/" + path;
+    }
+
+    return window.FC_BASE_PATH + path;
+};
+</script>
+
 </head>
 
 <body>
@@ -366,7 +391,7 @@ aria-label="Close"
 
 <div class="page-navigation">
     <a
-        href="/ui/dashboard.html"
+        href="./dashboard.html"
         class="dashboard-back-button"
         data-i18n="common.back"
     >
@@ -374,7 +399,7 @@ aria-label="Close"
     </a>
 
     <a
-        href="/ui/books.html"
+        href="./books.html"
         class="all-items-button"
         data-i18n="collection.items.all_title"
     >
@@ -388,7 +413,7 @@ aria-label="Close"
 
 <div class="menu">
     <a
-        href="/export/books.csv"
+        href="../export/books.csv"
         data-i18n="books.main.export_csv"
     >
         ⬇️ Download complete database as CSV
@@ -643,9 +668,9 @@ aria-label="Close"
     </div>
 </div>
 
-<script src="/ui/js/i18n.js"></script>
-<script src="/ui/js/lib/quagga.min.js"></script>
-<script src="/ui/js/index.js?v=803"></script>
+<script src="./js/i18n.js"></script>
+<script src="./js/lib/quagga.min.js"></script>
+<script src="./js/index.js?v=803"></script>
 
 </body>
 </html>

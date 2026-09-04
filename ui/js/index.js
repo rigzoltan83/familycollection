@@ -713,8 +713,7 @@ throw new Error(
         );
 
         const response =
-            await fetch(
-                `/items/${normalizedItemPublicId}/images`,
+            await fetch(fcUrl(`/items/${normalizedItemPublicId}/images`),
                 {
                     method: "POST",
                     body: formData
@@ -1114,8 +1113,7 @@ return FamilyCollectionI18n.t(
 
 
 async function loadStorageTree() {
-    const response = await fetch(
-        "/storage/tree"
+    const response = await fetch(fcUrl("/storage/tree")
         + "?household_id=1"
         + "&include_inactive=true"
     );
@@ -1535,7 +1533,7 @@ showStatus(
     }
 
     try {
-        const response = await fetch("/scan", {
+        const response = await fetch(fcUrl("/scan"), {
             method: "POST",
 
             headers: {
@@ -1674,7 +1672,7 @@ async function loadLatest() {
 
     try {
         const response =
-            await fetch("/books/latest");
+            await fetch(fcUrl("/books/latest"));
 
         if (!response.ok) {
             throw new Error(
@@ -2131,7 +2129,7 @@ manualStatus.textContent =
 
     try {
         const response =
-            await fetch("/books/manual", {
+            await fetch(fcUrl("/books/manual"), {
                 method: "POST",
 
                 headers: {
@@ -2841,8 +2839,7 @@ missingMetadataStatus.textContent =
 
     try {
         const response =
-            await fetch(
-                "/books/manual-isbn",
+            await fetch(fcUrl("/books/manual-isbn"),
                 {
                     method: "POST",
 
@@ -2998,11 +2995,11 @@ missingMetadataTitle.addEventListener(
 async function initialize() {
     try {
         const response =
-            await fetch("/auth/context");
+            await fetch(fcUrl("/auth/context"));
 
         if (response.status === 401) {
             window.location.href =
-                "/ui/login.html";
+                fcUrl("/ui/login.html");
 
             return;
         }
@@ -3033,14 +3030,14 @@ async function initialize() {
 
         if (!household) {
             window.location.href =
-                "/ui/dashboard.html";
+                fcUrl("/ui/dashboard.html");
 
             return;
         }
 
 if (household.role === "viewer") {
     window.location.href =
-        "/ui/dashboard.html";
+        fcUrl("/ui/dashboard.html");
 
     return;
 }
@@ -3061,7 +3058,7 @@ console.error(
 );
 
         window.location.href =
-            "/ui/dashboard.html";
+            fcUrl("/ui/dashboard.html");
     }
 }
 

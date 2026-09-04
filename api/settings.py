@@ -124,6 +124,28 @@ SESSION_COOKIE_SECURE = get_bool_setting(
     default=True,
 )
 
+APP_BASE_PATH = os.getenv(
+    "APP_BASE_PATH",
+    "",
+).strip()
+
+if APP_BASE_PATH:
+    if not APP_BASE_PATH.startswith("/"):
+        APP_BASE_PATH = "/" + APP_BASE_PATH
+
+    APP_BASE_PATH = APP_BASE_PATH.rstrip("/")
+
+SESSION_COOKIE_PATH = os.getenv(
+    "SESSION_COOKIE_PATH",
+    APP_BASE_PATH or "/",
+).strip() or "/"
+
+if not SESSION_COOKIE_PATH.startswith("/"):
+    SESSION_COOKIE_PATH = "/" + SESSION_COOKIE_PATH
+
+if SESSION_COOKIE_PATH != "/":
+    SESSION_COOKIE_PATH = SESSION_COOKIE_PATH.rstrip("/")
+
 SESSION_MAX_AGE_SECONDS = int(
     os.getenv(
         "SESSION_MAX_AGE_SECONDS",

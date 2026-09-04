@@ -1194,6 +1194,31 @@
 }
 
 </style>
+<script>
+window.FC_BASE_PATH = (() => {
+    const marker = "/ui/";
+    const index = window.location.pathname.indexOf(marker);
+
+    if (index <= 0) {
+        return "";
+    }
+
+    return window.location.pathname.slice(0, index);
+})();
+
+window.fcUrl = (path) => {
+    if (!path) {
+        return window.FC_BASE_PATH || "/";
+    }
+
+    if (!path.startsWith("/")) {
+        path = "/" + path;
+    }
+
+    return window.FC_BASE_PATH + path;
+};
+</script>
+
 </head>
 
 <body>
@@ -1201,7 +1226,7 @@
 
 <div class="topbar">
     <a
-        href="/ui/dashboard.html"
+        href="./dashboard.html"
         class="button-link"
         data-i18n="common.back"
     >
@@ -2070,7 +2095,7 @@
 
     </main>
 
-    <script src="/ui/js/i18n.js"></script>
+    <script src="./js/i18n.js"></script>
 
     <script>
         let currentUserId = null;
@@ -2596,10 +2621,9 @@ async function loadAdminStorageTree() {
 
     try {
         const response =
-            await fetch(
-                `/storage/tree?${
+            await fetch(fcUrl(`/storage/tree?${
                     params.toString()
-                }`
+                }`)
             );
 
         const data =
@@ -2986,11 +3010,13 @@ async function storageAdminSaveLocation() {
     try {
         const response =
             await fetch(
-                editPublicId
-                    ? `/storage/${
-                        editPublicId
-                    }`
-                    : "/storage",
+                fcUrl(
+                    editPublicId
+                        ? `/storage/${
+                            editPublicId
+                        }`
+                        : "/storage"
+                ),
                 {
                     method:
                         editPublicId
@@ -3091,8 +3117,7 @@ async function storageAdminDeleteLocation(
 
     try {
         const response =
-            await fetch(
-                `/storage/${publicId}`,
+            await fetch(fcUrl(`/storage/${publicId}`),
                 {
                     method: "DELETE"
                 }
@@ -7359,13 +7384,13 @@ async function saveCategory(
         ) {
             const response =
                 await fetch(
-                    url,
+                    fcUrl(url),
                     options
                 );
 
             if (response.status === 401) {
                 window.location.href =
-                    "/ui/login.html";
+                    fcUrl("/ui/login.html");
 
                 throw new Error(
                     FamilyCollectionI18n.t(
@@ -7431,7 +7456,7 @@ async function saveCategory(
                 && activeHousehold.role !== "owner"
             ) {
                 window.location.href =
-                    "/ui/dashboard.html";
+                    fcUrl("/ui/dashboard.html");
 
                 throw new Error(
                     FamilyCollectionI18n.t(

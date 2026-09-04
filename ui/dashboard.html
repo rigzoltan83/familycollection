@@ -176,6 +176,31 @@
 }
 
     </style>
+<script>
+window.FC_BASE_PATH = (() => {
+    const marker = "/ui/";
+    const index = window.location.pathname.indexOf(marker);
+
+    if (index <= 0) {
+        return "";
+    }
+
+    return window.location.pathname.slice(0, index);
+})();
+
+window.fcUrl = (path) => {
+    if (!path) {
+        return window.FC_BASE_PATH || "/";
+    }
+
+    if (!path.startsWith("/")) {
+        path = "/" + path;
+    }
+
+    return window.FC_BASE_PATH + path;
+};
+</script>
+
 </head>
 
 <body>
@@ -262,7 +287,7 @@
             <a
                 id="adminCard"
                 class="menu-card admin-card"
-                href="/ui/admin.html"
+                href="./admin.html"
             >
                 <div class="menu-icon">
                     ⚙️
@@ -286,7 +311,7 @@
         </div>
     </main>
 
-<script src="/ui/js/i18n.js"></script>
+<script src="./js/i18n.js"></script>
 
     <script>
         const currentUser =
@@ -406,7 +431,7 @@ function createMenuCard({
             : "menu-card disabled";
 
     if (href) {
-        element.href = href;
+        element.href = fcUrl(href);
     }
 
     element.innerHTML = `
@@ -501,15 +526,14 @@ href:
         async function loadContext() {
             try {
                 const response =
-                    await fetch(
-                        "/auth/context"
+                    await fetch(fcUrl("/auth/context")
                     );
 
                 if (
                     response.status === 401
                 ) {
                     window.location.href =
-                        "/ui/login.html";
+                        fcUrl("/ui/login.html");
 
                     return;
                 }
@@ -548,10 +572,9 @@ statusBox.textContent =
                 );
 
 const categoriesResponse =
-    await fetch(
-        `/households/${
+    await fetch(fcUrl(`/households/${
             household.id
-        }/categories`
+        }/categories`)
     );
 
 if (!categoriesResponse.ok) {
@@ -623,15 +646,14 @@ statusBox.textContent =
             "click",
             async () => {
                 try {
-                    await fetch(
-                        "/auth/logout",
+                    await fetch(fcUrl("/auth/logout"),
                         {
                             method: "POST"
                         }
                     );
                 } finally {
                     window.location.href =
-                        "/ui/login.html";
+                        fcUrl("/ui/login.html");
                 }
             }
         );

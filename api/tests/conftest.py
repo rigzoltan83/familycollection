@@ -6,6 +6,13 @@ használhatják. A normál adatbázis használatát biztonsági ellenőrzés
 akadályozza meg.
 """
 
+import os
+
+# Tests exercise FastAPI directly at root-level API paths.
+# Keep session cookies independent from deployment subpaths.
+os.environ["APP_BASE_PATH"] = ""
+os.environ["SESSION_COOKIE_PATH"] = "/"
+
 import pytest
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session, sessionmaker

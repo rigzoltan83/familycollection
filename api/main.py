@@ -16,6 +16,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 from settings import (
+    SESSION_COOKIE_PATH,
     SESSION_COOKIE_SECURE,
     SESSION_MAX_AGE_SECONDS,
     SESSION_SECRET_KEY,
@@ -63,13 +64,16 @@ from app.services import (
     list_all_books_for_export,
 )
 
-app = FastAPI(title="Family Collection API")
+app = FastAPI(
+    title="Family Collection API",
+)
 
 app.add_middleware(
     SessionMiddleware,
     secret_key=SESSION_SECRET_KEY,
     session_cookie="familycollection_session",
     max_age=SESSION_MAX_AGE_SECONDS,
+    path=SESSION_COOKIE_PATH,
     same_site="lax",
     https_only=SESSION_COOKIE_SECURE,
 )

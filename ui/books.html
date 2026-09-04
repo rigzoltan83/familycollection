@@ -763,6 +763,31 @@ body.embedded-book-editor #editModal .modal-content {
     overflow-y: auto;
 }
 </style>
+<script>
+window.FC_BASE_PATH = (() => {
+    const marker = "/ui/";
+    const index = window.location.pathname.indexOf(marker);
+
+    if (index <= 0) {
+        return "";
+    }
+
+    return window.location.pathname.slice(0, index);
+})();
+
+window.fcUrl = (path) => {
+    if (!path) {
+        return window.FC_BASE_PATH || "/";
+    }
+
+    if (!path.startsWith("/")) {
+        path = "/" + path;
+    }
+
+    return window.FC_BASE_PATH + path;
+};
+</script>
+
 </head>
 
 <body>
@@ -771,7 +796,7 @@ body.embedded-book-editor #editModal .modal-content {
 
 <a
     id="backLink"
-    href="/ui/dashboard.html"
+    href="./dashboard.html"
     data-i18n="common.back"
 >
     ← Back
@@ -1082,7 +1107,7 @@ body.embedded-book-editor #editModal .modal-content {
     >
 </div>
 
-<script src="/ui/js/i18n.js"></script>
+<script src="./js/i18n.js"></script>
 
 <script>
 "use strict";
@@ -1179,11 +1204,11 @@ function escapeHtml(value) {
 
 async function loadBookPagePermissions() {
     const response =
-        await fetch("/auth/context");
+        await fetch(fcUrl("/auth/context"));
 
     if (response.status === 401) {
         window.location.href =
-            "/ui/login.html";
+            fcUrl("/ui/login.html");
 
         return false;
     }
@@ -1382,13 +1407,12 @@ function getLocation(book) {
 }
 
 async function loadAuthorizationContext() {
-    const response = await fetch(
-        "/auth/context"
+    const response = await fetch(fcUrl("/auth/context")
     );
 
     if (!response.ok) {
         window.location.href =
-            "/ui/login.html";
+            fcUrl("/ui/login.html");
 
         return false;
     }
@@ -1413,7 +1437,7 @@ async function loadAuthorizationContext() {
 
     if (!household) {
         window.location.href =
-            "/ui/dashboard.html";
+            fcUrl("/ui/dashboard.html");
 
         return false;
     }
@@ -1470,8 +1494,7 @@ list.innerHTML = `
 `;
 
     try {
-        const response = await fetch(
-            `/books/all?${params.toString()}`
+        const response = await fetch(fcUrl(`/books/all?${params.toString()}`)
         );
 
         if (!response.ok) {
@@ -1923,7 +1946,7 @@ if (!confirm(
     }
 
     try {
-        const response = await fetch(`/books/${id}`, {
+        const response = await fetch(fcUrl(`/books/${id}`), {
             method: "DELETE"
         });
 
@@ -2022,8 +2045,7 @@ async function loadEditorPlaces() {
         return;
     }
 
-const response = await fetch(
-    "/storage/tree"
+const response = await fetch(fcUrl("/storage/tree")
     + "?household_id=1"
     + "&include_inactive=true"
 );
@@ -2444,7 +2466,7 @@ document
 filterEditorStorageOptions();
 
         const response =
-            await fetch(`/books/${id}`);
+            await fetch(fcUrl(`/books/${id}`));
 
         if (!response.ok) {
             throw new Error(
@@ -2566,8 +2588,7 @@ async function loadEditorImages(
     }
 
     const response =
-        await fetch(
-            `/items/${itemPublicId}/images`
+        await fetch(fcUrl(`/items/${itemPublicId}/images`)
         );
 
     if (!response.ok) {
@@ -2678,8 +2699,7 @@ statusElement.textContent =
             );
 
             const response =
-                await fetch(
-                    `/items/${itemPublicId}/images`,
+                await fetch(fcUrl(`/items/${itemPublicId}/images`),
                     {
                         method: "POST",
                         body: formData
@@ -2761,8 +2781,7 @@ statusElement.textContent =
 
     try {
         const response =
-            await fetch(
-                `/item-images/${imagePublicId}`,
+            await fetch(fcUrl(`/item-images/${imagePublicId}`),
                 {
                     method: "PATCH",
                     headers: {
@@ -2922,8 +2941,7 @@ statusElement.textContent =
             }
 
             const response =
-                await fetch(
-                    `/item-images/${image.public_id}`,
+                await fetch(fcUrl(`/item-images/${image.public_id}`),
                     {
                         method: "PATCH",
                         headers: {
@@ -3027,8 +3045,7 @@ statusElement.textContent =
 
     try {
         const response =
-            await fetch(
-                `/item-images/${imagePublicId}`,
+            await fetch(fcUrl(`/item-images/${imagePublicId}`),
                 {
                     method: "DELETE"
                 }
@@ -3400,7 +3417,7 @@ editStatus.textContent =
 
     try {
         const response =
-            await fetch(`/books/${bookId}`, {
+            await fetch(fcUrl(`/books/${bookId}`), {
                 method: "PUT",
 
                 headers: {

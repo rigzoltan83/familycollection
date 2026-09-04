@@ -778,6 +778,31 @@
 }
 
     </style>
+<script>
+window.FC_BASE_PATH = (() => {
+    const marker = "/ui/";
+    const index = window.location.pathname.indexOf(marker);
+
+    if (index <= 0) {
+        return "";
+    }
+
+    return window.location.pathname.slice(0, index);
+})();
+
+window.fcUrl = (path) => {
+    if (!path) {
+        return window.FC_BASE_PATH || "/";
+    }
+
+    if (!path.startsWith("/")) {
+        path = "/" + path;
+    }
+
+    return window.FC_BASE_PATH + path;
+};
+</script>
+
 </head>
 
 <body>
@@ -1452,7 +1477,7 @@
 
 </main>
 
-<script src="/ui/js/i18n.js"></script>
+<script src="./js/i18n.js"></script>
 
 <script>
 
@@ -1822,12 +1847,11 @@ async function loadCategoryAllowedStorage() {
     }
 
     const response =
-        await fetch(
-            `/households/${
+        await fetch(fcUrl(`/households/${
                 activeHousehold.id
             }/categories/${
                 activeCategory.id
-            }/allowed-storage`
+            }/allowed-storage`)
         );
 
     let data = null;
@@ -2027,10 +2051,9 @@ async function loadCollectionStorageTree() {
         });
 
     const response =
-        await fetch(
-            `/storage/tree?${
+        await fetch(fcUrl(`/storage/tree?${
                 params.toString()
-            }`
+            }`)
         );
 
     let data = null;
@@ -2126,12 +2149,11 @@ async function deleteActiveItem() {
 
     try {
         const response =
-            await fetch(
-                `/items/${
+            await fetch(fcUrl(`/items/${
                     encodeURIComponent(
                         activeItem.public_id
                     )
-                }`,
+                }`),
                 {
                     method: "DELETE"
                 }
@@ -3247,12 +3269,11 @@ async function loadItemDetailImages(
         `;
 
     const response =
-        await fetch(
-            `/items/${
+        await fetch(fcUrl(`/items/${
                 encodeURIComponent(
                     itemPublicId
                 )
-            }/images`
+            }/images`)
         );
 
     let data = null;
@@ -3302,12 +3323,11 @@ async function openItemDetail(
 
     try {
         const response =
-            await fetch(
-                `/items/${
+            await fetch(fcUrl(`/items/${
                     encodeURIComponent(
                         publicId
                     )
-                }`
+                }`)
             );
 
         let item = null;
@@ -3357,12 +3377,11 @@ async function loadEditItemImages(
     }
 
     const response =
-        await fetch(
-            `/items/${
+        await fetch(fcUrl(`/items/${
                 encodeURIComponent(
                     itemPublicId
                 )
-            }/images`
+            }/images`)
         );
 
     let data = null;
@@ -3700,12 +3719,11 @@ async function uploadEditItemImageFiles(
             }
 
             const response =
-                await fetch(
-                    `/items/${
+                await fetch(fcUrl(`/items/${
                         encodeURIComponent(
                             activeItem.public_id
                         )
-                    }/images`,
+                    }/images`),
                     {
                         method: "POST",
                         body: formData
@@ -3784,12 +3802,11 @@ async function setEditItemPrimaryImage(
 
     try {
         const response =
-            await fetch(
-                `/item-images/${
+            await fetch(fcUrl(`/item-images/${
                     encodeURIComponent(
                         imagePublicId
                     )
-                }`,
+                }`),
                 {
                     method: "PATCH",
 
@@ -3864,12 +3881,11 @@ async function deleteEditItemImage(
 
     try {
         const response =
-            await fetch(
-                `/item-images/${
+            await fetch(fcUrl(`/item-images/${
                     encodeURIComponent(
                         imagePublicId
                     )
-                }`,
+                }`),
                 {
                     method: "DELETE"
                 }
@@ -3993,12 +4009,11 @@ async function moveEditItemImage(
             }
 
             const response =
-                await fetch(
-                    `/item-images/${
+                await fetch(fcUrl(`/item-images/${
                         encodeURIComponent(
                             image.public_id
                         )
-                    }`,
+                    }`),
                     {
                         method: "PATCH",
 
@@ -4156,12 +4171,11 @@ async function saveItemEdit() {
 
     try {
         const response =
-            await fetch(
-                `/items/${
+            await fetch(fcUrl(`/items/${
                     encodeURIComponent(
                         activeItem.public_id
                     )
-                }`,
+                }`),
                 {
                     method: "PATCH",
 
@@ -4451,8 +4465,7 @@ if (
 }
 
 const response =
-    await fetch(
-        `/items?${parameters.toString()}`
+    await fetch(fcUrl(`/items?${parameters.toString()}`)
     );
 
         let data = null;
@@ -5195,12 +5208,11 @@ async function uploadPendingItemImages(
         }
 
         const response =
-            await fetch(
-                `/items/${
+            await fetch(fcUrl(`/items/${
                     encodeURIComponent(
                         normalizedItemPublicId
                     )
-                }/images`,
+                }/images`),
                 {
                     method: "POST",
                     body: formData
@@ -5363,8 +5375,7 @@ async function createCollectionItem(
 
     try {
         const result =
-            await fetch(
-                "/items",
+            await fetch(fcUrl("/items"),
                 {
                     method: "POST",
 
@@ -5575,13 +5586,12 @@ itemDetailContent.style.display =
 
 
             const contextResponse =
-                await fetch(
-                    "/auth/context"
+                await fetch(fcUrl("/auth/context")
                 );
 
             if (contextResponse.status === 401) {
                 window.location.href =
-                    "/ui/login.html";
+                    fcUrl("/ui/login.html");
 
                 return;
             }
@@ -5629,10 +5639,9 @@ itemDetailContent.style.display =
 
 
             const categoriesResponse =
-                await fetch(
-                    `/households/${
+                await fetch(fcUrl(`/households/${
                         household.id
-                    }/categories`
+                    }/categories`)
                 );
 
             if (!categoriesResponse.ok) {
@@ -5662,12 +5671,11 @@ itemDetailContent.style.display =
 
 
             const fieldsResponse =
-                await fetch(
-                    `/households/${
+                await fetch(fcUrl(`/households/${
                         household.id
                     }/categories/${
                         category.id
-                    }/fields`
+                    }/fields`)
                 );
 
             if (!fieldsResponse.ok) {

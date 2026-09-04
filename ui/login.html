@@ -112,6 +112,31 @@
             color: #ff7b7b;
         }
     </style>
+<script>
+window.FC_BASE_PATH = (() => {
+    const marker = "/ui/";
+    const index = window.location.pathname.indexOf(marker);
+
+    if (index <= 0) {
+        return "";
+    }
+
+    return window.location.pathname.slice(0, index);
+})();
+
+window.fcUrl = (path) => {
+    if (!path) {
+        return window.FC_BASE_PATH || "/";
+    }
+
+    if (!path.startsWith("/")) {
+        path = "/" + path;
+    }
+
+    return window.FC_BASE_PATH + path;
+};
+</script>
+
 </head>
 
 <body>
@@ -223,13 +248,12 @@ const identifier =
         async function redirectIfAuthenticated() {
             try {
                 const response =
-                    await fetch(
-                        "/auth/context"
+                    await fetch(fcUrl("/auth/context")
                     );
 
                 if (response.ok) {
                     window.location.href =
-                        "/ui/dashboard.html";
+                        fcUrl("/ui/dashboard.html");
                 }
 
             } catch {
@@ -249,8 +273,7 @@ const identifier =
 
                 try {
                     const response =
-                        await fetch(
-                            "/auth/login",
+                        await fetch(fcUrl("/auth/login"),
                             {
                                 method: "POST",
 
@@ -299,7 +322,7 @@ if (!response.ok) {
 }
 
                     window.location.href =
-                        "/ui/dashboard.html";
+                        fcUrl("/ui/dashboard.html");
 
                 } catch (error) {
                     statusBox.textContent =
@@ -316,7 +339,7 @@ if (!response.ok) {
 
 identifier.focus();
     </script>
-<script src="/ui/js/i18n.js"></script>
+<script src="./js/i18n.js"></script>
 
 <script>
     document.addEventListener(

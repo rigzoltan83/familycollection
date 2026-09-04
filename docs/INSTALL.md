@@ -108,36 +108,57 @@ http://SERVER_IP:8000/ui/login.html
 
 Log in with the administrator account created in the previous step.
 
-## 6. HTTPS and session cookies
+## 6. HTTPS, session cookies, and URL subpaths
 
 A fresh installation initially uses:
 
-```text
-SESSION_COOKIE_SECURE=false
-```
+    SESSION_COOKIE_SECURE=false
 
 This allows login over plain HTTP during initial local testing.
 
 For an HTTPS deployment, change this in:
 
-```text
-/opt/familycollection/api/.env
-```
+    /opt/familycollection/api/.env
 
 to:
 
-```text
-SESSION_COOKIE_SECURE=true
-```
+    SESSION_COOKIE_SECURE=true
 
 Then restart the API:
 
-```bash
-sudo systemctl restart \
-    family-api.service
-```
+    sudo systemctl restart family-api.service
 
 Do not expose a production installation directly to the public Internet over plain HTTP.
+
+### Deploying at the domain root
+
+For a normal root deployment, use:
+
+    APP_BASE_PATH=
+    SESSION_COOKIE_PATH=/
+
+The application is then available directly below the host name, for example:
+
+    https://example.com/ui/login.html
+
+### Deploying under a URL subpath
+
+FamilyCollection can also be published below a URL prefix when a reverse proxy strips that prefix before forwarding requests to the application.
+
+For example, to publish it below `/familycollection`, use:
+
+    APP_BASE_PATH=/familycollection
+    SESSION_COOKIE_PATH=/familycollection
+
+The browser-facing login URL is then:
+
+    https://example.com/familycollection/ui/login.html
+
+`SESSION_COOKIE_PATH` should normally match the application subpath. This keeps the FamilyCollection session cookie scoped to the application instead of the entire domain.
+
+After changing these settings, restart the API:
+
+    sudo systemctl restart family-api.service
 
 ## 7. Application configuration
 

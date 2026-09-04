@@ -9,6 +9,7 @@ from fastapi import (
     Depends,
     HTTPException,
     Request,
+    Response,
     status,
 )
 from sqlalchemy.orm import Session
@@ -24,6 +25,7 @@ from app.schemas import (
     LoginResponse,
 )
 from app.services import authenticate_user
+from settings import SESSION_COOKIE_PATH
 
 
 router = APIRouter(
@@ -39,6 +41,7 @@ router = APIRouter(
 def login(
     payload: LoginRequest,
     request: Request,
+    response: Response,
     session: Session = Depends(get_db_session),
 ) -> LoginResponse:
     """
@@ -62,6 +65,14 @@ def login(
     request.session.clear()
 
     request.session["user_id"] = user.id
+
+    # Remove a legacy root-path cookie only when
+    # the current deployment uses a narrower path.
+    if SESSION_COOKIE_PATH != "/":
+        response.delete_cookie(
+            key="familycollection_session",
+            path="/",
+        )
 
     user.last_login_at = datetime.now()
 
@@ -152,11 +163,20 @@ def get_auth_context(
 )
 def logout(
     request: Request,
+    response: Response,
 ) -> dict[str, str]:
     """
     Az aktuális session megszüntetése.
     """
     request.session.clear()
+
+    # Also remove a legacy root-path cookie when
+    # the current deployment uses a narrower path.
+    if SESSION_COOKIE_PATH != "/":
+        response.delete_cookie(
+            key="familycollection_session",
+            path="/",
+        )
 
     return {
         "status": "logged_out",
