@@ -58,3 +58,9 @@ data/
 
 # Local LEGO import images
 lego_box_images/
+
+# Local demo runtime
+demo/.env
+demo/data/
+demo/uvicorn.log
+demo/uvicorn.pid
