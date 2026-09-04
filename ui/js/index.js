@@ -1705,10 +1705,14 @@ latest.innerHTML =
                 ).trim();
 
             const primaryThumbnailUrl =
-                primaryImageUrl.replace(
-                    /\/content$/,
-                    "/thumbnail"
-                );
+                primaryImageUrl
+                    ? fcUrl(
+                        primaryImageUrl.replace(
+                            /\/content$/,
+                            "/thumbnail"
+                        )
+                    )
+                    : "";
 
             const coverHtml =
                 primaryThumbnailUrl
@@ -1908,9 +1912,11 @@ function openLatestBookEditorModal(
     }
 
     latestBookEditorFrame.src =
-        `/ui/books.html`
-        + `?edit=${encodeURIComponent(id)}`
-        + `&embedded=1`;
+        fcUrl(
+            `/ui/books.html`
+            + `?edit=${encodeURIComponent(id)}`
+            + `&embedded=1`
+        );
 
     latestBookEditorModal.style.display =
         "flex";

@@ -1640,10 +1640,14 @@ list.innerHTML =
             ).trim();
 
         const primaryThumbnailUrl =
-            primaryImageUrl.replace(
-                /\/content$/,
-                "/thumbnail"
-            );
+            primaryImageUrl
+                ? fcUrl(
+                    primaryImageUrl.replace(
+                        /\/content$/,
+                        "/thumbnail"
+                    )
+                )
+                : "";
 
         const coverHtml =
             primaryThumbnailUrl
@@ -3197,7 +3201,9 @@ const primaryBadge =
                     <div class="edit-image-preview">
                         <img
                             src="${escapeHtml(
-                                image.content_url
+                                fcUrl(
+                                    image.content_url
+                                )
                             )}"
                             alt="${escapeHtml(caption)}"
                             loading="lazy"

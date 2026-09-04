@@ -4557,11 +4557,16 @@ const visibleFields =
             row.className =
                 "field-row";
 
-const primaryThumbnailUrl =
+const primaryThumbnailUrlRaw =
     String(
         item.primary_image_thumbnail_url
         || ""
     ).trim();
+
+const primaryThumbnailUrl =
+    primaryThumbnailUrlRaw
+        ? fcUrl(primaryThumbnailUrlRaw)
+        : "";
 
 const thumbnailHtml =
     primaryThumbnailUrl
