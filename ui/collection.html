@@ -2717,18 +2717,18 @@ itemDetailImageGallery.innerHTML = `
 
     for (const image of normalizedImages) {
         const thumbnailUrl =
-            `/item-images/${
+            fcUrl(`/item-images/${
                 encodeURIComponent(
                     image.public_id
                 )
-            }/thumbnail`;
+            }/thumbnail`);
 
         const contentUrl =
-            `/item-images/${
+            fcUrl(`/item-images/${
                 encodeURIComponent(
                     image.public_id
                 )
-            }/content`;
+            }/content`);
 
         const card =
             document.createElement(
@@ -3010,18 +3010,18 @@ editItemImageGallery.innerHTML = `
                 "edit-item-image-card";
 
             const thumbnailUrl =
-                `/item-images/${
+                fcUrl(`/item-images/${
                     encodeURIComponent(
                         image.public_id
                     )
-                }/thumbnail`;
+                }/thumbnail`);
 
             const contentUrl =
-                `/item-images/${
+                fcUrl(`/item-images/${
                     encodeURIComponent(
                         image.public_id
                     )
-                }/content`;
+                }/content`);
 
             card.innerHTML = `
                 <div
