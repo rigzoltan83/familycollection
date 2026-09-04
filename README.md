@@ -2,9 +2,29 @@
 
 Self-hosted collection management for books, board games, video games, and other personal or household collections.
 
-FamilyCollection provides a flexible category-based system for organizing physical and digital collections without depending on a hosted service. It combines customizable fields, hierarchical storage locations, metadata lookup, images, barcode support, and household-based access in a mobile-friendly web interface.
+FamilyCollection is a mobile-friendly web application for organizing physical and digital collections without depending on a hosted service. It combines flexible categories, custom fields, hierarchical storage locations, metadata lookup, images, barcode support, and household-based access.
 
 > **Project status:** Active development. FamilyCollection is usable for testing and personal deployments, but is not yet considered production-ready for unrestricted public Internet exposure.
+
+## Screenshots
+
+### Dashboard
+
+![FamilyCollection dashboard](docs/screenshots/dashboard.png)
+
+### Book collection
+
+![FamilyCollection book collection](docs/screenshots/books.png)
+
+### Item details
+
+![FamilyCollection item details](docs/screenshots/item-details.png)
+
+### Storage management
+
+![FamilyCollection storage management](docs/screenshots/storage.png)
+
+Screenshots are captured from an isolated synthetic demo environment and do not contain production or personal data.
 
 ## Features
 
