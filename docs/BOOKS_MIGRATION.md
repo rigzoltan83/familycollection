@@ -7,7 +7,7 @@ A jelenlegi `books` tábla teljes adatállományát veszteség nélkül
 
 Kiinduló állapot:
 
-- régi könyvek száma: 1046;
+- a migráció előtt a forrásrekordok aktuális számát külön ellenőrizni kell;
 - forrástábla: `books`;
 - régi tárhelytábla: `locations`;
 - új központi tábla: `collection_items`;

@@ -1,38 +1,76 @@
 # FamilyCollection
 
-FamilyCollection is a self-hosted collection management application for organizing books, board games, video games, and other personal or household collections.
+Self-hosted collection management for books, board games, video games, and other personal or household collections.
 
-The project is designed to provide a flexible, category-based system with custom fields, storage locations, metadata providers, image support, and a mobile-friendly web interface.
+FamilyCollection provides a flexible category-based system for organizing physical and digital collections without depending on a hosted service. It combines customizable fields, hierarchical storage locations, metadata lookup, images, barcode support, and household-based access in a mobile-friendly web interface.
 
-> **Project status:** Active development.  
-> FamilyCollection is not yet considered production-ready for public deployment.
+> **Project status:** Active development. FamilyCollection is usable for testing and personal deployments, but is not yet considered production-ready for unrestricted public Internet exposure.
 
 ## Features
 
 - Flexible collection categories
-- Custom fields per category
-- Storage locations and category-specific storage rules
-- Item images
+- Custom fields for category-specific metadata
+- Hierarchical storage locations
+- Category-specific storage rules
+- Item image management
 - Barcode and identifier support
-- Book metadata support
+- Book metadata lookup
 - User authentication
-- Household-based data model
+- Household-based data separation
 - Mobile-friendly web interface
-- PostgreSQL database
-- FastAPI backend
-- Database migrations with Alembic
+- PostgreSQL storage
+- Alembic database migrations
 - Self-hosted deployment
+- Root-domain and reverse-proxy subpath deployment
 
-## Current Categories
+## Collection Types
 
-FamilyCollection is designed to support multiple types of collections.
+FamilyCollection is designed around a generic item model rather than a single hard-coded collection type.
 
-Current and planned examples include:
+Examples include:
 
 - Books
 - Board games
 - Video games
-- Other customizable collection types
+- Other user-defined collection types
+
+Books currently have the most mature specialized workflow, including ISBN-based metadata lookup and barcode scanning.
+
+## Quick Start
+
+The supported installation target is currently Ubuntu 24.04.
+
+Clone the repository:
+
+    cd /opt
+    sudo git clone https://github.com/rigzoltan83/familycollection.git familycollection
+    sudo chown -R "$USER":"$(id -gn)" /opt/familycollection
+    cd /opt/familycollection
+
+Run the installer:
+
+    sudo ./install.sh
+
+Then create the first administrator:
+
+    cd /opt/familycollection/api
+    venv/bin/python scripts/bootstrap_admin.py
+
+For complete installation, HTTPS, subpath deployment, service management, migrations, testing, and backup instructions, see [docs/INSTALL.md](docs/INSTALL.md).
+
+## Deployment
+
+The standard deployment uses:
+
+- Ubuntu 24.04
+- Python / FastAPI / Uvicorn
+- PostgreSQL 16
+- Docker Compose for the PostgreSQL service
+- systemd for the FamilyCollection API
+
+FamilyCollection can run directly at the root of a host or behind a reverse proxy under a URL prefix such as `/familycollection`.
+
+HTTPS is strongly recommended outside a trusted local network.
 
 ## Technology
 
@@ -49,53 +87,74 @@ Current and planned examples include:
 - HTML
 - CSS
 - JavaScript
-
-### Deployment
-
-- Ubuntu Linux
-- PostgreSQL 16
-- Docker / Docker Compose for database services
+- QuaggaJS for browser-based barcode scanning
 
 ## Repository Structure
 
-```text
-familycollection/
-├── api/              Backend application
-├── ui/               Web frontend
-├── docs/             Project documentation
-├── data/             Runtime data (not stored in Git)
-├── backup.sh         Backup helper
-├── docker-compose.yml
-└── README.md
-```
+    familycollection/
+    ├── api/                 Backend application and migrations
+    ├── docs/                Project documentation
+    ├── scripts/             Import and maintenance helpers
+    ├── ui/                  Web frontend
+    ├── backup.sh            Backup helper
+    ├── docker-compose.yml   PostgreSQL service
+    ├── install.sh           Ubuntu installation helper
+    └── README.md
+
+Runtime data, local configuration, database dumps, imports, backups, and uploaded images are intentionally excluded from Git.
+
+## Configuration
+
+Local configuration is stored in `api/.env` and is never intended to be committed.
+
+Use `api/.env.example` as the configuration reference.
+
+The installer generates database and session secrets automatically for a fresh installation.
+
+## Data and Privacy
+
+The public repository does not contain a production collection database or personal collection data.
+
+Fresh installations start with their own database. Local runtime data, database dumps, imports, uploaded images, and environment files are excluded through `.gitignore`.
+
+Never commit real passwords, API keys, database dumps, or personal collection exports.
+
+## Documentation
+
+- [Installation and operations](docs/INSTALL.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)
+- [License](LICENSE)
+
+Additional architecture and migration documentation is being reviewed and updated as the project evolves.
+
+## Development and Tests
+
+The test suite uses a dedicated PostgreSQL test database configured by `TEST_DATABASE_NAME`.
+
+Install development dependencies and run the tests from the API directory:
+
+    cd /opt/familycollection/api
+    venv/bin/pip install -r requirements-dev.in
+    venv/bin/python -m pytest -q
+
+Tests must never be pointed at a production database.
 
 ## Support
 
-FamilyCollection is free and open-source software and is developed in my spare time.
+FamilyCollection is free and open-source software developed in my spare time.
 
-If you find the project useful and would like to support its continued development, you can support my open-source work on Patreon:
+If you find the project useful and would like to support continued development, you can support my open-source work on Patreon:
 
-**[Support me on Patreon](https://www.patreon.com/ZoltanRigo)**
+[Support my open-source work on Patreon](https://www.patreon.com/ZoltanRigo)
 
-Support is completely optional. FamilyCollection remains freely available under the GNU General Public License.
-
-Think of it as buying me a coffee — or, if you really like the project, helping with a bottle of whiskey. 🥃
+Support is entirely optional. FamilyCollection remains freely available under the GNU General Public License.
 
 ## License
 
 Copyright (C) 2026 Zoltán Rigó
 
-FamilyCollection is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+FamilyCollection is licensed under the GNU General Public License, version 3 or any later version.
 
-FamilyCollection is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+See [LICENSE](LICENSE) for the complete license text.
 
-See the [LICENSE](LICENSE) file for the full license text.
-
-Third-party components remain subject to their respective licenses.
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
+Third-party components remain subject to their respective licenses. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.

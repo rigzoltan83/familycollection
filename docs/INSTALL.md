@@ -41,15 +41,20 @@ Enter the project directory:
 cd /opt/familycollection
 ```
 
-## 2. Select the branch
+## 2. Select the version
 
-During active development, use the development branch:
+For the latest development version, use the `main` branch:
 
-```bash
-git switch feature/platform-foundation
-```
+    git switch main
+    git pull --ff-only
 
-For a stable release, use the branch or tag documented for that release.
+For a stable release, check out the release tag documented on the GitHub Releases page.
+
+For example:
+
+    git checkout v0.2.0
+
+Release tags are recommended for installations where reproducibility is more important than receiving the newest development changes immediately.
 
 ## 3. Run the installer
 
@@ -263,19 +268,51 @@ venv/bin/python -m pytest -q
 
 ## 11. Backup
 
-The repository contains:
+The repository includes `backup.sh` for application backups.
 
-```text
-/opt/familycollection/backup.sh
-```
+By default, backups are written below:
 
-The backup script uses the database settings from `api/.env`.
+    /backup/familycollection
 
-Review `BACKUPROOT` in the script before enabling scheduled backups, because the default backup destination is:
+Run a backup with:
 
-```text
-/backup/familycoll
-```
+    cd /opt/familycollection
+    sudo ./backup.sh
+
+Each backup contains:
+
+- a PostgreSQL custom-format dump;
+- a gzip-compressed plain SQL dump;
+- the complete runtime `data/` directory;
+- the local `api/.env` configuration;
+- the systemd service definition when available;
+- deployment metadata including the Git commit and software versions.
+
+The Python virtual environment and Git working tree are intentionally not copied. They can be recreated from the repository and dependency files.
+
+### Backup destination
+
+Override the default destination with `BACKUP_ROOT`:
+
+    sudo BACKUP_ROOT=/mnt/backups/familycollection ./backup.sh
+
+### Retention
+
+The default retention period is 5 days.
+
+Override it with:
+
+    sudo BACKUP_RETENTION_DAYS=14 ./backup.sh
+
+Set the value to `0` to disable automatic deletion:
+
+    sudo BACKUP_RETENTION_DAYS=0 ./backup.sh
+
+### Backup security
+
+Backups contain the local `api/.env` file and therefore include database credentials, the session secret, and any configured metadata-provider API keys.
+
+Backup directories are created with restrictive permissions, but they must still be treated as sensitive data. Do not publish them or commit them to Git.
 
 ## Security notes
 
