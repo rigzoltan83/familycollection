@@ -1263,8 +1263,8 @@ throw new Error(
     if (backLink) {
         backLink.href =
             canEditBooks
-                ? "/ui/index.html"
-                : "/ui/dashboard.html";
+                ? fcUrl("/ui/index.html")
+                : fcUrl("/ui/dashboard.html");
     }
 
     return true;
@@ -1455,8 +1455,8 @@ async function loadAuthorizationContext() {
     if (backLink) {
         backLink.href =
             canEditBooks
-                ? "/ui/index.html"
-                : "/ui/dashboard.html";
+                ? fcUrl("/ui/index.html")
+                : fcUrl("/ui/dashboard.html");
     }
 
     return true;

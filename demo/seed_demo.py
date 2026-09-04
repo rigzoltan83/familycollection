@@ -30,6 +30,7 @@ from app.models import (
     HouseholdMember,
     ItemFieldValue,
     ItemStorageAssignment,
+    LegacyBookMigration,
     StorageLocation,
     User,
 )
@@ -267,6 +268,7 @@ def main() -> None:
             user,
             shelf_a,
             book_fields,
+            legacy_book_id=1,
             title="The Clockmaker's Map",
             author="Elena Hart",
             publisher="Northbridge Press",
@@ -281,6 +283,7 @@ def main() -> None:
             user,
             shelf_a,
             book_fields,
+            legacy_book_id=2,
             title="Gardens Beyond the Moon",
             author="Mira Vale",
             publisher="Silver Fern Books",
@@ -295,6 +298,7 @@ def main() -> None:
             user,
             shelf_b,
             book_fields,
+            legacy_book_id=3,
             title="Practical Astronomy at Home",
             author="Daniel Mercer",
             publisher="Clear Sky Publishing",
@@ -452,6 +456,7 @@ def add_book(
     location: StorageLocation,
     fields: dict[str, CategoryField],
     *,
+    legacy_book_id: int,
     title: str,
     author: str,
     publisher: str,
@@ -474,6 +479,17 @@ def add_book(
         "publish_year": year,
         "page_count": pages,
     }
+
+    mapping = LegacyBookMigration(
+        public_id=generate_public_id(),
+        legacy_book_id=legacy_book_id,
+        collection_item_id=item.id,
+        migration_status="migrated",
+        migration_notes=(
+            "Synthetic demo compatibility mapping."
+        ),
+    )
+    session.add(mapping)
 
     for key, value in values.items():
         field = fields.get(key)

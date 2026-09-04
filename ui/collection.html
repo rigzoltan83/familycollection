@@ -5224,11 +5224,11 @@ activeCategory = category;
 activeFields = fields;
 
 allItemsLink.href =
-    `/ui/collection-list.html?category_id=${
+    fcUrl(`/ui/collection-list.html?category_id=${
         encodeURIComponent(
             activeCategory.id
         )
-    }`;
+    }`);
 
 await loadCategoryAllowedStorage();
 await loadCollectionStorageTree();
